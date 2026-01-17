@@ -3,7 +3,6 @@ package main
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/syou6162/esa-llm-scoped-guard/internal/guard"
@@ -52,17 +51,6 @@ func TestIntegrationEndToEnd(t *testing.T) {
 	if normalizedCategory != "LLM/Tasks" {
 		t.Errorf("Expected normalized category 'LLM/Tasks', got '%s'", normalizedCategory)
 	}
-
-	// フロントマター生成
-	bodyWithFrontmatter, err := GenerateFrontmatter(input)
-	if err != nil {
-		t.Fatalf("GenerateFrontmatter() error = %v", err)
-	}
-
-	// フロントマターが含まれることを確認
-	if len(bodyWithFrontmatter) <= len(input.BodyMD) {
-		t.Errorf("Expected frontmatter to be added")
-	}
 }
 
 // TestIntegrationJapaneseCategory は日本語カテゴリの統合テストです
@@ -106,20 +94,6 @@ func TestIntegrationJapaneseCategory(t *testing.T) {
 
 	if normalizedCategory != "Claude Code/開発日誌" {
 		t.Errorf("Expected normalized category 'Claude Code/開発日誌', got '%s'", normalizedCategory)
-	}
-
-	// フロントマター生成
-	bodyWithFrontmatter, err := GenerateFrontmatter(input)
-	if err != nil {
-		t.Fatalf("GenerateFrontmatter() error = %v", err)
-	}
-
-	// フロントマターに日本語が含まれることを確認
-	if !strings.Contains(bodyWithFrontmatter, "Claude Code/開発日誌") {
-		t.Errorf("Frontmatter does not contain Japanese category")
-	}
-	if !strings.Contains(bodyWithFrontmatter, "テスト") {
-		t.Errorf("Frontmatter does not contain Japanese tags")
 	}
 }
 

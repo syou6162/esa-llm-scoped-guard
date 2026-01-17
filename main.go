@@ -114,20 +114,14 @@ func run(jsonPath string) error {
 		return fmt.Errorf("category %s is not allowed", input.Category)
 	}
 
-	// 5. フロントマター生成
-	bodyWithFrontmatter, err := GenerateFrontmatter(input)
-	if err != nil {
-		return fmt.Errorf("failed to generate frontmatter: %w", err)
-	}
-
-	// 6. esa.io APIクライアントで投稿
+	// 5. esa.io APIクライアントで投稿
 	client := esa.NewEsaClient(config.Esa.TeamName, accessToken)
 
 	esaInput := &esa.PostInput{
 		Name:     input.Name,
 		Category: input.Category,
 		Tags:     input.Tags,
-		BodyMD:   bodyWithFrontmatter,
+		BodyMD:   input.BodyMD,
 		WIP:      false, // 常にShip It!
 	}
 
