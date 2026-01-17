@@ -49,7 +49,10 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 {
   "name": "タスク: データ分析の実装",
   "category": "LLM/Tasks/2025/01/18",
-  "body_md": "## 概要\n\nこのタスクでは...\n\n## 進捗\n\n- [x] 要件定義\n- [ ] 実装\n- [ ] テスト"
+  "body": {
+    "background": "## 概要\n\nこのタスクでは...\n\n## 進捗\n\n- [x] 要件定義\n- [ ] 実装\n- [ ] テスト",
+    "related_links": ["https://github.com/owner/repo/issues/123"]
+  }
 }
 ```
 
@@ -62,7 +65,7 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 | `post_number` | 更新時のみ | esa記事番号 | 1以上の整数 |
 | `name` | Yes | 記事タイトル | 最大255バイト、制御文字・`/`・全角括弧`（）`・全角コロン`：`不可 |
 | `category` | Yes | カテゴリパス | 許可カテゴリ配下で、必ず`/yyyy/mm/dd`形式の日付で終わること（例: `LLM/Tasks/2025/01/18`） |
-| `body_md` | Yes | 本文（Markdown） | 最大1MB、`---`で始まる場合はエラー |
+| `body` | Yes | 本文（構造化形式） | backgroundフィールド必須、related_links配列は任意（URI形式） |
 
 ### コマンド実行
 

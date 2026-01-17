@@ -18,12 +18,28 @@
       "minLength": 1,
       "description": "Category path (must match allowed categories and end with /yyyy/mm/dd format, e.g., LLM/Tasks/2025/01/18)"
     },
-    "body_md": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Post body in Markdown (max 1MB, cannot start with ---)"
+    "body": {
+      "type": "object",
+      "properties": {
+        "background": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Task background description"
+        },
+        "related_links": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "Related links (optional)"
+        }
+      },
+      "required": ["background"],
+      "additionalProperties": false,
+      "description": "Post body (structured format)"
     }
   },
-  "required": ["name", "category", "body_md"],
+  "required": ["name", "category", "body"],
   "additionalProperties": false
 }

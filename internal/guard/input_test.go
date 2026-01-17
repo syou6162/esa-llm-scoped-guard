@@ -20,7 +20,9 @@ func TestReadPostInputFromFile(t *testing.T) {
 			jsonContent: `{
 				"name": "Test Post",
 				"category": "LLM/Tasks",
-				"body_md": "## Content"
+				"body": {
+					"background": "Task background"
+				}
 			}`,
 			wantErr: false,
 			validate: func(t *testing.T, input *PostInput) {
@@ -30,8 +32,8 @@ func TestReadPostInputFromFile(t *testing.T) {
 				if input.Category != "LLM/Tasks" {
 					t.Errorf("Category = %v, want LLM/Tasks", input.Category)
 				}
-				if input.BodyMD != "## Content" {
-					t.Errorf("BodyMD = %v, want ## Content", input.BodyMD)
+				if input.Body.Background != "Task background" {
+					t.Errorf("Body.Background = %v, want Task background", input.Body.Background)
 				}
 			},
 		},
@@ -40,7 +42,9 @@ func TestReadPostInputFromFile(t *testing.T) {
 			jsonContent: `{
 				"name": "日本語テスト",
 				"category": "Claude Code/開発日誌",
-				"body_md": "## 日本語コンテンツ"
+				"body": {
+					"background": "タスクの背景"
+				}
 			}`,
 			wantErr: false,
 			validate: func(t *testing.T, input *PostInput) {
@@ -60,7 +64,9 @@ func TestReadPostInputFromFile(t *testing.T) {
 			jsonContent: `{
 				"name": "Test",
 				"category": "LLM/Tasks",
-				"body_md": "Content",
+				"body": {
+					"background": "Content"
+				},
 				"unknown_field": "value"
 			}`,
 			wantErr: true,
@@ -71,12 +77,16 @@ func TestReadPostInputFromFile(t *testing.T) {
 			jsonContent: `{
 				"name": "Test",
 				"category": "LLM/Tasks",
-				"body_md": "Content"
+				"body": {
+					"background": "Content"
+				}
 			}
 			{
 				"name": "Test2",
 				"category": "LLM/Tasks",
-				"body_md": "Content2"
+				"body": {
+					"background": "Content2"
+				}
 			}`,
 			wantErr: true,
 			errMsg:  "JSON file contains multiple values",
@@ -86,7 +96,9 @@ func TestReadPostInputFromFile(t *testing.T) {
 			jsonContent: `{
 				"name": "Test",
 				"category": "LLM/Tasks",
-				"body_md": "Content"
+				"body": {
+					"background": "Content"
+				}
 			} extra data`,
 			wantErr: true,
 			errMsg:  "JSON file contains multiple values",
@@ -127,7 +139,7 @@ func TestReadPostInputFromFile_FileSize(t *testing.T) {
 	jsonPath := filepath.Join(tmpDir, "large.json")
 
 	// 10MB超過のファイル
-	largeContent := `{"name": "Test", "category": "LLM/Tasks", "body_md": "` + strings.Repeat("a", 10*1024*1024) + `"}`
+	largeContent := `{"name": "Test", "category": "LLM/Tasks", "body": {"background": "` + strings.Repeat("a", 10*1024*1024) + `"}}`
 	if err := os.WriteFile(jsonPath, []byte(largeContent), 0600); err != nil {
 		t.Fatalf("Failed to write test JSON: %v", err)
 	}
