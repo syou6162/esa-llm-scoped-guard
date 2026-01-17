@@ -4,6 +4,8 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"unicode"
@@ -96,6 +98,9 @@ func ValidatePostInput(input *PostInput) error {
 	if input.Category == "" {
 		return fmt.Errorf("category cannot be empty")
 	}
+	if !hasValidDateSuffix(input.Category) {
+		return fmt.Errorf("category must end with /yyyy/mm/dd format")
+	}
 
 	// body_mdの検証
 	if input.BodyMD == "" {
@@ -119,4 +124,35 @@ func containsControlCharacters(s string) bool {
 		}
 	}
 	return false
+}
+
+var dateSuffixRegex = regexp.MustCompile(`/(\d{4})/(\d{2})/(\d{2})$`)
+
+// hasValidDateSuffix はcategoryが/yyyy/mm/dd形式で終わっているかチェックします
+func hasValidDateSuffix(category string) bool {
+	matches := dateSuffixRegex.FindStringSubmatch(category)
+	if matches == nil {
+		return false
+	}
+
+	year, _ := strconv.Atoi(matches[1])
+	month, _ := strconv.Atoi(matches[2])
+	day, _ := strconv.Atoi(matches[3])
+
+	// 年: 2000-2099
+	if year < 2000 || year > 2099 {
+		return false
+	}
+
+	// 月: 1-12
+	if month < 1 || month > 12 {
+		return false
+	}
+
+	// 日: 1-31
+	if day < 1 || day > 31 {
+		return false
+	}
+
+	return true
 }
