@@ -1,11 +1,9 @@
-package main
+package guard
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/syou6162/esa-llm-scoped-guard/internal/guard"
 )
 
 // TestIntegrationEndToEnd は全体フローの統合テストです
@@ -26,23 +24,23 @@ func TestIntegrationEndToEnd(t *testing.T) {
 	}
 
 	// JSONファイルの読み込み
-	input, err := guard.ReadPostInputFromFile(jsonPath)
+	input, err := ReadPostInputFromFile(jsonPath)
 	if err != nil {
 		t.Fatalf("readJSONFile() error = %v", err)
 	}
 
 	// スキーマバリデーション
-	if err := guard.ValidatePostInputSchema(input); err != nil {
+	if err := ValidatePostInputSchema(input); err != nil {
 		t.Fatalf("ValidatePostInputSchema() error = %v", err)
 	}
 
 	// 詳細なバリデーション
-	if err := guard.ValidatePostInput(input); err != nil {
+	if err := ValidatePostInput(input); err != nil {
 		t.Fatalf("ValidatePostInput() error = %v", err)
 	}
 
 	// カテゴリが正規化されることを確認
-	normalizedCategory, err := guard.NormalizeCategory(input.Category)
+	normalizedCategory, err := NormalizeCategory(input.Category)
 	if err != nil {
 		t.Fatalf("guard.NormalizeCategory() error = %v", err)
 	}
@@ -69,23 +67,23 @@ func TestIntegrationJapaneseCategory(t *testing.T) {
 	}
 
 	// JSONファイルの読み込み
-	input, err := guard.ReadPostInputFromFile(jsonPath)
+	input, err := ReadPostInputFromFile(jsonPath)
 	if err != nil {
 		t.Fatalf("readJSONFile() error = %v", err)
 	}
 
 	// スキーマバリデーション
-	if err := guard.ValidatePostInputSchema(input); err != nil {
+	if err := ValidatePostInputSchema(input); err != nil {
 		t.Fatalf("ValidatePostInputSchema() error = %v", err)
 	}
 
 	// 詳細なバリデーション
-	if err := guard.ValidatePostInput(input); err != nil {
+	if err := ValidatePostInput(input); err != nil {
 		t.Fatalf("ValidatePostInput() error = %v", err)
 	}
 
 	// カテゴリが正規化されることを確認
-	normalizedCategory, err := guard.NormalizeCategory(input.Category)
+	normalizedCategory, err := NormalizeCategory(input.Category)
 	if err != nil {
 		t.Fatalf("guard.NormalizeCategory() error = %v", err)
 	}
@@ -133,14 +131,14 @@ func TestIntegrationInvalidJSON(t *testing.T) {
 				t.Fatalf("Failed to write test JSON: %v", err)
 			}
 
-			input, err := guard.ReadPostInputFromFile(jsonPath)
+			input, err := ReadPostInputFromFile(jsonPath)
 			if err != nil {
 				// readJSONFileでエラーが出る場合もある
 				return
 			}
 
 			// スキーマバリデーション
-			err = guard.ValidatePostInputSchema(input)
+			err = ValidatePostInputSchema(input)
 			if err == nil {
 				t.Errorf("Expected schema validation error, got nil")
 			}
