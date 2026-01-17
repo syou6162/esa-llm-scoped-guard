@@ -159,6 +159,16 @@ func TestNormalizeCategory(t *testing.T) {
 			category: "LLM//Tasks",
 			wantErr:  true,
 		},
+		{
+			name:     "日本語カテゴリ",
+			category: "Claude Code/開発日誌",
+			want:     "Claude Code/開発日誌",
+		},
+		{
+			name:     "日本語カテゴリ（ひらがな）",
+			category: "プロジェクト/タスク",
+			want:     "プロジェクト/タスク",
+		},
 	}
 
 	for _, tt := range tests {

@@ -164,3 +164,77 @@ func TestValidatePostInput(t *testing.T) {
 func intPtr(i int) *int {
 	return &i
 }
+
+func TestValidatePostInputSchema(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   *PostInput
+		wantErr bool
+	}{
+		{
+			name: "有効な入力",
+			input: &PostInput{
+				Name:     "Test Post",
+				Category: "LLM/Tasks",
+				BodyMD:   "## Content",
+			},
+			wantErr: false,
+		},
+		{
+			name: "post_numberあり",
+			input: &PostInput{
+				PostNumber: intPtr(123),
+				Name:       "Test Post",
+				Category:   "LLM/Tasks",
+				BodyMD:     "## Content",
+			},
+			wantErr: false,
+		},
+		{
+			name: "nameが空",
+			input: &PostInput{
+				Name:     "",
+				Category: "LLM/Tasks",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+		},
+		{
+			name: "categoryが空",
+			input: &PostInput{
+				Name:     "Test",
+				Category: "",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+		},
+		{
+			name: "body_mdが空",
+			input: &PostInput{
+				Name:     "Test",
+				Category: "LLM/Tasks",
+				BodyMD:   "",
+			},
+			wantErr: true,
+		},
+		{
+			name: "post_numberが0",
+			input: &PostInput{
+				PostNumber: intPtr(0),
+				Name:       "Test",
+				Category:   "LLM/Tasks",
+				BodyMD:     "## Content",
+			},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidatePostInputSchema(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePostInputSchema() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
