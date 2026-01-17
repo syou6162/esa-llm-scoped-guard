@@ -26,7 +26,7 @@ func TestIntegrationEndToEnd(t *testing.T) {
 	}
 
 	// JSONファイルの読み込み
-	input, err := readJSONFile(jsonPath)
+	input, err := guard.ReadPostInputFromFile(jsonPath)
 	if err != nil {
 		t.Fatalf("readJSONFile() error = %v", err)
 	}
@@ -69,7 +69,7 @@ func TestIntegrationJapaneseCategory(t *testing.T) {
 	}
 
 	// JSONファイルの読み込み
-	input, err := readJSONFile(jsonPath)
+	input, err := guard.ReadPostInputFromFile(jsonPath)
 	if err != nil {
 		t.Fatalf("readJSONFile() error = %v", err)
 	}
@@ -133,7 +133,7 @@ func TestIntegrationInvalidJSON(t *testing.T) {
 				t.Fatalf("Failed to write test JSON: %v", err)
 			}
 
-			input, err := readJSONFile(jsonPath)
+			input, err := guard.ReadPostInputFromFile(jsonPath)
 			if err != nil {
 				// readJSONFileでエラーが出る場合もある
 				return
