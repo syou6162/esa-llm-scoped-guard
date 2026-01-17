@@ -26,7 +26,8 @@ JSON Schema:
     "name": "Post Title",          // Required: max 255 bytes, no /, （）, or ：
     "category": "LLM/Tasks/2026/01/18", // Required: allowed category + /yyyy/mm/dd
     "body": {                      // Required: structured format
-      "background": "Task background description"
+      "background": "Task background description",
+      "related_links": ["https://example.com"] // Optional: related URLs
     }
   }
 
