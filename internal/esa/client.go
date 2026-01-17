@@ -90,7 +90,11 @@ func (c *EsaClient) doRequestWithRetry(method, url string, payload interface{}) 
 func (c *EsaClient) doRequest(method, url string, payload interface{}) (*Post, error) {
 	var body io.Reader
 	if payload != nil {
-		jsonData, err := json.Marshal(payload)
+		// esa.io APIは {"post": {...}} 形式を要求
+		wrapped := map[string]interface{}{
+			"post": payload,
+		}
+		jsonData, err := json.Marshal(wrapped)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal request: %w", err)
 		}

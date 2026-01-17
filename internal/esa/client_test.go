@@ -1,6 +1,10 @@
 package esa
 
 import (
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 )
@@ -103,5 +107,67 @@ func TestSanitizeErrorMessage(t *testing.T) {
 				t.Errorf("sanitizeErrorMessage() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestCreatePostRequestFormat(t *testing.T) {
+	// モックHTTPサーバーを作成
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// リクエストボディを読み取る
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("Failed to read request body: %v", err)
+		}
+
+		// {"post": {...}} 形式であることを検証
+		var req map[string]interface{}
+		if err := json.Unmarshal(body, &req); err != nil {
+			t.Fatalf("Failed to unmarshal request: %v", err)
+		}
+
+		// "post" キーが存在することを確認
+		postData, ok := req["post"]
+		if !ok {
+			t.Errorf("Request does not contain 'post' key. Got: %v", req)
+		}
+
+		// postの中身を検証
+		postMap, ok := postData.(map[string]interface{})
+		if !ok {
+			t.Errorf("'post' value is not an object")
+		}
+
+		// フィールドを検証
+		if postMap["name"] != "Test Post" {
+			t.Errorf("name = %v, want Test Post", postMap["name"])
+		}
+		if postMap["category"] != "LLM/Tasks" {
+			t.Errorf("category = %v, want LLM/Tasks", postMap["category"])
+		}
+
+		// 成功レスポンスを返す
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte(`{"number": 123, "name": "Test Post", "category": "LLM/Tasks", "url": "https://example.esa.io/posts/123"}`))
+	}))
+	defer server.Close()
+
+	// クライアントを作成（モックサーバーを使用）
+	client := NewEsaClient("test-team", "test-token")
+	// モックサーバーのURLを使用するためにdoRequestを直接呼び出す
+	input := &PostInput{
+		Name:     "Test Post",
+		Category: "LLM/Tasks",
+		Tags:     []string{"test"},
+		BodyMD:   "## Test",
+		WIP:      false,
+	}
+
+	post, err := client.doRequest("POST", server.URL, input)
+	if err != nil {
+		t.Fatalf("doRequest() error = %v", err)
+	}
+
+	if post.Name != "Test Post" {
+		t.Errorf("Post.Name = %v, want Test Post", post.Name)
 	}
 }
