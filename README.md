@@ -150,7 +150,3 @@ pre-commit run --all-files
 ## ライセンス
 
 MIT License
-
-## 関連プロジェクト
-
-- [esa-mcp-server](https://github.com/syou6162/esa-mcp-server): esa.ioのMCPサーバー（読み取り用）
