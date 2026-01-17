@@ -24,7 +24,7 @@
         "background": {
           "type": "string",
           "minLength": 1,
-          "description": "Task background description"
+          "description": "Task background description (plain text only, do not include '## 背景' header as it will be added automatically)"
         },
         "related_links": {
           "type": "array",

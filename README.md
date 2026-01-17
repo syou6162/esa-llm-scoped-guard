@@ -50,8 +50,28 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
   "name": "タスク: データ分析の実装",
   "category": "LLM/Tasks/2025/01/18",
   "body": {
-    "background": "## 概要\n\nこのタスクでは...\n\n## 進捗\n\n- [x] 要件定義\n- [ ] 実装\n- [ ] テスト",
-    "related_links": ["https://github.com/owner/repo/issues/123"]
+    "background": "このタスクではデータ分析機能を実装します。",
+    "related_links": ["https://github.com/owner/repo/issues/123"],
+    "tasks": [
+      {
+        "id": "task-1",
+        "title": "要件定義",
+        "status": "completed",
+        "description": "データ分析の要件を定義する"
+      },
+      {
+        "id": "task-2",
+        "title": "実装",
+        "status": "in_progress",
+        "description": "データ分析機能を実装する"
+      },
+      {
+        "id": "task-3",
+        "title": "テスト",
+        "status": "not_started",
+        "description": "実装した機能をテストする"
+      }
+    ]
   }
 }
 ```
@@ -65,7 +85,19 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 | `post_number` | 更新時のみ | esa記事番号 | 1以上の整数 |
 | `name` | Yes | 記事タイトル | 最大255バイト、制御文字・`/`・全角括弧`（）`・全角コロン`：`不可 |
 | `category` | Yes | カテゴリパス | 許可カテゴリ配下で、必ず`/yyyy/mm/dd`形式の日付で終わること（例: `LLM/Tasks/2025/01/18`） |
-| `body` | Yes | 本文（構造化形式） | backgroundフィールド必須、related_links配列は任意（URI形式） |
+| `body` | Yes | 本文（構造化形式） | backgroundフィールド必須、tasksフィールド必須、related_links配列は任意（URI形式） |
+| `body.background` | Yes | 背景説明（プレーンテキスト） | 「## 背景」ヘッダーは含めない（自動追加される） |
+| `body.related_links` | No | 関連リンク配列 | URI形式の文字列配列 |
+| `body.tasks` | Yes | タスク配列 | Task配列（最低1つ必要） |
+
+**Taskフィールド仕様**:
+
+| フィールド | 必須 | 説明 | 制限 |
+|-----------|------|------|------|
+| `id` | Yes | タスクの一意識別子 | ユニークである必要あり |
+| `title` | Yes | タスクのタイトル | - |
+| `status` | Yes | タスクのステータス | `not_started`, `in_progress`, `in_review`, `completed` のいずれか |
+| `description` | Yes | タスクの詳細説明 | - |
 
 ### コマンド実行
 

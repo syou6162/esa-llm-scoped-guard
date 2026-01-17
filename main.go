@@ -26,8 +26,16 @@ JSON Schema:
     "name": "Post Title",          // Required: max 255 bytes, no /, （）, or ：
     "category": "LLM/Tasks/2026/01/18", // Required: allowed category + /yyyy/mm/dd
     "body": {                      // Required: structured format
-      "background": "Task background description",
-      "related_links": ["https://example.com"] // Optional: related URLs
+      "background": "Task background (plain text, no '## 背景' header)",
+      "related_links": ["https://example.com"], // Optional: related URLs
+      "tasks": [                   // Required: task array
+        {
+          "id": "task-1",          // Required: unique identifier
+          "title": "Task title",   // Required
+          "status": "not_started", // Required: not_started/in_progress/in_review/completed
+          "description": "Task description" // Required
+        }
+      ]
     }
   }
 
