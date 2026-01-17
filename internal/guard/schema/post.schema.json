@@ -28,7 +28,7 @@
         "background": {
           "type": "string",
           "minLength": 1,
-          "description": "Task background description (plain text only, do not include '## 背景' header as it will be added automatically)"
+          "description": "Task background description (plain text only, do not include '## 背景' header as it will be added automatically. Cannot contain heading markers # or ## at the beginning of lines.)"
         },
         "related_links": {
           "type": "array",
@@ -56,12 +56,20 @@
               "status": {
                 "type": "string",
                 "enum": ["not_started", "in_progress", "in_review", "completed"],
-                "description": "Task status"
+                "description": "Task status (will be automatically formatted as 'Status: {status}' in markdown)"
               },
               "description": {
                 "type": "string",
                 "minLength": 1,
-                "description": "Task description"
+                "description": "Task description (do not include status or title as they are automatically generated. Cannot contain heading markers #, ##, or ### at the beginning of lines.)"
+              },
+              "github_urls": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "description": "GitHub PR/Issue URLs (optional, must be https://github.com/...)"
               }
             },
             "required": ["id", "title", "status", "description"],
