@@ -144,10 +144,24 @@ func TestCreatePostRequestFormat(t *testing.T) {
 		if postMap["category"] != "LLM/Tasks" {
 			t.Errorf("category = %v, want LLM/Tasks", postMap["category"])
 		}
+		if postMap["body_md"] != "## Test" {
+			t.Errorf("body_md = %v, want ## Test", postMap["body_md"])
+		}
+		if postMap["wip"] != false {
+			t.Errorf("wip = %v, want false", postMap["wip"])
+		}
+
+		// tagsを検証
+		tags, ok := postMap["tags"].([]interface{})
+		if !ok {
+			t.Errorf("tags is not an array")
+		} else if len(tags) != 1 || tags[0] != "test" {
+			t.Errorf("tags = %v, want [test]", tags)
+		}
 
 		// 成功レスポンスを返す
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(`{"number": 123, "name": "Test Post", "category": "LLM/Tasks", "url": "https://example.esa.io/posts/123"}`))
+		w.Write([]byte(`{"number": 123, "name": "Test Post", "category": "LLM/Tasks", "tags": ["test"], "body_md": "## Test", "wip": false, "url": "https://example.esa.io/posts/123"}`))
 	}))
 	defer server.Close()
 
@@ -167,7 +181,20 @@ func TestCreatePostRequestFormat(t *testing.T) {
 		t.Fatalf("doRequest() error = %v", err)
 	}
 
+	// レスポンスを検証
 	if post.Name != "Test Post" {
 		t.Errorf("Post.Name = %v, want Test Post", post.Name)
+	}
+	if post.Category != "LLM/Tasks" {
+		t.Errorf("Post.Category = %v, want LLM/Tasks", post.Category)
+	}
+	if len(post.Tags) != 1 || post.Tags[0] != "test" {
+		t.Errorf("Post.Tags = %v, want [test]", post.Tags)
+	}
+	if post.BodyMD != "## Test" {
+		t.Errorf("Post.BodyMD = %v, want ## Test", post.BodyMD)
+	}
+	if post.WIP != false {
+		t.Errorf("Post.WIP = %v, want false", post.WIP)
 	}
 }

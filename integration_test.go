@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/syou6162/esa-llm-scoped-guard/internal/guard"
@@ -61,6 +62,64 @@ func TestIntegrationEndToEnd(t *testing.T) {
 	// フロントマターが含まれることを確認
 	if len(bodyWithFrontmatter) <= len(input.BodyMD) {
 		t.Errorf("Expected frontmatter to be added")
+	}
+}
+
+// TestIntegrationJapaneseCategory は日本語カテゴリの統合テストです
+func TestIntegrationJapaneseCategory(t *testing.T) {
+	tmpDir := t.TempDir()
+
+	// 日本語カテゴリを含むJSONファイルを作成
+	jsonPath := filepath.Join(tmpDir, "japanese.json")
+	jsonContent := `{
+		"name": "日本語テスト",
+		"category": "Claude Code/開発日誌",
+		"tags": ["テスト", "日本語"],
+		"body_md": "## 日本語カテゴリ\n\nこれは日本語カテゴリのテストです。"
+	}`
+
+	if err := os.WriteFile(jsonPath, []byte(jsonContent), 0600); err != nil {
+		t.Fatalf("Failed to write test JSON: %v", err)
+	}
+
+	// JSONファイルの読み込み
+	input, err := readJSONFile(jsonPath)
+	if err != nil {
+		t.Fatalf("readJSONFile() error = %v", err)
+	}
+
+	// スキーマバリデーション
+	if err := ValidatePostInputSchema(input); err != nil {
+		t.Fatalf("ValidatePostInputSchema() error = %v", err)
+	}
+
+	// 詳細なバリデーション
+	if err := ValidatePostInput(input); err != nil {
+		t.Fatalf("ValidatePostInput() error = %v", err)
+	}
+
+	// カテゴリが正規化されることを確認
+	normalizedCategory, err := guard.NormalizeCategory(input.Category)
+	if err != nil {
+		t.Fatalf("guard.NormalizeCategory() error = %v", err)
+	}
+
+	if normalizedCategory != "Claude Code/開発日誌" {
+		t.Errorf("Expected normalized category 'Claude Code/開発日誌', got '%s'", normalizedCategory)
+	}
+
+	// フロントマター生成
+	bodyWithFrontmatter, err := GenerateFrontmatter(input)
+	if err != nil {
+		t.Fatalf("GenerateFrontmatter() error = %v", err)
+	}
+
+	// フロントマターに日本語が含まれることを確認
+	if !strings.Contains(bodyWithFrontmatter, "Claude Code/開発日誌") {
+		t.Errorf("Frontmatter does not contain Japanese category")
+	}
+	if !strings.Contains(bodyWithFrontmatter, "テスト") {
+		t.Errorf("Frontmatter does not contain Japanese tags")
 	}
 }
 
