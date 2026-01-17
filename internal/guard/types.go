@@ -2,7 +2,8 @@ package guard
 
 // Body は本文の構造体
 type Body struct {
-	Background string `json:"background"`
+	Background   string   `json:"background"`
+	RelatedLinks []string `json:"related_links,omitempty"`
 }
 
 // PostInput は入力JSONの構造体

@@ -25,6 +25,14 @@
           "type": "string",
           "minLength": 1,
           "description": "Task background description"
+        },
+        "related_links": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          },
+          "description": "Related links (optional)"
         }
       },
       "required": ["background"],

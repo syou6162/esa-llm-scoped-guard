@@ -31,6 +31,26 @@ func TestGenerateMarkdown(t *testing.T) {
 			},
 			want: "## 背景\n\nこれはタスクの背景説明です。",
 		},
+		{
+			name: "関連リンクあり（1つ）",
+			body: &Body{
+				Background:   "背景説明",
+				RelatedLinks: []string{"https://example.com/doc"},
+			},
+			want: "## 背景\n関連リンク:\n- https://example.com/doc\n\n背景説明",
+		},
+		{
+			name: "関連リンクあり（複数）",
+			body: &Body{
+				Background: "背景説明",
+				RelatedLinks: []string{
+					"https://example.com/doc1",
+					"https://example.com/doc2",
+					"https://github.com/user/repo",
+				},
+			},
+			want: "## 背景\n関連リンク:\n- https://example.com/doc1\n- https://example.com/doc2\n- https://github.com/user/repo\n\n背景説明",
+		},
 	}
 
 	for _, tt := range tests {
