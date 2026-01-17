@@ -4,20 +4,24 @@
   "properties": {
     "post_number": {
       "type": "integer",
-      "minimum": 1
+      "minimum": 1,
+      "description": "esa.io post number (required for updates, omit for new posts)"
     },
     "name": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 255
+      "maxLength": 255,
+      "description": "Post title (max 255 bytes, cannot contain /, fullwidth parentheses （）, or fullwidth colon ：)"
     },
     "category": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Category path (must match allowed categories and end with /yyyy/mm/dd format, e.g., LLM/Tasks/2025/01/18)"
     },
     "body_md": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "description": "Post body in Markdown (max 1MB, cannot start with ---)"
     }
   },
   "required": ["name", "category", "body_md"],
