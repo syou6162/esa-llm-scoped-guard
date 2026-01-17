@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 	"unicode"
 
 	"github.com/santhosh-tekuri/jsonschema/v5"
@@ -13,22 +14,35 @@ import (
 //go:embed schema/post.schema.json
 var schemaJSON string
 
-var compiledSchema *jsonschema.Schema
+var (
+	compiledSchema     *jsonschema.Schema
+	schemaCompileError error
+	schemaOnce         sync.Once
+)
 
-func init() {
+// compileSchema はJSONスキーマを一度だけコンパイルします
+func compileSchema() {
 	compiler := jsonschema.NewCompiler()
 	if err := compiler.AddResource("post.schema.json", strings.NewReader(schemaJSON)); err != nil {
-		panic(fmt.Sprintf("failed to add schema resource: %v", err))
+		schemaCompileError = fmt.Errorf("failed to add schema resource: %w", err)
+		return
 	}
 	var err error
 	compiledSchema, err = compiler.Compile("post.schema.json")
 	if err != nil {
-		panic(fmt.Sprintf("failed to compile schema: %v", err))
+		schemaCompileError = fmt.Errorf("failed to compile schema: %w", err)
+		return
 	}
 }
 
 // ValidatePostInputSchema はJSONスキーマに基づいて検証します
 func ValidatePostInputSchema(input *PostInput) error {
+	// スキーマを一度だけコンパイル
+	schemaOnce.Do(compileSchema)
+	if schemaCompileError != nil {
+		return schemaCompileError
+	}
+
 	// PostInputをJSONに変換してスキーマ検証
 	data, err := json.Marshal(input)
 	if err != nil {
