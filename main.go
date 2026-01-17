@@ -173,18 +173,9 @@ func run(jsonPath string) error {
 			return fmt.Errorf("failed to get existing post: %w", err)
 		}
 
-		// 既存カテゴリが許可範囲内か確認
-		allowedExisting, err := guard.IsAllowedCategory(existingPost.Category, config.AllowedCategories)
-		if err != nil {
-			return fmt.Errorf("existing category validation failed: %w", err)
-		}
-		if !allowedExisting {
-			return fmt.Errorf("existing post category %s is not allowed", existingPost.Category)
-		}
-
-		// カテゴリホッピング防止（既存カテゴリ == 入力カテゴリ）
-		if existingPost.Category != input.Category {
-			return fmt.Errorf("category change is not allowed (existing: %s, new: %s)", existingPost.Category, input.Category)
+		// 更新リクエストの妥当性を検証
+		if err := guard.ValidateUpdateRequest(existingPost.Category, input.Category, config.AllowedCategories); err != nil {
+			return err
 		}
 
 		post, err = client.UpdatePost(*input.PostNumber, esaInput)

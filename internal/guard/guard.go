@@ -68,3 +68,23 @@ func IsAllowedCategory(category string, allowedCategories []string) (bool, error
 
 	return false, nil
 }
+
+// ValidateUpdateRequest は更新リクエストの妥当性を検証します。
+// 既存記事のカテゴリが許可範囲内か、カテゴリ変更が試みられていないかをチェックします。
+func ValidateUpdateRequest(existingCategory, newCategory string, allowedCategories []string) error {
+	// 既存カテゴリが許可範囲内か確認
+	allowedExisting, err := IsAllowedCategory(existingCategory, allowedCategories)
+	if err != nil {
+		return fmt.Errorf("existing category validation failed: %w", err)
+	}
+	if !allowedExisting {
+		return fmt.Errorf("existing post category %s is not allowed", existingCategory)
+	}
+
+	// カテゴリホッピング防止（既存カテゴリ == 入力カテゴリ）
+	if existingCategory != newCategory {
+		return fmt.Errorf("category change is not allowed (existing: %s, new: %s)", existingCategory, newCategory)
+	}
+
+	return nil
+}

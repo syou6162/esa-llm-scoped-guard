@@ -174,3 +174,51 @@ func TestNormalizeCategory(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateUpdateRequest(t *testing.T) {
+	tests := []struct {
+		name              string
+		existingCategory  string
+		newCategory       string
+		allowedCategories []string
+		wantErr           bool
+	}{
+		{
+			name:              "通常の更新（カテゴリ一致）",
+			existingCategory:  "LLM/Tasks",
+			newCategory:       "LLM/Tasks",
+			allowedCategories: []string{"LLM/Tasks"},
+			wantErr:           false,
+		},
+		{
+			name:              "既存カテゴリが許可範囲外",
+			existingCategory:  "Unauthorized/Category",
+			newCategory:       "Unauthorized/Category",
+			allowedCategories: []string{"LLM/Tasks"},
+			wantErr:           true,
+		},
+		{
+			name:              "カテゴリ変更を試みる",
+			existingCategory:  "LLM/Tasks/Old",
+			newCategory:       "LLM/Tasks/New",
+			allowedCategories: []string{"LLM/Tasks"},
+			wantErr:           true,
+		},
+		{
+			name:              "サブカテゴリの更新（カテゴリ一致）",
+			existingCategory:  "LLM/Tasks/2025-01",
+			newCategory:       "LLM/Tasks/2025-01",
+			allowedCategories: []string{"LLM/Tasks"},
+			wantErr:           false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateUpdateRequest(tt.existingCategory, tt.newCategory, tt.allowedCategories)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidateUpdateRequest() error = %v, wantErr %v", err, tt.wantErr)
+			}
+		})
+	}
+}
