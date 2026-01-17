@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
 	"github.com/syou6162/esa-llm-scoped-guard/internal/guard"
@@ -91,7 +92,12 @@ func run(jsonPath string) error {
 		return fmt.Errorf("failed to read JSON file: %w", err)
 	}
 
-	// バリデーション実行
+	// JSONスキーマバリデーション
+	if err := ValidatePostInputSchema(input); err != nil {
+		return fmt.Errorf("schema validation failed: %w", err)
+	}
+
+	// 詳細なバリデーション実行
 	if err := ValidatePostInput(input); err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}

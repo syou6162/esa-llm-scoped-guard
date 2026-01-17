@@ -1,10 +1,51 @@
 package main
 
 import (
+	_ "embed"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/santhosh-tekuri/jsonschema/v5"
 )
+
+//go:embed schema/post.schema.json
+var schemaJSON string
+
+var compiledSchema *jsonschema.Schema
+
+func init() {
+	compiler := jsonschema.NewCompiler()
+	if err := compiler.AddResource("post.schema.json", strings.NewReader(schemaJSON)); err != nil {
+		panic(fmt.Sprintf("failed to add schema resource: %v", err))
+	}
+	var err error
+	compiledSchema, err = compiler.Compile("post.schema.json")
+	if err != nil {
+		panic(fmt.Sprintf("failed to compile schema: %v", err))
+	}
+}
+
+// ValidatePostInputSchema はJSONスキーマに基づいて検証します
+func ValidatePostInputSchema(input *PostInput) error {
+	// PostInputをJSONに変換してスキーマ検証
+	data, err := json.Marshal(input)
+	if err != nil {
+		return fmt.Errorf("failed to marshal input: %w", err)
+	}
+
+	var v interface{}
+	if err := json.Unmarshal(data, &v); err != nil {
+		return fmt.Errorf("failed to unmarshal input: %w", err)
+	}
+
+	if err := compiledSchema.Validate(v); err != nil {
+		return fmt.Errorf("schema validation failed: %w", err)
+	}
+
+	return nil
+}
 
 // ValidatePostInput は PostInput の各フィールドを検証します
 func ValidatePostInput(input *PostInput) error {
