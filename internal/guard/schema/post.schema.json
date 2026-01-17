@@ -76,5 +76,18 @@
     }
   },
   "required": ["name", "category", "body"],
+  "oneOf": [
+    {
+      "properties": {
+        "create_new": {
+          "const": true
+        }
+      },
+      "required": ["create_new"]
+    },
+    {
+      "required": ["post_number"]
+    }
+  ],
   "additionalProperties": false
 }
