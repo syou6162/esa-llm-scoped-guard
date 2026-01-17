@@ -64,7 +64,7 @@ func TestGenerateMarkdown(t *testing.T) {
 					},
 				},
 			},
-			want: "## 背景\n\n背景説明\n\n## タスク\n\n### タスク1のタイトル\n- Status: `not_started`\n\nタスク1の詳細説明",
+			want: "## サマリー\n- [ ] タスク1のタイトル\n\n## 背景\n\n背景説明\n\n## タスク\n\n### タスク1のタイトル\n- Status: `not_started`\n\nタスク1の詳細説明",
 		},
 		{
 			name: "タスクあり（複数、異なるステータス）",
@@ -91,7 +91,7 @@ func TestGenerateMarkdown(t *testing.T) {
 					},
 				},
 			},
-			want: "## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `not_started`\n\n説明1\n### タスク2\n- Status: `in_progress`\n\n説明2\n### タスク3\n- Status: `completed`\n\n説明3",
+			want: "## サマリー\n- [ ] タスク1\n- [ ] タスク2\n- [x] タスク3\n\n## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `not_started`\n\n説明1\n### タスク2\n- Status: `in_progress`\n\n説明2\n### タスク3\n- Status: `completed`\n\n説明3",
 		},
 		{
 			name: "背景 + 関連リンク + タスク",
@@ -107,7 +107,7 @@ func TestGenerateMarkdown(t *testing.T) {
 					},
 				},
 			},
-			want: "## 背景\n関連リンク:\n- https://example.com/doc\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `in_review`\n\nレビュー中のタスク",
+			want: "## サマリー\n- [ ] タスク1\n\n## 背景\n関連リンク:\n- https://example.com/doc\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `in_review`\n\nレビュー中のタスク",
 		},
 		{
 			name: "タスクにGitHub URL（単一）",
@@ -123,7 +123,7 @@ func TestGenerateMarkdown(t *testing.T) {
 					},
 				},
 			},
-			want: "## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `in_progress`\n- Pull Request: https://github.com/owner/repo/pull/123\n\nタスク1の詳細説明",
+			want: "## サマリー\n- [ ] タスク1\n\n## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `in_progress`\n- Pull Request: https://github.com/owner/repo/pull/123\n\nタスク1の詳細説明",
 		},
 		{
 			name: "タスクにGitHub URL（複数）",
@@ -142,7 +142,7 @@ func TestGenerateMarkdown(t *testing.T) {
 					},
 				},
 			},
-			want: "## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `in_progress`\n- Pull Requests:\n  - https://github.com/owner/repo/pull/123\n  - https://github.com/owner/repo/issues/456\n\nタスク1の詳細説明",
+			want: "## サマリー\n- [ ] タスク1\n\n## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `in_progress`\n- Pull Requests:\n  - https://github.com/owner/repo/pull/123\n  - https://github.com/owner/repo/issues/456\n\nタスク1の詳細説明",
 		},
 		{
 			name: "タスクにGitHub URL未指定（省略）",
@@ -157,7 +157,7 @@ func TestGenerateMarkdown(t *testing.T) {
 					},
 				},
 			},
-			want: "## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `not_started`\n\nタスク1の詳細説明",
+			want: "## サマリー\n- [ ] タスク1\n\n## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `not_started`\n\nタスク1の詳細説明",
 		},
 		{
 			name: "タスクにGitHub URL空配列",
@@ -173,7 +173,7 @@ func TestGenerateMarkdown(t *testing.T) {
 					},
 				},
 			},
-			want: "## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `completed`\n\nタスク1の詳細説明",
+			want: "## サマリー\n- [x] タスク1\n\n## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `completed`\n\nタスク1の詳細説明",
 		},
 	}
 

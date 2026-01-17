@@ -8,6 +8,21 @@ import (
 func GenerateMarkdown(body *Body) string {
 	var sb strings.Builder
 
+	// サマリーセクション（タスクが存在する場合のみ）
+	if len(body.Tasks) > 0 {
+		sb.WriteString("## サマリー\n")
+		for _, task := range body.Tasks {
+			if task.Status == TaskStatusCompleted {
+				sb.WriteString("- [x] ")
+			} else {
+				sb.WriteString("- [ ] ")
+			}
+			sb.WriteString(task.Title)
+			sb.WriteString("\n")
+		}
+		sb.WriteString("\n")
+	}
+
 	// 背景セクション
 	sb.WriteString("## 背景\n")
 
