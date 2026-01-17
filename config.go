@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"syscall"
@@ -60,10 +61,24 @@ func LoadConfig(path string) (*Config, error) {
 		return nil, fmt.Errorf("config directory is group or world writable")
 	}
 
-	// ファイルを読み込み
-	data, err := os.ReadFile(realPath)
+	// ファイルを開く
+	file, err := os.Open(realPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open config file: %w", err)
+	}
+	defer file.Close()
+
+	// サイズ制限付きで読み込み（10MB+1バイト読んで超過を検出）
+	const maxSize = 10 * 1024 * 1024
+	limitedReader := io.LimitReader(file, maxSize+1)
+	data, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
+	}
+
+	// サイズ超過チェック
+	if len(data) > maxSize {
+		return nil, fmt.Errorf("config file size exceeds 10MB")
 	}
 
 	// YAMLをパース
