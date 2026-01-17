@@ -168,19 +168,7 @@ func run(jsonPath string) error {
 		}
 
 		// 既存のタグを保持し、現在のリポジトリ名がなければ追加
-		tags := existingPost.Tags
-		if repoName != "" {
-			hasRepoTag := false
-			for _, tag := range tags {
-				if tag == repoName {
-					hasRepoTag = true
-					break
-				}
-			}
-			if !hasRepoTag {
-				tags = append(tags, repoName)
-			}
-		}
+		tags := guard.MergeTags(existingPost.Tags, repoName)
 
 		esaInput := &esa.PostInput{
 			Name:     input.Name,
