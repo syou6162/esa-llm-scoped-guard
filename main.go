@@ -181,8 +181,15 @@ func readJSONFile(path string) (*PostInput, error) {
 		return nil, fmt.Errorf("failed to resolve symlink: %w", err)
 	}
 
-	// ファイル情報を取得
-	fileInfo, err := os.Stat(realPath)
+	// ファイルを開く
+	file, err := os.Open(realPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	// 開いたFDに対してFstat（TOCTOU対策）
+	fileInfo, err := file.Stat()
 	if err != nil {
 		return nil, fmt.Errorf("failed to stat file: %w", err)
 	}
@@ -192,43 +199,22 @@ func readJSONFile(path string) (*PostInput, error) {
 		return nil, fmt.Errorf("file is not a regular file: %s", realPath)
 	}
 
-	// ファイルサイズチェック（10MB上限）
-	if fileInfo.Size() > 10*1024*1024 {
-		return nil, fmt.Errorf("file size exceeds 10MB")
-	}
-
-	// ファイルを開く
-	file, err := os.Open(realPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open file: %w", err)
-	}
-	defer file.Close()
-
-	// サイズ制限付きで読み込み
-	limitedReader := io.LimitReader(file, 10*1024*1024+1)
+	// サイズ制限付きで読み込み（10MB+1バイト読んで超過を検出）
+	const maxSize = 10 * 1024 * 1024
+	limitedReader := io.LimitReader(file, maxSize+1)
 	data, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
 	// サイズ超過チェック
-	if len(data) > 10*1024*1024 {
+	if len(data) > maxSize {
 		return nil, fmt.Errorf("file size exceeds 10MB")
 	}
 
-	// JSONをパース
+	// 読み込んだデータをデコード
 	var input PostInput
-	decoder := json.NewDecoder(io.NopCloser(io.LimitReader(file, int64(len(data)))))
-	decoder.DisallowUnknownFields() // 未知フィールドを拒否
-
-	// ファイルを再オープン
-	file, err = os.Open(realPath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to reopen file: %w", err)
-	}
-	defer file.Close()
-
-	decoder = json.NewDecoder(file)
+	decoder := json.NewDecoder(io.NopCloser(strings.NewReader(string(data))))
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&input); err != nil {
