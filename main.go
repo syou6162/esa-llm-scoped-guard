@@ -105,7 +105,7 @@ func run(jsonPath string) error {
 		return fmt.Errorf("failed to get home directory: %w", err)
 	}
 	configPath := filepath.Join(homeDir, ".config", "esa-llm-scoped-guard", "config.yaml")
-	config, err := LoadConfig(configPath)
+	config, err := LoadAndValidateConfig(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to load config: %w", err)
 	}

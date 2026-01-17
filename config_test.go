@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestLoadConfig(t *testing.T) {
+func TestLoadAndValidateConfig(t *testing.T) {
 	tests := []struct {
 		name       string
 		configYAML string
@@ -101,15 +101,15 @@ allowed_categories:
 			}
 
 			// 設定を読み込み
-			config, err := LoadConfig(configPath)
+			config, err := LoadAndValidateConfig(configPath)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("LoadConfig() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("LoadAndValidateConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
 			if tt.wantErr {
 				if err != nil && tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
-					t.Errorf("LoadConfig() error = %v, want error containing %q", err, tt.errMsg)
+					t.Errorf("LoadAndValidateConfig() error = %v, want error containing %q", err, tt.errMsg)
 				}
 				return
 			}
