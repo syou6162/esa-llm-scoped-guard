@@ -4,11 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
 
-	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
 	"github.com/syou6162/esa-llm-scoped-guard/internal/guard"
 )
 
@@ -68,37 +65,6 @@ func main() {
 	}
 }
 
-// getRepositoryName はGitリポジトリ名を取得します
-func getRepositoryName() (string, error) {
-	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to get repository name: %w", err)
-	}
-
-	url := strings.TrimSpace(string(output))
-	if url == "" {
-		return "", fmt.Errorf("repository URL is empty")
-	}
-
-	// URLからリポジトリ名を抽出
-	// 例: https://github.com/user/repo.git → repo
-	// 例: git@github.com:user/repo.git → repo
-	parts := strings.Split(url, "/")
-	if len(parts) == 0 {
-		return "", fmt.Errorf("invalid repository URL format")
-	}
-
-	repoName := parts[len(parts)-1]
-	repoName = strings.TrimSuffix(repoName, ".git")
-
-	if repoName == "" {
-		return "", fmt.Errorf("repository name is empty")
-	}
-
-	return repoName, nil
-}
-
 func run(jsonPath string) error {
 	// 1. 設定ファイルの読み込み
 	homeDir, err := os.UserHomeDir()
@@ -117,93 +83,6 @@ func run(jsonPath string) error {
 		return fmt.Errorf("ESA_ACCESS_TOKEN environment variable is not set")
 	}
 
-	// 3. JSONファイルの読み込みとバリデーション
-	input, err := guard.ReadPostInputFromFile(jsonPath)
-	if err != nil {
-		return fmt.Errorf("failed to read JSON file: %w", err)
-	}
-
-	// フィールドのトリミング（スキーマバリデーション前）
-	guard.TrimPostInput(input)
-
-	// JSONスキーマバリデーション
-	if err := guard.ValidatePostInputSchema(input); err != nil {
-		return fmt.Errorf("schema validation failed: %w", err)
-	}
-
-	// 詳細なバリデーション実行
-	if err := guard.ValidatePostInput(input); err != nil {
-		return fmt.Errorf("validation failed: %w", err)
-	}
-
-	// 4. カテゴリ権限チェック
-	allowed, err := guard.IsAllowedCategory(input.Category, config.AllowedCategories)
-	if err != nil {
-		return fmt.Errorf("category validation failed: %w", err)
-	}
-	if !allowed {
-		return fmt.Errorf("category %s is not allowed", input.Category)
-	}
-
-	// 5. リポジトリ名を取得
-	repoName, err := getRepositoryName()
-	if err != nil {
-		repoName = "" // gitリポジトリじゃない場合は空
-	}
-
-	// 6. esa.io APIクライアントで投稿
-	client := esa.NewEsaClient(config.Esa.TeamName, accessToken)
-
-	var post *esa.Post
-	if input.PostNumber != nil {
-		// 更新の場合：既存記事のカテゴリを検証
-		existingPost, err := client.GetPost(*input.PostNumber)
-		if err != nil {
-			return fmt.Errorf("failed to get existing post: %w", err)
-		}
-
-		// 更新リクエストの妥当性を検証
-		if err := guard.ValidateUpdateRequest(existingPost.Category, input.Category, config.AllowedCategories); err != nil {
-			return err
-		}
-
-		// 既存のタグを保持し、現在のリポジトリ名がなければ追加
-		tags := guard.MergeTags(existingPost.Tags, repoName)
-
-		esaInput := &esa.PostInput{
-			Name:     input.Name,
-			Category: input.Category,
-			Tags:     tags,
-			BodyMD:   input.BodyMD,
-			WIP:      false, // 常にShip It!
-		}
-
-		post, err = client.UpdatePost(*input.PostNumber, esaInput)
-		if err != nil {
-			return fmt.Errorf("failed to update post: %w", err)
-		}
-		fmt.Printf("Updated post: %s (Number: %d)\n", post.URL, post.Number)
-	} else {
-		// 新規作成：現在のリポジトリ名のみをタグに設定
-		var tags []string
-		if repoName != "" {
-			tags = []string{repoName}
-		}
-
-		esaInput := &esa.PostInput{
-			Name:     input.Name,
-			Category: input.Category,
-			Tags:     tags,
-			BodyMD:   input.BodyMD,
-			WIP:      false, // 常にShip It!
-		}
-
-		post, err = client.CreatePost(esaInput)
-		if err != nil {
-			return fmt.Errorf("failed to create post: %w", err)
-		}
-		fmt.Printf("Created post: %s (Number: %d)\n", post.URL, post.Number)
-	}
-
-	return nil
+	// 3. esa.io記事の作成/更新を実行
+	return guard.ExecutePost(jsonPath, config.Esa.TeamName, config.AllowedCategories, accessToken)
 }
