@@ -8,58 +8,102 @@ import (
 func GenerateMarkdown(body *Body) string {
 	var sb strings.Builder
 
-	// 背景セクション
+	if summary := generateSummarySection(body.Tasks); summary != "" {
+		sb.WriteString(summary)
+	}
+
+	sb.WriteString(generateBackgroundSection(body.Background, body.RelatedLinks))
+
+	if tasks := generateTasksSection(body.Tasks); tasks != "" {
+		sb.WriteString(tasks)
+	}
+
+	return sb.String()
+}
+
+// generateSummarySection はサマリーセクションを生成します
+func generateSummarySection(tasks []Task) string {
+	if len(tasks) == 0 {
+		return ""
+	}
+
+	var sb strings.Builder
+	sb.WriteString("## サマリー\n")
+	for _, task := range tasks {
+		if task.Status == TaskStatusCompleted {
+			sb.WriteString("- [x] ")
+		} else {
+			sb.WriteString("- [ ] ")
+		}
+		sb.WriteString(task.Title)
+		sb.WriteString("\n")
+	}
+	sb.WriteString("\n")
+	return sb.String()
+}
+
+// generateBackgroundSection は背景セクションを生成します
+func generateBackgroundSection(background string, relatedLinks []string) string {
+	var sb strings.Builder
 	sb.WriteString("## 背景\n")
 
-	// 関連リンク（存在する場合のみ、背景の最初に配置）
-	if len(body.RelatedLinks) > 0 {
+	if len(relatedLinks) > 0 {
 		sb.WriteString("関連リンク:\n")
-		for _, link := range body.RelatedLinks {
+		for _, link := range relatedLinks {
 			sb.WriteString("- ")
 			sb.WriteString(link)
 			sb.WriteString("\n")
 		}
 		sb.WriteString("\n")
 	} else {
-		// 関連リンクがない場合は空行を追加
 		sb.WriteString("\n")
 	}
 
-	sb.WriteString(body.Background)
+	sb.WriteString(background)
+	return sb.String()
+}
 
-	// タスクセクション
-	if len(body.Tasks) > 0 {
-		sb.WriteString("\n\n## タスク\n")
-		for _, task := range body.Tasks {
-			sb.WriteString("\n### ")
-			sb.WriteString(task.Title)
+// generateTasksSection はタスクセクションを生成します
+func generateTasksSection(tasks []Task) string {
+	if len(tasks) == 0 {
+		return ""
+	}
+
+	var sb strings.Builder
+	sb.WriteString("\n\n## タスク\n")
+	for _, task := range tasks {
+		sb.WriteString(generateTaskMarkdown(task))
+	}
+	return sb.String()
+}
+
+// generateTaskMarkdown は1つのタスクのマークダウンを生成します
+func generateTaskMarkdown(task Task) string {
+	var sb strings.Builder
+
+	sb.WriteString("\n### ")
+	sb.WriteString(task.Title)
+	sb.WriteString("\n")
+	sb.WriteString("- Status: `")
+	sb.WriteString(string(task.Status))
+	sb.WriteString("`\n")
+
+	if len(task.GitHubURLs) > 0 {
+		if len(task.GitHubURLs) == 1 {
+			sb.WriteString("- Pull Request: ")
+			sb.WriteString(task.GitHubURLs[0])
 			sb.WriteString("\n")
-			sb.WriteString("- Status: `")
-			sb.WriteString(string(task.Status))
-			sb.WriteString("`\n")
-
-			// GitHub URLsセクション（存在する場合のみ）
-			if len(task.GitHubURLs) > 0 {
-				if len(task.GitHubURLs) == 1 {
-					// 単一URL
-					sb.WriteString("- Pull Request: ")
-					sb.WriteString(task.GitHubURLs[0])
-					sb.WriteString("\n")
-				} else {
-					// 複数URL
-					sb.WriteString("- Pull Requests:\n")
-					for _, ghURL := range task.GitHubURLs {
-						sb.WriteString("  - ")
-						sb.WriteString(ghURL)
-						sb.WriteString("\n")
-					}
-				}
+		} else {
+			sb.WriteString("- Pull Requests:\n")
+			for _, ghURL := range task.GitHubURLs {
+				sb.WriteString("  - ")
+				sb.WriteString(ghURL)
+				sb.WriteString("\n")
 			}
-
-			sb.WriteString("\n")
-			sb.WriteString(task.Description)
 		}
 	}
 
+	sb.WriteString("\n")
+	sb.WriteString(task.Description)
 	return sb.String()
 }
