@@ -24,8 +24,10 @@ JSON Schema:
   {
     "post_number": 123,           // Optional: omit for new post creation
     "name": "Post Title",          // Required: max 255 bytes, no /, （）, or ：
-    "category": "LLM/Tasks/2025/01/18", // Required: allowed category + /yyyy/mm/dd
-    "body_md": "## Content\n..."  // Required: max 1MB
+    "category": "LLM/Tasks/2026/01/18", // Required: allowed category + /yyyy/mm/dd
+    "body": {                      // Required: structured format
+      "background": "Task background description"
+    }
   }
 
 Note: Tags are automatically set to the Git repository name (no tags if not a git repository).
