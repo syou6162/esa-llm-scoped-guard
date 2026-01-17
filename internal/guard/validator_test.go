@@ -32,6 +32,24 @@ func TestValidatePostInput(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name: "有効な入力（日本語カテゴリと日本語body_md）",
+			input: &PostInput{
+				Name:     "Test Post",
+				Category: "LLM/タスク",
+				BodyMD:   "## 内容\n\nこれは日本語のコンテンツです。",
+			},
+			wantErr: false,
+		},
+		{
+			name: "有効な入力（nameに日本語）",
+			input: &PostInput{
+				Name:     "テスト投稿 重要 確認事項",
+				Category: "LLM/Tasks",
+				BodyMD:   "## Content",
+			},
+			wantErr: false,
+		},
+		{
 			name: "nameが空",
 			input: &PostInput{
 				Name:     "",
@@ -70,6 +88,36 @@ func TestValidatePostInput(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "name contains control characters",
+		},
+		{
+			name: "nameに/を含む",
+			input: &PostInput{
+				Name:     "Test/Post",
+				Category: "LLM/Tasks",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+			errMsg:  "name cannot contain /",
+		},
+		{
+			name: "nameに全角括弧を含む",
+			input: &PostInput{
+				Name:     "Test（Post）",
+				Category: "LLM/Tasks",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+			errMsg:  "name cannot contain fullwidth parentheses or colon",
+		},
+		{
+			name: "nameに全角コロンを含む",
+			input: &PostInput{
+				Name:     "Test：Post",
+				Category: "LLM/Tasks",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+			errMsg:  "name cannot contain fullwidth parentheses or colon",
 		},
 		{
 			name: "categoryが空",

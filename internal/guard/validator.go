@@ -85,6 +85,12 @@ func ValidatePostInput(input *PostInput) error {
 	if containsControlCharacters(input.Name) {
 		return fmt.Errorf("name contains control characters")
 	}
+	if strings.Contains(input.Name, "/") {
+		return fmt.Errorf("name cannot contain /")
+	}
+	if strings.ContainsAny(input.Name, "（）：") {
+		return fmt.Errorf("name cannot contain fullwidth parentheses or colon")
+	}
 
 	// categoryの検証
 	if input.Category == "" {
