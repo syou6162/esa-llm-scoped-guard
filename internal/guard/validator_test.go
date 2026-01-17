@@ -19,6 +19,14 @@ func TestValidatePostInput(t *testing.T) {
 				Category: "LLM/Tasks/2025/01/18",
 				Body: Body{
 					Background: "## Content",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description 1",
+						},
+					},
 				},
 			},
 			wantErr: false,
@@ -86,12 +94,20 @@ func TestValidatePostInput_Body(t *testing.T) {
 		errMsg  string
 	}{
 		{
-			name: "有効な入力（backgroundのみ）",
+			name: "有効な入力（backgroundとtasks）",
 			input: &PostInput{
 				Name:     "Test Post",
 				Category: "LLM/Tasks/2026/01/18",
 				Body: Body{
 					Background: "This is a background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description 1",
+						},
+					},
 				},
 			},
 			wantErr: false,
@@ -150,6 +166,14 @@ func TestValidatePostInputSchema(t *testing.T) {
 				Category: "LLM/Tasks/2025/01/18",
 				Body: Body{
 					Background: "## Content",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description 1",
+						},
+					},
 				},
 			},
 			wantErr: false,

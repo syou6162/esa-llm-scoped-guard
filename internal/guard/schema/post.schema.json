@@ -33,9 +33,40 @@
             "format": "uri"
           },
           "description": "Related links (optional)"
+        },
+        "tasks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Unique task identifier"
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Task title"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["not_started", "in_progress", "in_review", "completed"],
+                "description": "Task status"
+              },
+              "description": {
+                "type": "string",
+                "minLength": 1,
+                "description": "Task description"
+              }
+            },
+            "required": ["id", "title", "status", "description"],
+            "additionalProperties": false
+          },
+          "description": "Task list (required)"
         }
       },
-      "required": ["background"],
+      "required": ["background", "tasks"],
       "additionalProperties": false,
       "description": "Post body (structured format)"
     }

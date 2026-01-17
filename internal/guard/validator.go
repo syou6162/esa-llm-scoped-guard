@@ -68,6 +68,13 @@ func TrimPostInput(input *PostInput) {
 	input.Name = strings.TrimSpace(input.Name)
 	input.Category = strings.TrimSpace(input.Category)
 	input.Body.Background = strings.TrimSpace(input.Body.Background)
+
+	// Tasksの各フィールドをトリミング
+	for i := range input.Body.Tasks {
+		input.Body.Tasks[i].ID = strings.TrimSpace(input.Body.Tasks[i].ID)
+		input.Body.Tasks[i].Title = strings.TrimSpace(input.Body.Tasks[i].Title)
+		input.Body.Tasks[i].Description = strings.TrimSpace(input.Body.Tasks[i].Description)
+	}
 }
 
 // ValidatePostInput は PostInput の各フィールドを検証します
@@ -105,6 +112,35 @@ func ValidatePostInput(input *PostInput) error {
 	// bodyの検証
 	if input.Body.Background == "" {
 		return fmt.Errorf("background cannot be empty")
+	}
+
+	// tasksの検証
+	if len(input.Body.Tasks) == 0 {
+		return fmt.Errorf("tasks cannot be empty")
+	}
+
+	// タスクIDのユニーク性チェック用マップ
+	taskIDs := make(map[string]bool)
+
+	for i, task := range input.Body.Tasks {
+		if task.ID == "" {
+			return fmt.Errorf("task[%d].id cannot be empty", i)
+		}
+		if task.Title == "" {
+			return fmt.Errorf("task[%d].title cannot be empty", i)
+		}
+		if task.Description == "" {
+			return fmt.Errorf("task[%d].description cannot be empty", i)
+		}
+		if string(task.Status) == "" {
+			return fmt.Errorf("task[%d].status cannot be empty", i)
+		}
+
+		// IDのユニーク性チェック
+		if taskIDs[task.ID] {
+			return fmt.Errorf("duplicate task ID: %s", task.ID)
+		}
+		taskIDs[task.ID] = true
 	}
 
 	return nil
