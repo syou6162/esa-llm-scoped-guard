@@ -18,7 +18,6 @@ func TestIntegrationEndToEnd(t *testing.T) {
 	jsonContent := `{
 		"name": "Test Post",
 		"category": "LLM/Tasks",
-		"tags": ["test"],
 		"body_md": "## Test Content"
 	}`
 
@@ -62,7 +61,6 @@ func TestIntegrationJapaneseCategory(t *testing.T) {
 	jsonContent := `{
 		"name": "日本語テスト",
 		"category": "Claude Code/開発日誌",
-		"tags": ["テスト", "日本語"],
 		"body_md": "## 日本語カテゴリ\n\nこれは日本語カテゴリのテストです。"
 	}`
 
@@ -124,11 +122,6 @@ func TestIntegrationInvalidJSON(t *testing.T) {
 		{
 			name:        "不正なpost_number",
 			jsonContent: `{"post_number": 0, "name": "Test", "category": "LLM/Tasks", "body_md": "content"}`,
-			wantErr:     "schema validation failed",
-		},
-		{
-			name:        "tagsが10個超過",
-			jsonContent: `{"name": "Test", "category": "LLM/Tasks", "body_md": "content", "tags": ["1","2","3","4","5","6","7","8","9","10","11"]}`,
 			wantErr:     "schema validation failed",
 		},
 	}

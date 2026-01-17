@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -68,6 +69,37 @@ func main() {
 	}
 }
 
+// getRepositoryName はGitリポジトリ名を取得します
+func getRepositoryName() (string, error) {
+	cmd := exec.Command("git", "config", "--get", "remote.origin.url")
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to get repository name: %w", err)
+	}
+
+	url := strings.TrimSpace(string(output))
+	if url == "" {
+		return "", fmt.Errorf("repository URL is empty")
+	}
+
+	// URLからリポジトリ名を抽出
+	// 例: https://github.com/user/repo.git → repo
+	// 例: git@github.com:user/repo.git → repo
+	parts := strings.Split(url, "/")
+	if len(parts) == 0 {
+		return "", fmt.Errorf("invalid repository URL format")
+	}
+
+	repoName := parts[len(parts)-1]
+	repoName = strings.TrimSuffix(repoName, ".git")
+
+	if repoName == "" {
+		return "", fmt.Errorf("repository name is empty")
+	}
+
+	return repoName, nil
+}
+
 func run(jsonPath string) error {
 	// 1. 設定ファイルの読み込み
 	homeDir, err := os.UserHomeDir()
@@ -114,13 +146,21 @@ func run(jsonPath string) error {
 		return fmt.Errorf("category %s is not allowed", input.Category)
 	}
 
-	// 5. esa.io APIクライアントで投稿
+	// 5. リポジトリ名を取得してタグに設定
+	var tags []string
+	repoName, err := getRepositoryName()
+	if err == nil && repoName != "" {
+		tags = []string{repoName}
+	}
+	// gitリポジトリじゃない場合はタグなし
+
+	// 6. esa.io APIクライアントで投稿
 	client := esa.NewEsaClient(config.Esa.TeamName, accessToken)
 
 	esaInput := &esa.PostInput{
 		Name:     input.Name,
 		Category: input.Category,
-		Tags:     input.Tags,
+		Tags:     tags,
 		BodyMD:   input.BodyMD,
 		WIP:      false, // 常にShip It!
 	}

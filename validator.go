@@ -52,9 +52,6 @@ func TrimPostInput(input *PostInput) {
 	input.Name = strings.TrimSpace(input.Name)
 	input.Category = strings.TrimSpace(input.Category)
 	input.BodyMD = strings.TrimSpace(input.BodyMD)
-	for i := range input.Tags {
-		input.Tags[i] = strings.TrimSpace(input.Tags[i])
-	}
 }
 
 // ValidatePostInput は PostInput の各フィールドを検証します
@@ -89,22 +86,6 @@ func ValidatePostInput(input *PostInput) error {
 	}
 	if strings.HasPrefix(input.BodyMD, "---") {
 		return fmt.Errorf("body_md cannot start with --- (frontmatter conflict)")
-	}
-
-	// tagsの検証
-	if len(input.Tags) > 10 {
-		return fmt.Errorf("tags cannot exceed 10")
-	}
-	for _, tag := range input.Tags {
-		if tag == "" {
-			return fmt.Errorf("tag cannot be empty")
-		}
-		if len(tag) > 50 {
-			return fmt.Errorf("tag exceeds 50 bytes")
-		}
-		if containsControlCharacters(tag) {
-			return fmt.Errorf("tag contains control characters")
-		}
 	}
 
 	return nil
