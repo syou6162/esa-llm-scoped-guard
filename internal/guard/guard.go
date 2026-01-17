@@ -6,18 +6,10 @@ import (
 )
 
 // NormalizeCategory はカテゴリを正規化し、検証します。
-// ASCII文字（A-Z, a-z, 0-9, /, _, -）のみを許可し、
 // パストラバーサル（..）、空セグメント、先頭/末尾スラッシュを拒否します。
 func NormalizeCategory(category string) (string, error) {
 	if category == "" {
 		return "", fmt.Errorf("category cannot be empty")
-	}
-
-	// ASCII文字のみを許可
-	for _, c := range category {
-		if !((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '/' || c == '_' || c == '-') {
-			return "", fmt.Errorf("category contains invalid characters (only A-Z, a-z, 0-9, /, _, - allowed): %s", category)
-		}
 	}
 
 	// 先頭/末尾スラッシュチェック

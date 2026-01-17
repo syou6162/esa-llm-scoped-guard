@@ -62,13 +62,6 @@ func TestIsAllowedCategory(t *testing.T) {
 			wantErr:           true,
 		},
 		{
-			name:              "非ASCII文字を含むカテゴリ",
-			allowedCategories: []string{"LLM/Tasks"},
-			category:          "LLM/タスク",
-			want:              false,
-			wantErr:           true,
-		},
-		{
 			name:              "..を含むカテゴリ",
 			allowedCategories: []string{"LLM/Tasks"},
 			category:          "LLM/../Tasks",
@@ -100,13 +93,6 @@ func TestIsAllowedCategory(t *testing.T) {
 			name:              "連続スラッシュ",
 			allowedCategories: []string{"LLM/Tasks"},
 			category:          "LLM//Tasks",
-			want:              false,
-			wantErr:           true,
-		},
-		{
-			name:              "許可されていない文字",
-			allowedCategories: []string{"LLM/Tasks"},
-			category:          "LLM/Tasks:evil",
 			want:              false,
 			wantErr:           true,
 		},
@@ -149,11 +135,6 @@ func TestNormalizeCategory(t *testing.T) {
 			wantErr:  true,
 		},
 		{
-			name:     "非ASCII文字",
-			category: "LLM/タスク",
-			wantErr:  true,
-		},
-		{
 			name:     "..を含む",
 			category: "LLM/../Tasks",
 			wantErr:  true,
@@ -176,11 +157,6 @@ func TestNormalizeCategory(t *testing.T) {
 		{
 			name:     "連続スラッシュ",
 			category: "LLM//Tasks",
-			wantErr:  true,
-		},
-		{
-			name:     "許可されていない文字（コロン）",
-			category: "LLM:Tasks",
 			wantErr:  true,
 		},
 	}
