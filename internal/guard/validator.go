@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -74,6 +75,9 @@ func TrimPostInput(input *PostInput) {
 		input.Body.Tasks[i].ID = strings.TrimSpace(input.Body.Tasks[i].ID)
 		input.Body.Tasks[i].Title = strings.TrimSpace(input.Body.Tasks[i].Title)
 		input.Body.Tasks[i].Description = strings.TrimSpace(input.Body.Tasks[i].Description)
+		for j := range input.Body.Tasks[i].GitHubURLs {
+			input.Body.Tasks[i].GitHubURLs[j] = strings.TrimSpace(input.Body.Tasks[i].GitHubURLs[j])
+		}
 	}
 }
 
@@ -142,6 +146,13 @@ func ValidatePostInput(input *PostInput) error {
 			return fmt.Errorf("task[%d].status cannot be empty", i)
 		}
 
+		// GitHub URLsの検証
+		for j, ghURL := range task.GitHubURLs {
+			if !isGitHubURL(ghURL) {
+				return fmt.Errorf("task[%d].github_urls[%d]: must be a valid GitHub URL (https://github.com/...)", i, j)
+			}
+		}
+
 		// IDのユニーク性チェック
 		if taskIDs[task.ID] {
 			return fmt.Errorf("duplicate task ID: %s", task.ID)
@@ -191,4 +202,13 @@ func hasValidDateSuffix(category string) bool {
 	}
 
 	return true
+}
+
+// isGitHubURL はURLがgithub.comドメインかつHTTPSかを検証します
+func isGitHubURL(urlStr string) bool {
+	parsed, err := url.Parse(urlStr)
+	if err != nil {
+		return false
+	}
+	return parsed.Scheme == "https" && parsed.Host == "github.com"
 }

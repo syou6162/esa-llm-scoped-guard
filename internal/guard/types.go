@@ -16,6 +16,7 @@ type Task struct {
 	Title       string     `json:"title"`
 	Status      TaskStatus `json:"status"`
 	Description string     `json:"description"`
+	GitHubURLs  []string   `json:"github_urls,omitempty"`
 }
 
 // Body は本文の構造体

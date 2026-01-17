@@ -362,3 +362,180 @@ func TestValidatePostInputSchema(t *testing.T) {
 		})
 	}
 }
+
+// TestValidatePostInput_GitHubURLs はタスクのGitHub URLsのバリデーションをテストします
+func TestValidatePostInput_GitHubURLs(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   *PostInput
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "有効なGitHub URL（単一）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description",
+							GitHubURLs:  []string{"https://github.com/owner/repo/pull/123"},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "有効なGitHub URL（複数）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description",
+							GitHubURLs: []string{
+								"https://github.com/owner/repo/pull/123",
+								"https://github.com/owner/repo/issues/456",
+							},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "github_urls省略（OK）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "空の配列（OK）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description",
+							GitHubURLs:  []string{},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "無効なドメイン（gitlab.com）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description",
+							GitHubURLs:  []string{"https://gitlab.com/owner/repo/pull/123"},
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "must be a valid GitHub URL",
+		},
+		{
+			name: "HTTPスキーム（許可しない）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description",
+							GitHubURLs:  []string{"http://github.com/owner/repo/pull/123"},
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "must be a valid GitHub URL",
+		},
+		{
+			name: "サブドメイン（許可しない）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description",
+							GitHubURLs:  []string{"https://api.github.com/repos/owner/repo"},
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "must be a valid GitHub URL",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			TrimPostInput(tt.input)
+			err := ValidatePostInput(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
+				t.Errorf("ValidatePostInput() error = %v, want error containing %q", err, tt.errMsg)
+			}
+		})
+	}
+}

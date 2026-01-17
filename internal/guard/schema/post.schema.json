@@ -62,6 +62,14 @@
                 "type": "string",
                 "minLength": 1,
                 "description": "Task description"
+              },
+              "github_urls": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "description": "GitHub PR/Issue URLs (optional, must be https://github.com/...)"
               }
             },
             "required": ["id", "title", "status", "description"],
