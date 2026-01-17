@@ -145,24 +145,14 @@ func run(jsonPath string) error {
 		return fmt.Errorf("category %s is not allowed", input.Category)
 	}
 
-	// 5. リポジトリ名を取得してタグに設定
-	var tags []string
+	// 5. リポジトリ名を取得
 	repoName, err := getRepositoryName()
-	if err == nil && repoName != "" {
-		tags = []string{repoName}
+	if err != nil {
+		repoName = "" // gitリポジトリじゃない場合は空
 	}
-	// gitリポジトリじゃない場合はタグなし
 
 	// 6. esa.io APIクライアントで投稿
 	client := esa.NewEsaClient(config.Esa.TeamName, accessToken)
-
-	esaInput := &esa.PostInput{
-		Name:     input.Name,
-		Category: input.Category,
-		Tags:     tags,
-		BodyMD:   input.BodyMD,
-		WIP:      false, // 常にShip It!
-	}
 
 	var post *esa.Post
 	if input.PostNumber != nil {
@@ -177,13 +167,49 @@ func run(jsonPath string) error {
 			return err
 		}
 
+		// 既存のタグを保持し、現在のリポジトリ名がなければ追加
+		tags := existingPost.Tags
+		if repoName != "" {
+			hasRepoTag := false
+			for _, tag := range tags {
+				if tag == repoName {
+					hasRepoTag = true
+					break
+				}
+			}
+			if !hasRepoTag {
+				tags = append(tags, repoName)
+			}
+		}
+
+		esaInput := &esa.PostInput{
+			Name:     input.Name,
+			Category: input.Category,
+			Tags:     tags,
+			BodyMD:   input.BodyMD,
+			WIP:      false, // 常にShip It!
+		}
+
 		post, err = client.UpdatePost(*input.PostNumber, esaInput)
 		if err != nil {
 			return fmt.Errorf("failed to update post: %w", err)
 		}
 		fmt.Printf("Updated post: %s (Number: %d)\n", post.URL, post.Number)
 	} else {
-		// 新規作成
+		// 新規作成：現在のリポジトリ名のみをタグに設定
+		var tags []string
+		if repoName != "" {
+			tags = []string{repoName}
+		}
+
+		esaInput := &esa.PostInput{
+			Name:     input.Name,
+			Category: input.Category,
+			Tags:     tags,
+			BodyMD:   input.BodyMD,
+			WIP:      false, // 常にShip It!
+		}
+
 		post, err = client.CreatePost(esaInput)
 		if err != nil {
 			return fmt.Errorf("failed to create post: %w", err)
