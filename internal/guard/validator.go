@@ -79,7 +79,13 @@ func TrimPostInput(input *PostInput) {
 
 // ValidatePostInput は PostInput の各フィールドを検証します
 func ValidatePostInput(input *PostInput) error {
-	// post_numberの検証
+	// create_newとpost_numberの検証
+	if input.CreateNew && input.PostNumber != nil {
+		return fmt.Errorf("cannot specify both create_new and post_number")
+	}
+	if !input.CreateNew && input.PostNumber == nil {
+		return fmt.Errorf("must specify either create_new or post_number")
+	}
 	if input.PostNumber != nil && *input.PostNumber <= 0 {
 		return fmt.Errorf("post_number must be greater than 0")
 	}

@@ -47,6 +47,7 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 
 ```json
 {
+  "create_new": true,
   "name": "タスク: データ分析の実装",
   "category": "LLM/Tasks/2025/01/18",
   "body": {
@@ -82,7 +83,8 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 
 | フィールド | 必須 | 説明 | 制限 |
 |-----------|------|------|------|
-| `post_number` | 更新時のみ | esa記事番号 | 1以上の整数 |
+| `create_new` | No | 新規作成フラグ（**trueで新規作成。post_numberと同時指定不可**） | boolean |
+| `post_number` | No | esa記事番号（**既存記事の更新時に指定。create_newと同時指定不可**） | 1以上の整数 |
 | `name` | Yes | 記事タイトル | 最大255バイト、制御文字・`/`・全角括弧`（）`・全角コロン`：`不可 |
 | `category` | Yes | カテゴリパス | 許可カテゴリ配下で、必ず`/yyyy/mm/dd`形式の日付で終わること（例: `LLM/Tasks/2025/01/18`） |
 | `body` | Yes | 本文（構造化形式） | backgroundフィールド必須、tasksフィールド必須、related_links配列は任意（URI形式） |

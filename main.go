@@ -22,7 +22,8 @@ Flags:
 
 JSON Schema:
   {
-    "post_number": 123,           // Optional: omit for new post creation
+    "create_new": true,            // Optional: set true for new post (cannot use with post_number)
+    "post_number": 123,            // Optional: existing post number for update (cannot use with create_new)
     "name": "Post Title",          // Required: max 255 bytes, no /, （）, or ：
     "category": "LLM/Tasks/2026/01/18", // Required: allowed category + /yyyy/mm/dd
     "body": {                      // Required: structured format

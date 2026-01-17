@@ -5,6 +5,147 @@ import (
 	"testing"
 )
 
+func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
+	postNum123 := 123
+	postNum0 := 0
+	postNumNeg := -1
+
+	tests := []struct {
+		name    string
+		input   *PostInput
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "create_new=true, post_number=nil (OK: 新規作成)",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "create_new=true, post_number=123 (エラー: 両方指定)",
+			input: &PostInput{
+				CreateNew:  true,
+				PostNumber: &postNum123,
+				Name:       "Test Post",
+				Category:   "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "cannot specify both create_new and post_number",
+		},
+		{
+			name: "create_new=false, post_number=nil (エラー: どちらも未指定)",
+			input: &PostInput{
+				CreateNew: false,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "must specify either create_new or post_number",
+		},
+		{
+			name: "create_new=false, post_number=123 (OK: 更新)",
+			input: &PostInput{
+				CreateNew:  false,
+				PostNumber: &postNum123,
+				Name:       "Test Post",
+				Category:   "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "create_new省略, post_number=123 (OK: 更新)",
+			input: &PostInput{
+				PostNumber: &postNum123,
+				Name:       "Test Post",
+				Category:   "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "create_new=false, post_number=0 (エラー: post_number <= 0)",
+			input: &PostInput{
+				CreateNew:  false,
+				PostNumber: &postNum0,
+				Name:       "Test Post",
+				Category:   "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "post_number must be greater than 0",
+		},
+		{
+			name: "create_new=false, post_number=-1 (エラー: post_number <= 0)",
+			input: &PostInput{
+				CreateNew:  false,
+				PostNumber: &postNumNeg,
+				Name:       "Test Post",
+				Category:   "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "post_number must be greater than 0",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			TrimPostInput(tt.input)
+			err := ValidatePostInput(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
+				t.Errorf("ValidatePostInput() error = %v, want error containing %q", err, tt.errMsg)
+			}
+		})
+	}
+}
+
 func TestValidatePostInput(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -15,8 +156,9 @@ func TestValidatePostInput(t *testing.T) {
 		{
 			name: "有効な入力（新規作成）",
 			input: &PostInput{
-				Name:     "Test Post",
-				Category: "LLM/Tasks/2025/01/18",
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2025/01/18",
 				Body: Body{
 					Background: "## Content",
 					Tasks: []Task{
@@ -34,8 +176,9 @@ func TestValidatePostInput(t *testing.T) {
 		{
 			name: "nameが空",
 			input: &PostInput{
-				Name:     "",
-				Category: "LLM/Tasks/2025/01/18",
+				CreateNew: true,
+				Name:      "",
+				Category:  "LLM/Tasks/2025/01/18",
 				Body: Body{
 					Background: "## Content",
 				},
@@ -46,8 +189,9 @@ func TestValidatePostInput(t *testing.T) {
 		{
 			name: "categoryが空",
 			input: &PostInput{
-				Name:     "Test Post",
-				Category: "",
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "",
 				Body: Body{
 					Background: "## Content",
 				},
@@ -58,8 +202,9 @@ func TestValidatePostInput(t *testing.T) {
 		{
 			name: "categoryが日付形式で終わらない",
 			input: &PostInput{
-				Name:     "Test Post",
-				Category: "LLM/Tasks",
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks",
 				Body: Body{
 					Background: "## Content",
 				},
@@ -96,8 +241,9 @@ func TestValidatePostInput_Body(t *testing.T) {
 		{
 			name: "有効な入力（backgroundとtasks）",
 			input: &PostInput{
-				Name:     "Test Post",
-				Category: "LLM/Tasks/2026/01/18",
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
 				Body: Body{
 					Background: "This is a background",
 					Tasks: []Task{
@@ -115,8 +261,9 @@ func TestValidatePostInput_Body(t *testing.T) {
 		{
 			name: "backgroundが空",
 			input: &PostInput{
-				Name:     "Test Post",
-				Category: "LLM/Tasks/2026/01/18",
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
 				Body: Body{
 					Background: "",
 				},
@@ -127,8 +274,9 @@ func TestValidatePostInput_Body(t *testing.T) {
 		{
 			name: "backgroundが空白のみ",
 			input: &PostInput{
-				Name:     "Test Post",
-				Category: "LLM/Tasks/2026/01/18",
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
 				Body: Body{
 					Background: "   \n  ",
 				},
@@ -162,8 +310,9 @@ func TestValidatePostInputSchema(t *testing.T) {
 		{
 			name: "有効な入力",
 			input: &PostInput{
-				Name:     "Test Post",
-				Category: "LLM/Tasks/2025/01/18",
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2025/01/18",
 				Body: Body{
 					Background: "## Content",
 					Tasks: []Task{
@@ -181,8 +330,9 @@ func TestValidatePostInputSchema(t *testing.T) {
 		{
 			name: "nameが空",
 			input: &PostInput{
-				Name:     "",
-				Category: "LLM/Tasks/2025/01/18",
+				CreateNew: true,
+				Name:      "",
+				Category:  "LLM/Tasks/2025/01/18",
 				Body: Body{
 					Background: "## Content",
 				},
@@ -192,8 +342,9 @@ func TestValidatePostInputSchema(t *testing.T) {
 		{
 			name: "backgroundが空",
 			input: &PostInput{
-				Name:     "Test",
-				Category: "LLM/Tasks/2025/01/18",
+				CreateNew: true,
+				Name:      "Test",
+				Category:  "LLM/Tasks/2025/01/18",
 				Body: Body{
 					Background: "",
 				},
