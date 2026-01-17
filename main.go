@@ -27,18 +27,36 @@ JSON Schema:
     "name": "Post Title",          // Required: max 255 bytes, no /, （）, or ：
     "category": "LLM/Tasks/2026/01/18", // Required: allowed category + /yyyy/mm/dd
     "body": {                      // Required: structured format
-      "background": "Task background (plain text, no '## 背景' header)",
+      "background": "Task background (plain text, no '## 背景' header, no # or ## at line start)",
       "related_links": ["https://example.com"], // Optional: related URLs
       "tasks": [                   // Required: task array
         {
           "id": "task-1",          // Required: unique identifier
-          "title": "Task title",   // Required
-          "status": "not_started", // Required: not_started/in_progress/in_review/completed
-          "description": "Task description" // Required
+          "title": "Task title",   // Required (auto-generated: "### {title}")
+          "status": "not_started", // Required: not_started/in_progress/in_review/completed (auto-generated: "Status: {status}")
+          "description": "Task description", // Required (plain text, status/title auto-generated, no #/##/### at line start)
+          "github_urls": ["https://github.com/owner/repo/pull/123"] // Optional: GitHub PR/Issue URLs
         }
       ]
     }
   }
+
+Markdown Output Example:
+  Input JSON with github_urls:
+    {
+      "id": "task-1",
+      "title": "Fix bug",
+      "status": "in_progress",
+      "description": "Fix the authentication bug",
+      "github_urls": ["https://github.com/owner/repo/pull/123"]
+    }
+
+  Output:
+    ### Fix bug
+    - Status: ` + "`in_progress`" + `
+    - Pull Request: https://github.com/owner/repo/pull/123
+
+    Fix the authentication bug
 
 Note: Tags are automatically set to the Git repository name (no tags if not a git repository).
 

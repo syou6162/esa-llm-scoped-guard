@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -74,6 +75,9 @@ func TrimPostInput(input *PostInput) {
 		input.Body.Tasks[i].ID = strings.TrimSpace(input.Body.Tasks[i].ID)
 		input.Body.Tasks[i].Title = strings.TrimSpace(input.Body.Tasks[i].Title)
 		input.Body.Tasks[i].Description = strings.TrimSpace(input.Body.Tasks[i].Description)
+		for j := range input.Body.Tasks[i].GitHubURLs {
+			input.Body.Tasks[i].GitHubURLs[j] = strings.TrimSpace(input.Body.Tasks[i].GitHubURLs[j])
+		}
 	}
 }
 
@@ -119,6 +123,10 @@ func ValidatePostInput(input *PostInput) error {
 	if input.Body.Background == "" {
 		return fmt.Errorf("background cannot be empty")
 	}
+	// backgroundには## 背景より上位の見出し（#, ##）を含めることができない
+	if containsHeadingMarkers(input.Body.Background, 2) {
+		return fmt.Errorf("background cannot contain heading markers (# or ##)")
+	}
 
 	// tasksの検証
 	if len(input.Body.Tasks) == 0 {
@@ -138,8 +146,19 @@ func ValidatePostInput(input *PostInput) error {
 		if task.Description == "" {
 			return fmt.Errorf("task[%d].description cannot be empty", i)
 		}
+		// descriptionには### タスクタイトルより上位の見出し（#, ##, ###）を含めることができない
+		if containsHeadingMarkers(task.Description, 3) {
+			return fmt.Errorf("task[%d].description cannot contain heading markers (# or ## or ###)", i)
+		}
 		if string(task.Status) == "" {
 			return fmt.Errorf("task[%d].status cannot be empty", i)
+		}
+
+		// GitHub URLsの検証
+		for j, ghURL := range task.GitHubURLs {
+			if !isGitHubURL(ghURL) {
+				return fmt.Errorf("task[%d].github_urls[%d]: must be a valid GitHub URL (https://github.com/...)", i, j)
+			}
 		}
 
 		// IDのユニーク性チェック
@@ -191,4 +210,22 @@ func hasValidDateSuffix(category string) bool {
 	}
 
 	return true
+}
+
+// isGitHubURL はURLがgithub.comドメインかつHTTPSかを検証します
+func isGitHubURL(urlStr string) bool {
+	parsed, err := url.Parse(urlStr)
+	if err != nil {
+		return false
+	}
+	return parsed.Scheme == "https" && parsed.Host == "github.com"
+}
+
+// containsHeadingMarkers は文字列に行頭の見出しマーカー（#で始まる行）が含まれているかチェックします
+// maxLevel: 許可しない最大レベル（1=#, 2=##, 3=###）
+func containsHeadingMarkers(text string, maxLevel int) bool {
+	// 行頭（または行頭の空白の後）に1~maxLevel個の#が続く行を検出
+	pattern := fmt.Sprintf(`(?m)^\s*#{1,%d}\s`, maxLevel)
+	re := regexp.MustCompile(pattern)
+	return re.MatchString(text)
 }

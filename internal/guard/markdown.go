@@ -32,13 +32,31 @@ func GenerateMarkdown(body *Body) string {
 		sb.WriteString("\n\n## タスク\n")
 		for _, task := range body.Tasks {
 			sb.WriteString("\n### ")
-			sb.WriteString(task.ID)
-			sb.WriteString(": ")
 			sb.WriteString(task.Title)
 			sb.WriteString("\n")
-			sb.WriteString("Status: ")
+			sb.WriteString("- Status: `")
 			sb.WriteString(string(task.Status))
-			sb.WriteString("\n\n")
+			sb.WriteString("`\n")
+
+			// GitHub URLsセクション（存在する場合のみ）
+			if len(task.GitHubURLs) > 0 {
+				if len(task.GitHubURLs) == 1 {
+					// 単一URL
+					sb.WriteString("- Pull Request: ")
+					sb.WriteString(task.GitHubURLs[0])
+					sb.WriteString("\n")
+				} else {
+					// 複数URL
+					sb.WriteString("- Pull Requests:\n")
+					for _, ghURL := range task.GitHubURLs {
+						sb.WriteString("  - ")
+						sb.WriteString(ghURL)
+						sb.WriteString("\n")
+					}
+				}
+			}
+
+			sb.WriteString("\n")
 			sb.WriteString(task.Description)
 		}
 	}
