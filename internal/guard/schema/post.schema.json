@@ -28,7 +28,7 @@
         "background": {
           "type": "string",
           "minLength": 1,
-          "description": "Task background description (plain text only, do not include '## 背景' header as it will be added automatically)"
+          "description": "Task background description (plain text only, do not include '## 背景' header as it will be added automatically. Cannot contain heading markers # or ## at the beginning of lines.)"
         },
         "related_links": {
           "type": "array",
@@ -61,7 +61,7 @@
               "description": {
                 "type": "string",
                 "minLength": 1,
-                "description": "Task description (do not include status or title as they are automatically generated)"
+                "description": "Task description (do not include status or title as they are automatically generated. Cannot contain heading markers #, ##, or ### at the beginning of lines.)"
               },
               "github_urls": {
                 "type": "array",

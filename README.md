@@ -92,23 +92,25 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 
 ## タスク
 
-### task-1: 要件定義
+### 要件定義
 Status: completed
 
 データ分析の要件を定義する
 
-### task-2: 実装
+### 実装
 Status: in_progress
 
 データ分析機能を実装する
 
-### task-3: テスト
+### テスト
 Status: not_started
 
 実装した機能をテストする
 ```
 
-**重要**: `description`フィールドには、タイトルやステータス情報を含めないでください。これらは自動的に生成されます。
+**重要**:
+- `description`フィールドには、タイトルやステータス情報を含めないでください。これらは自動的に生成されます。
+- `background`と`description`には、行頭に見出しマーカー（`#`など）を含めることができません。`background`は`#`、`##`が禁止、`description`は`#`、`##`、`###`が禁止です（`####`以下は使用可能）。
 
 **フィールド仕様**:
 
@@ -119,7 +121,7 @@ Status: not_started
 | `name` | Yes | 記事タイトル | 最大255バイト、制御文字・`/`・全角括弧`（）`・全角コロン`：`不可 |
 | `category` | Yes | カテゴリパス | 許可カテゴリ配下で、必ず`/yyyy/mm/dd`形式の日付で終わること（例: `LLM/Tasks/2025/01/18`） |
 | `body` | Yes | 本文（構造化形式） | backgroundフィールド必須、tasksフィールド必須、related_links配列は任意（URI形式） |
-| `body.background` | Yes | 背景説明（プレーンテキスト） | 「## 背景」ヘッダーは含めない（自動追加される） |
+| `body.background` | Yes | 背景説明（プレーンテキスト） | 「## 背景」ヘッダーは含めない（自動追加される）。行頭に`#`または`##`を含めることはできない（`####`以下は可） |
 | `body.related_links` | No | 関連リンク配列 | URI形式の文字列配列 |
 | `body.tasks` | Yes | タスク配列 | Task配列（最低1つ必要） |
 
@@ -128,9 +130,9 @@ Status: not_started
 | フィールド | 必須 | 説明 | 制限 |
 |-----------|------|------|------|
 | `id` | Yes | タスクの一意識別子 | ユニークである必要あり |
-| `title` | Yes | タスクのタイトル | マークダウンで「### {id}: {title}」として自動生成される |
+| `title` | Yes | タスクのタイトル | マークダウンで「### {title}」として自動生成される |
 | `status` | Yes | タスクのステータス | `not_started`, `in_progress`, `in_review`, `completed` のいずれか。マークダウンで「Status: {status}」として自動生成される |
-| `description` | Yes | タスクの詳細説明 | プレーンテキスト。ステータスやタイトルは含めない（自動生成される） |
+| `description` | Yes | タスクの詳細説明 | プレーンテキスト。ステータスやタイトルは含めない（自動生成される）。行頭に`#`、`##`、`###`を含めることはできない（`####`以下は可） |
 | `github_urls` | No | GitHub PR/IssueのURL配列 | `https://github.com/...`形式のURL。単数の場合「Pull Request: URL」、複数の場合「Pull Requests:」+リスト形式で出力 |
 
 ### コマンド実行

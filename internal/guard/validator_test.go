@@ -160,7 +160,7 @@ func TestValidatePostInput(t *testing.T) {
 				Name:      "Test Post",
 				Category:  "LLM/Tasks/2025/01/18",
 				Body: Body{
-					Background: "## Content",
+					Background: "Content",
 					Tasks: []Task{
 						{
 							ID:          "task-1",
@@ -180,7 +180,7 @@ func TestValidatePostInput(t *testing.T) {
 				Name:      "",
 				Category:  "LLM/Tasks/2025/01/18",
 				Body: Body{
-					Background: "## Content",
+					Background: "Content",
 				},
 			},
 			wantErr: true,
@@ -193,7 +193,7 @@ func TestValidatePostInput(t *testing.T) {
 				Name:      "Test Post",
 				Category:  "",
 				Body: Body{
-					Background: "## Content",
+					Background: "Content",
 				},
 			},
 			wantErr: true,
@@ -206,7 +206,7 @@ func TestValidatePostInput(t *testing.T) {
 				Name:      "Test Post",
 				Category:  "LLM/Tasks",
 				Body: Body{
-					Background: "## Content",
+					Background: "Content",
 				},
 			},
 			wantErr: true,
@@ -314,7 +314,7 @@ func TestValidatePostInputSchema(t *testing.T) {
 				Name:      "Test Post",
 				Category:  "LLM/Tasks/2025/01/18",
 				Body: Body{
-					Background: "## Content",
+					Background: "Content",
 					Tasks: []Task{
 						{
 							ID:          "task-1",
@@ -334,7 +334,7 @@ func TestValidatePostInputSchema(t *testing.T) {
 				Name:      "",
 				Category:  "LLM/Tasks/2025/01/18",
 				Body: Body{
-					Background: "## Content",
+					Background: "Content",
 				},
 			},
 			wantErr: true,
@@ -522,6 +522,171 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 			},
 			wantErr: true,
 			errMsg:  "must be a valid GitHub URL",
+		},
+		{
+			name: "backgroundに# h1見出し（許可しない）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "# This is h1 heading",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "background cannot contain heading markers",
+		},
+		{
+			name: "backgroundに## h2見出し（許可しない）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Some text\n## This is h2 heading\nMore text",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "background cannot contain heading markers",
+		},
+		{
+			name: "descriptionに# h1見出し（許可しない）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "# This is h1",
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "description cannot contain heading markers",
+		},
+		{
+			name: "descriptionに## h2見出し（許可しない）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "## This is h2",
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "description cannot contain heading markers",
+		},
+		{
+			name: "descriptionに### h3見出し（許可しない）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "### This is h3",
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "description cannot contain heading markers",
+		},
+		{
+			name: "backgroundに#### h4見出し（許可する）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "#### This is h4\nSome content",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "descriptionに#### h4見出し（許可する）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "#### This is h4 heading",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "descriptionに##### h5見出し（許可する）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Description: "##### This is h5 heading",
+						},
+					},
+				},
+			},
+			wantErr: false,
 		},
 	}
 

@@ -32,8 +32,6 @@ func GenerateMarkdown(body *Body) string {
 		sb.WriteString("\n\n## タスク\n")
 		for _, task := range body.Tasks {
 			sb.WriteString("\n### ")
-			sb.WriteString(task.ID)
-			sb.WriteString(": ")
 			sb.WriteString(task.Title)
 			sb.WriteString("\n")
 			sb.WriteString("Status: ")
