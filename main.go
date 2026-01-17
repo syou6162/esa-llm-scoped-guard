@@ -28,9 +28,10 @@ JSON Schema:
     "post_number": 123,           // Optional: omit for new post creation
     "name": "Post Title",          // Required: max 255 bytes
     "category": "LLM/Tasks/2025-01", // Required: must match allowed categories
-    "tags": ["tag1", "tag2"],     // Optional: max 10 tags, each max 50 bytes
     "body_md": "## Content\n..."  // Required: max 1MB
   }
+
+Note: Tags are automatically set to the Git repository name (no tags if not a git repository).
 
 Environment Variables:
   ESA_ACCESS_TOKEN    esa.io API access token
