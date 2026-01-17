@@ -47,10 +47,10 @@ func ExecutePost(jsonPath string, teamName string, allowedCategories []string, a
 	// 4. esa.io APIクライアントで投稿
 	client := esa.NewEsaClient(teamName, accessToken)
 
-	if input.PostNumber != nil {
-		return updatePost(client, input, allowedCategories, repoName)
+	if input.CreateNew {
+		return createPost(client, input, repoName)
 	}
-	return createPost(client, input, repoName)
+	return updatePost(client, input, allowedCategories, repoName)
 }
 
 // updatePost は既存記事を更新します
