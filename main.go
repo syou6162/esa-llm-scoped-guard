@@ -32,13 +32,32 @@ JSON Schema:
       "tasks": [                   // Required: task array
         {
           "id": "task-1",          // Required: unique identifier
-          "title": "Task title",   // Required
-          "status": "not_started", // Required: not_started/in_progress/in_review/completed
-          "description": "Task description" // Required
+          "title": "Task title",   // Required (auto-generated: "### {id}: {title}")
+          "status": "not_started", // Required: not_started/in_progress/in_review/completed (auto-generated: "Status: {status}")
+          "description": "Task description", // Required (plain text, status/title auto-generated above)
+          "github_urls": ["https://github.com/owner/repo/pull/123"] // Optional: GitHub PR/Issue URLs
         }
       ]
     }
   }
+
+Markdown Output Example:
+  Input JSON with github_urls:
+    {
+      "id": "task-1",
+      "title": "Fix bug",
+      "status": "in_progress",
+      "description": "Fix the authentication bug",
+      "github_urls": ["https://github.com/owner/repo/pull/123"]
+    }
+
+  Output:
+    ### task-1: Fix bug
+    Status: in_progress
+
+    Fix the authentication bug
+
+    Pull Request: https://github.com/owner/repo/pull/123
 
 Note: Tags are automatically set to the Git repository name (no tags if not a git repository).
 

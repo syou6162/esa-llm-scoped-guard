@@ -79,6 +79,37 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 
 **注意**: タグは自動的にGitリポジトリ名が設定されます（gitリポジトリでない場合はタグなし）。
 
+### 生成されるマークダウン
+
+上記のJSONから以下のマークダウンが生成されます：
+
+```markdown
+## 背景
+関連リンク:
+- https://github.com/owner/repo/issues/123
+
+このタスクではデータ分析機能を実装します。
+
+## タスク
+
+### task-1: 要件定義
+Status: completed
+
+データ分析の要件を定義する
+
+### task-2: 実装
+Status: in_progress
+
+データ分析機能を実装する
+
+### task-3: テスト
+Status: not_started
+
+実装した機能をテストする
+```
+
+**重要**: `description`フィールドには、タイトルやステータス情報を含めないでください。これらは自動的に生成されます。
+
 **フィールド仕様**:
 
 | フィールド | 必須 | 説明 | 制限 |
@@ -97,9 +128,10 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 | フィールド | 必須 | 説明 | 制限 |
 |-----------|------|------|------|
 | `id` | Yes | タスクの一意識別子 | ユニークである必要あり |
-| `title` | Yes | タスクのタイトル | - |
-| `status` | Yes | タスクのステータス | `not_started`, `in_progress`, `in_review`, `completed` のいずれか |
-| `description` | Yes | タスクの詳細説明 | - |
+| `title` | Yes | タスクのタイトル | マークダウンで「### {id}: {title}」として自動生成される |
+| `status` | Yes | タスクのステータス | `not_started`, `in_progress`, `in_review`, `completed` のいずれか。マークダウンで「Status: {status}」として自動生成される |
+| `description` | Yes | タスクの詳細説明 | プレーンテキスト。ステータスやタイトルは含めない（自動生成される） |
+| `github_urls` | No | GitHub PR/IssueのURL配列 | `https://github.com/...`形式のURL。単数の場合「Pull Request: URL」、複数の場合「Pull Requests:」+リスト形式で出力 |
 
 ### コマンド実行
 

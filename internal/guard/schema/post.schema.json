@@ -56,12 +56,12 @@
               "status": {
                 "type": "string",
                 "enum": ["not_started", "in_progress", "in_review", "completed"],
-                "description": "Task status"
+                "description": "Task status (will be automatically formatted as 'Status: {status}' in markdown)"
               },
               "description": {
                 "type": "string",
                 "minLength": 1,
-                "description": "Task description"
+                "description": "Task description (do not include status or title as they are automatically generated)"
               },
               "github_urls": {
                 "type": "array",
