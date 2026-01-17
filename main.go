@@ -1,9 +1,15 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
+
+	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
+	"github.com/syou6162/esa-llm-scoped-guard/internal/guard"
 )
 
 const usage = `esa-llm-scoped-guard - Write to esa.io with category restrictions
@@ -55,6 +61,184 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Printf("Processing JSON file: %s\n", jsonPath)
-	// TODO: Implement actual logic
+	if err := run(jsonPath); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func run(jsonPath string) error {
+	// 1. 設定ファイルの読み込み
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("failed to get home directory: %w", err)
+	}
+	configPath := filepath.Join(homeDir, ".config", "esa-llm-scoped-guard", "config.yaml")
+	config, err := LoadConfig(configPath)
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	// 2. 環境変数からESA_ACCESS_TOKENを取得
+	accessToken := os.Getenv("ESA_ACCESS_TOKEN")
+	if accessToken == "" {
+		return fmt.Errorf("ESA_ACCESS_TOKEN environment variable is not set")
+	}
+
+	// 3. JSONファイルの読み込みとバリデーション
+	input, err := readJSONFile(jsonPath)
+	if err != nil {
+		return fmt.Errorf("failed to read JSON file: %w", err)
+	}
+
+	// バリデーション実行
+	if err := ValidatePostInput(input); err != nil {
+		return fmt.Errorf("validation failed: %w", err)
+	}
+
+	// 4. カテゴリ権限チェック
+	allowed, err := guard.IsAllowedCategory(input.Category, config.AllowedCategories)
+	if err != nil {
+		return fmt.Errorf("category validation failed: %w", err)
+	}
+	if !allowed {
+		return fmt.Errorf("category %s is not allowed", input.Category)
+	}
+
+	// 5. フロントマター生成
+	bodyWithFrontmatter, err := GenerateFrontmatter(input)
+	if err != nil {
+		return fmt.Errorf("failed to generate frontmatter: %w", err)
+	}
+
+	// 6. esa.io APIクライアントで投稿
+	client := esa.NewEsaClient(config.Esa.TeamName, accessToken)
+
+	esaInput := &esa.PostInput{
+		Name:     input.Name,
+		Category: input.Category,
+		Tags:     input.Tags,
+		BodyMD:   bodyWithFrontmatter,
+		WIP:      false, // 常にShip It!
+	}
+
+	var post *esa.Post
+	if input.PostNumber != nil {
+		// 更新の場合：既存記事のカテゴリを検証
+		existingPost, err := client.GetPost(*input.PostNumber)
+		if err != nil {
+			return fmt.Errorf("failed to get existing post: %w", err)
+		}
+
+		// 既存カテゴリが許可範囲内か確認
+		allowedExisting, err := guard.IsAllowedCategory(existingPost.Category, config.AllowedCategories)
+		if err != nil {
+			return fmt.Errorf("existing category validation failed: %w", err)
+		}
+		if !allowedExisting {
+			return fmt.Errorf("existing post category %s is not allowed", existingPost.Category)
+		}
+
+		// カテゴリホッピング防止（既存カテゴリ == 入力カテゴリ）
+		if existingPost.Category != input.Category {
+			return fmt.Errorf("category change is not allowed (existing: %s, new: %s)", existingPost.Category, input.Category)
+		}
+
+		post, err = client.UpdatePost(*input.PostNumber, esaInput)
+		if err != nil {
+			return fmt.Errorf("failed to update post: %w", err)
+		}
+		fmt.Printf("Updated post: %s (Number: %d)\n", post.URL, post.Number)
+	} else {
+		// 新規作成
+		post, err = client.CreatePost(esaInput)
+		if err != nil {
+			return fmt.Errorf("failed to create post: %w", err)
+		}
+		fmt.Printf("Created post: %s (Number: %d)\n", post.URL, post.Number)
+	}
+
+	return nil
+}
+
+// readJSONFile はJSONファイルを読み込みます
+func readJSONFile(path string) (*PostInput, error) {
+	// 相対パスをcwdから解決
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve path: %w", err)
+	}
+
+	// symlinkを解決
+	realPath, err := filepath.EvalSymlinks(absPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to resolve symlink: %w", err)
+	}
+
+	// ファイル情報を取得
+	fileInfo, err := os.Stat(realPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to stat file: %w", err)
+	}
+
+	// 通常ファイルかチェック
+	if !fileInfo.Mode().IsRegular() {
+		return nil, fmt.Errorf("file is not a regular file: %s", realPath)
+	}
+
+	// ファイルサイズチェック（10MB上限）
+	if fileInfo.Size() > 10*1024*1024 {
+		return nil, fmt.Errorf("file size exceeds 10MB")
+	}
+
+	// ファイルを開く
+	file, err := os.Open(realPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %w", err)
+	}
+	defer file.Close()
+
+	// サイズ制限付きで読み込み
+	limitedReader := io.LimitReader(file, 10*1024*1024+1)
+	data, err := io.ReadAll(limitedReader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %w", err)
+	}
+
+	// サイズ超過チェック
+	if len(data) > 10*1024*1024 {
+		return nil, fmt.Errorf("file size exceeds 10MB")
+	}
+
+	// JSONをパース
+	var input PostInput
+	decoder := json.NewDecoder(io.NopCloser(io.LimitReader(file, int64(len(data)))))
+	decoder.DisallowUnknownFields() // 未知フィールドを拒否
+
+	// ファイルを再オープン
+	file, err = os.Open(realPath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to reopen file: %w", err)
+	}
+	defer file.Close()
+
+	decoder = json.NewDecoder(file)
+	decoder.DisallowUnknownFields()
+
+	if err := decoder.Decode(&input); err != nil {
+		return nil, fmt.Errorf("failed to parse JSON: %w", err)
+	}
+
+	// JSON EOF確認（追加データがないことを確認）
+	if decoder.More() {
+		return nil, fmt.Errorf("JSON file contains multiple values")
+	}
+
+	// 2回目のDecodeでEOFを確認
+	var dummy interface{}
+	if err := decoder.Decode(&dummy); err != io.EOF {
+		return nil, fmt.Errorf("JSON file contains trailing data")
+	}
+
+	return &input, nil
 }
