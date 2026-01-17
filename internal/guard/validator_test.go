@@ -16,7 +16,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "有効な入力（新規作成）",
 			input: &PostInput{
 				Name:     "Test Post",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "## Content",
 			},
 			wantErr: false,
@@ -26,7 +26,7 @@ func TestValidatePostInput(t *testing.T) {
 			input: &PostInput{
 				PostNumber: intPtr(123),
 				Name:       "Test Post",
-				Category:   "LLM/Tasks",
+				Category:   "LLM/Tasks/2025/01/18",
 				BodyMD:     "## Content",
 			},
 			wantErr: false,
@@ -35,7 +35,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "有効な入力（日本語カテゴリと日本語body_md）",
 			input: &PostInput{
 				Name:     "Test Post",
-				Category: "LLM/タスク",
+				Category: "LLM/タスク/2025/01/18",
 				BodyMD:   "## 内容\n\nこれは日本語のコンテンツです。",
 			},
 			wantErr: false,
@@ -44,7 +44,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "有効な入力（nameに日本語）",
 			input: &PostInput{
 				Name:     "テスト投稿 重要 確認事項",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "## Content",
 			},
 			wantErr: false,
@@ -53,7 +53,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "nameが空",
 			input: &PostInput{
 				Name:     "",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "## Content",
 			},
 			wantErr: true,
@@ -63,7 +63,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "nameが空白のみ",
 			input: &PostInput{
 				Name:     "   ",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "## Content",
 			},
 			wantErr: true,
@@ -73,7 +73,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "nameが255バイト超過",
 			input: &PostInput{
 				Name:     strings.Repeat("a", 256),
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "## Content",
 			},
 			wantErr: true,
@@ -83,7 +83,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "nameに改行を含む",
 			input: &PostInput{
 				Name:     "Test\nPost",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "## Content",
 			},
 			wantErr: true,
@@ -93,7 +93,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "nameに/を含む",
 			input: &PostInput{
 				Name:     "Test/Post",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "## Content",
 			},
 			wantErr: true,
@@ -103,7 +103,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "nameに全角括弧を含む",
 			input: &PostInput{
 				Name:     "Test（Post）",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "## Content",
 			},
 			wantErr: true,
@@ -113,7 +113,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "nameに全角コロンを含む",
 			input: &PostInput{
 				Name:     "Test：Post",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "## Content",
 			},
 			wantErr: true,
@@ -130,10 +130,90 @@ func TestValidatePostInput(t *testing.T) {
 			errMsg:  "category cannot be empty",
 		},
 		{
-			name: "body_mdが空",
+			name: "categoryが日付形式で終わらない",
 			input: &PostInput{
 				Name:     "Test Post",
 				Category: "LLM/Tasks",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+			errMsg:  "category must end with /yyyy/mm/dd format",
+		},
+		{
+			name: "categoryの日付が不完全（yyyy/mmのみ）",
+			input: &PostInput{
+				Name:     "Test Post",
+				Category: "LLM/Tasks/2025/01",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+			errMsg:  "category must end with /yyyy/mm/dd format",
+		},
+		{
+			name: "categoryの年が範囲外（1999年）",
+			input: &PostInput{
+				Name:     "Test Post",
+				Category: "LLM/Tasks/1999/01/18",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+			errMsg:  "category must end with /yyyy/mm/dd format",
+		},
+		{
+			name: "categoryの年が範囲外（2100年）",
+			input: &PostInput{
+				Name:     "Test Post",
+				Category: "LLM/Tasks/2100/01/18",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+			errMsg:  "category must end with /yyyy/mm/dd format",
+		},
+		{
+			name: "categoryの月が不正（00月）",
+			input: &PostInput{
+				Name:     "Test Post",
+				Category: "LLM/Tasks/2025/00/18",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+			errMsg:  "category must end with /yyyy/mm/dd format",
+		},
+		{
+			name: "categoryの月が不正（13月）",
+			input: &PostInput{
+				Name:     "Test Post",
+				Category: "LLM/Tasks/2025/13/18",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+			errMsg:  "category must end with /yyyy/mm/dd format",
+		},
+		{
+			name: "categoryの日が不正（00日）",
+			input: &PostInput{
+				Name:     "Test Post",
+				Category: "LLM/Tasks/2025/01/00",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+			errMsg:  "category must end with /yyyy/mm/dd format",
+		},
+		{
+			name: "categoryの日が不正（32日）",
+			input: &PostInput{
+				Name:     "Test Post",
+				Category: "LLM/Tasks/2025/01/32",
+				BodyMD:   "## Content",
+			},
+			wantErr: true,
+			errMsg:  "category must end with /yyyy/mm/dd format",
+		},
+		{
+			name: "body_mdが空",
+			input: &PostInput{
+				Name:     "Test Post",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "",
 			},
 			wantErr: true,
@@ -143,7 +223,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "body_mdが空白のみ",
 			input: &PostInput{
 				Name:     "Test Post",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "   \n  ",
 			},
 			wantErr: true,
@@ -153,7 +233,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "body_mdが1MB超過",
 			input: &PostInput{
 				Name:     "Test Post",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   strings.Repeat("a", 1024*1024+1),
 			},
 			wantErr: true,
@@ -163,7 +243,7 @@ func TestValidatePostInput(t *testing.T) {
 			name: "body_mdが---で始まる（フロントマター衝突）",
 			input: &PostInput{
 				Name:     "Test Post",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "---\nfrontmatter",
 			},
 			wantErr: true,
@@ -223,7 +303,7 @@ func TestValidatePostInputSchema(t *testing.T) {
 			name: "有効な入力",
 			input: &PostInput{
 				Name:     "Test Post",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "## Content",
 			},
 			wantErr: false,
@@ -242,7 +322,7 @@ func TestValidatePostInputSchema(t *testing.T) {
 			name: "nameが空",
 			input: &PostInput{
 				Name:     "",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "## Content",
 			},
 			wantErr: true,
@@ -260,7 +340,7 @@ func TestValidatePostInputSchema(t *testing.T) {
 			name: "body_mdが空",
 			input: &PostInput{
 				Name:     "Test",
-				Category: "LLM/Tasks",
+				Category: "LLM/Tasks/2025/01/18",
 				BodyMD:   "",
 			},
 			wantErr: true,
