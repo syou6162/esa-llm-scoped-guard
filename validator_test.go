@@ -203,6 +203,8 @@ func TestValidatePostInput(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// Trim before validation (as done in main.go)
+			TrimPostInput(tt.input)
 			err := ValidatePostInput(tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)

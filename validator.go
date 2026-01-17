@@ -47,6 +47,16 @@ func ValidatePostInputSchema(input *PostInput) error {
 	return nil
 }
 
+// TrimPostInput はPostInputの各フィールドをトリミングします
+func TrimPostInput(input *PostInput) {
+	input.Name = strings.TrimSpace(input.Name)
+	input.Category = strings.TrimSpace(input.Category)
+	input.BodyMD = strings.TrimSpace(input.BodyMD)
+	for i := range input.Tags {
+		input.Tags[i] = strings.TrimSpace(input.Tags[i])
+	}
+}
+
 // ValidatePostInput は PostInput の各フィールドを検証します
 func ValidatePostInput(input *PostInput) error {
 	// post_numberの検証
@@ -54,8 +64,7 @@ func ValidatePostInput(input *PostInput) error {
 		return fmt.Errorf("post_number must be greater than 0")
 	}
 
-	// nameの検証（トリミング前）
-	input.Name = strings.TrimSpace(input.Name)
+	// nameの検証
 	if input.Name == "" {
 		return fmt.Errorf("name cannot be empty")
 	}
@@ -66,14 +75,12 @@ func ValidatePostInput(input *PostInput) error {
 		return fmt.Errorf("name contains control characters")
 	}
 
-	// categoryの検証（トリミング前）
-	input.Category = strings.TrimSpace(input.Category)
+	// categoryの検証
 	if input.Category == "" {
 		return fmt.Errorf("category cannot be empty")
 	}
 
-	// body_mdの検証（トリミング前）
-	input.BodyMD = strings.TrimSpace(input.BodyMD)
+	// body_mdの検証
 	if input.BodyMD == "" {
 		return fmt.Errorf("body_md cannot be empty")
 	}
@@ -88,15 +95,14 @@ func ValidatePostInput(input *PostInput) error {
 	if len(input.Tags) > 10 {
 		return fmt.Errorf("tags cannot exceed 10")
 	}
-	for i, tag := range input.Tags {
-		input.Tags[i] = strings.TrimSpace(tag)
-		if input.Tags[i] == "" {
+	for _, tag := range input.Tags {
+		if tag == "" {
 			return fmt.Errorf("tag cannot be empty")
 		}
-		if len(input.Tags[i]) > 50 {
+		if len(tag) > 50 {
 			return fmt.Errorf("tag exceeds 50 bytes")
 		}
-		if containsControlCharacters(input.Tags[i]) {
+		if containsControlCharacters(tag) {
 			return fmt.Errorf("tag contains control characters")
 		}
 	}

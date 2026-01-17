@@ -92,6 +92,9 @@ func run(jsonPath string) error {
 		return fmt.Errorf("failed to read JSON file: %w", err)
 	}
 
+	// フィールドのトリミング（スキーマバリデーション前）
+	TrimPostInput(input)
+
 	// JSONスキーマバリデーション
 	if err := ValidatePostInputSchema(input); err != nil {
 		return fmt.Errorf("schema validation failed: %w", err)
