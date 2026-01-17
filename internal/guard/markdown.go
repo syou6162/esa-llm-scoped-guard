@@ -27,5 +27,21 @@ func GenerateMarkdown(body *Body) string {
 
 	sb.WriteString(body.Background)
 
+	// タスクセクション
+	if len(body.Tasks) > 0 {
+		sb.WriteString("\n\n## タスク\n")
+		for _, task := range body.Tasks {
+			sb.WriteString("\n### ")
+			sb.WriteString(task.ID)
+			sb.WriteString(": ")
+			sb.WriteString(task.Title)
+			sb.WriteString("\n")
+			sb.WriteString("Status: ")
+			sb.WriteString(string(task.Status))
+			sb.WriteString("\n\n")
+			sb.WriteString(task.Description)
+		}
+	}
+
 	return sb.String()
 }
