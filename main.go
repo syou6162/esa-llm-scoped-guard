@@ -53,11 +53,10 @@ Markdown Output Example:
 
   Output:
     ### Fix bug
-    Status: in_progress
+    - Status: ` + "`in_progress`" + `
+    - Pull Request: https://github.com/owner/repo/pull/123
 
     Fix the authentication bug
-
-    Pull Request: https://github.com/owner/repo/pull/123
 
 Note: Tags are automatically set to the Git repository name (no tags if not a git repository).
 

@@ -93,17 +93,17 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 ## タスク
 
 ### 要件定義
-Status: completed
+- Status: `completed`
 
 データ分析の要件を定義する
 
 ### 実装
-Status: in_progress
+- Status: `in_progress`
 
 データ分析機能を実装する
 
 ### テスト
-Status: not_started
+- Status: `not_started`
 
 実装した機能をテストする
 ```
