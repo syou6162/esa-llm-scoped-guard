@@ -53,7 +53,7 @@ func TestUpdatePost_ExistingCategoryNotAllowed(t *testing.T) {
 		AllowedCategories: []string{"LLM/Tasks"},
 	}
 
-	input := &PostInput{
+	input := &guard.PostInput{
 		PostNumber: intPtr(123),
 		Name:       "Updated Post",
 		Category:   "LLM/Tasks",
@@ -85,7 +85,7 @@ func TestUpdatePost_CategoryChange(t *testing.T) {
 		AllowedCategories: []string{"LLM/Tasks"},
 	}
 
-	input := &PostInput{
+	input := &guard.PostInput{
 		PostNumber: intPtr(123),
 		Name:       "Updated Post",
 		Category:   "LLM/Tasks/New", // 異なるカテゴリ
@@ -124,7 +124,7 @@ func TestUpdatePost_Success(t *testing.T) {
 		AllowedCategories: []string{"LLM/Tasks"},
 	}
 
-	input := &PostInput{
+	input := &guard.PostInput{
 		PostNumber: intPtr(123),
 		Name:       "Updated Post",
 		Category:   "LLM/Tasks", // 既存と同じカテゴリ
@@ -142,7 +142,7 @@ func TestUpdatePost_Success(t *testing.T) {
 }
 
 // updatePostWithClient はテスト用のヘルパー関数
-func updatePostWithClient(client esa.EsaClientInterface, config *Config, input *PostInput) (*esa.Post, error) {
+func updatePostWithClient(client esa.EsaClientInterface, config *Config, input *guard.PostInput) (*esa.Post, error) {
 	// 既存記事を取得
 	existingPost, err := client.GetPost(*input.PostNumber)
 	if err != nil {
@@ -163,4 +163,9 @@ func updatePostWithClient(client esa.EsaClientInterface, config *Config, input *
 	}
 
 	return client.UpdatePost(*input.PostNumber, esaInput)
+}
+
+// intPtr はint値へのポインタを返すヘルパー関数
+func intPtr(i int) *int {
+	return &i
 }

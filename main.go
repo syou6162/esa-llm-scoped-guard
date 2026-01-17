@@ -125,15 +125,15 @@ func run(jsonPath string) error {
 	}
 
 	// フィールドのトリミング（スキーマバリデーション前）
-	TrimPostInput(input)
+	guard.TrimPostInput(input)
 
 	// JSONスキーマバリデーション
-	if err := ValidatePostInputSchema(input); err != nil {
+	if err := guard.ValidatePostInputSchema(input); err != nil {
 		return fmt.Errorf("schema validation failed: %w", err)
 	}
 
 	// 詳細なバリデーション実行
-	if err := ValidatePostInput(input); err != nil {
+	if err := guard.ValidatePostInput(input); err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
@@ -196,7 +196,7 @@ func run(jsonPath string) error {
 }
 
 // readJSONFile はJSONファイルを読み込みます
-func readJSONFile(path string) (*PostInput, error) {
+func readJSONFile(path string) (*guard.PostInput, error) {
 	// 相対パスをcwdから解決
 	absPath, err := filepath.Abs(path)
 	if err != nil {
@@ -241,7 +241,7 @@ func readJSONFile(path string) (*PostInput, error) {
 	}
 
 	// 読み込んだデータをデコード
-	var input PostInput
+	var input guard.PostInput
 	decoder := json.NewDecoder(io.NopCloser(strings.NewReader(string(data))))
 	decoder.DisallowUnknownFields()
 

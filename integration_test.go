@@ -32,12 +32,12 @@ func TestIntegrationEndToEnd(t *testing.T) {
 	}
 
 	// スキーマバリデーション
-	if err := ValidatePostInputSchema(input); err != nil {
+	if err := guard.ValidatePostInputSchema(input); err != nil {
 		t.Fatalf("ValidatePostInputSchema() error = %v", err)
 	}
 
 	// 詳細なバリデーション
-	if err := ValidatePostInput(input); err != nil {
+	if err := guard.ValidatePostInput(input); err != nil {
 		t.Fatalf("ValidatePostInput() error = %v", err)
 	}
 
@@ -75,12 +75,12 @@ func TestIntegrationJapaneseCategory(t *testing.T) {
 	}
 
 	// スキーマバリデーション
-	if err := ValidatePostInputSchema(input); err != nil {
+	if err := guard.ValidatePostInputSchema(input); err != nil {
 		t.Fatalf("ValidatePostInputSchema() error = %v", err)
 	}
 
 	// 詳細なバリデーション
-	if err := ValidatePostInput(input); err != nil {
+	if err := guard.ValidatePostInput(input); err != nil {
 		t.Fatalf("ValidatePostInput() error = %v", err)
 	}
 
@@ -140,7 +140,7 @@ func TestIntegrationInvalidJSON(t *testing.T) {
 			}
 
 			// スキーマバリデーション
-			err = ValidatePostInputSchema(input)
+			err = guard.ValidatePostInputSchema(input)
 			if err == nil {
 				t.Errorf("Expected schema validation error, got nil")
 			}

@@ -1,4 +1,4 @@
-package main
+package guard
 
 // PostInput は入力JSONの構造体
 type PostInput struct {
