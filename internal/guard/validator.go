@@ -67,7 +67,7 @@ func ValidatePostInputSchema(input *PostInput) error {
 func TrimPostInput(input *PostInput) {
 	input.Name = strings.TrimSpace(input.Name)
 	input.Category = strings.TrimSpace(input.Category)
-	input.BodyMD = strings.TrimSpace(input.BodyMD)
+	input.Body.Background = strings.TrimSpace(input.Body.Background)
 }
 
 // ValidatePostInput は PostInput の各フィールドを検証します
@@ -102,15 +102,9 @@ func ValidatePostInput(input *PostInput) error {
 		return fmt.Errorf("category must end with /yyyy/mm/dd format")
 	}
 
-	// body_mdの検証
-	if input.BodyMD == "" {
-		return fmt.Errorf("body_md cannot be empty")
-	}
-	if len(input.BodyMD) > 1024*1024 {
-		return fmt.Errorf("body_md exceeds 1MB")
-	}
-	if strings.HasPrefix(input.BodyMD, "---") {
-		return fmt.Errorf("body_md cannot start with --- (frontmatter conflict)")
+	// bodyの検証
+	if input.Body.Background == "" {
+		return fmt.Errorf("background cannot be empty")
 	}
 
 	return nil

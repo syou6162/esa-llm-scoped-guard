@@ -69,11 +69,14 @@ func updatePost(client esa.EsaClientInterface, input *PostInput, allowedCategori
 	// 既存のタグを保持し、現在のリポジトリ名がなければ追加
 	tags := MergeTags(existingPost.Tags, repoName)
 
+	// BodyからマークダウンGenerate
+	bodyMD := GenerateMarkdown(&input.Body)
+
 	esaInput := &esa.PostInput{
 		Name:     input.Name,
 		Category: input.Category,
 		Tags:     tags,
-		BodyMD:   input.BodyMD,
+		BodyMD:   bodyMD,
 		WIP:      false, // 常にShip It!
 	}
 
@@ -93,11 +96,14 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 		tags = []string{repoName}
 	}
 
+	// BodyからマークダウンGenerate
+	bodyMD := GenerateMarkdown(&input.Body)
+
 	esaInput := &esa.PostInput{
 		Name:     input.Name,
 		Category: input.Category,
 		Tags:     tags,
-		BodyMD:   input.BodyMD,
+		BodyMD:   bodyMD,
 		WIP:      false, // 常にShip It!
 	}
 
