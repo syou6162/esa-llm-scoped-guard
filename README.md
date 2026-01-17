@@ -51,10 +51,11 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 {
   "name": "タスク: データ分析の実装",
   "category": "LLM/Tasks/2025-01",
-  "tags": ["agent-task", "in-progress"],
   "body_md": "## 概要\n\nこのタスクでは...\n\n## 進捗\n\n- [x] 要件定義\n- [ ] 実装\n- [ ] テスト"
 }
 ```
+
+**注意**: タグは自動的にGitリポジトリ名が設定されます（gitリポジトリでない場合はタグなし）。
 
 **フィールド仕様**:
 
@@ -63,7 +64,6 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 | `post_number` | 更新時のみ | esa記事番号 | 1以上の整数 |
 | `name` | Yes | 記事タイトル | 最大255バイト、制御文字不可 |
 | `category` | Yes | カテゴリパス | ASCII文字のみ、許可カテゴリのマッチが必須 |
-| `tags` | No | タグ配列 | 最大10個、各最大50バイト |
 | `body_md` | Yes | 本文（Markdown） | 最大1MB、`---`で始まる場合はエラー |
 
 ### コマンド実行
