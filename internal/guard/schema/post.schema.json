@@ -58,6 +58,16 @@
                 "enum": ["not_started", "in_progress", "in_review", "completed"],
                 "description": "Task status (will be automatically formatted as 'Status: {status}' in markdown)"
               },
+              "summary": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 140
+                },
+                "minItems": 1,
+                "maxItems": 3,
+                "description": "Task summary (1-3 bullet points, each max 140 characters)"
+              },
               "description": {
                 "type": "string",
                 "minLength": 1,
@@ -72,7 +82,7 @@
                 "description": "GitHub PR/Issue URLs (optional, must be https://github.com/...)"
               }
             },
-            "required": ["id", "title", "status", "description"],
+            "required": ["id", "title", "status", "summary", "description"],
             "additionalProperties": false
           },
           "description": "Task list (required)"

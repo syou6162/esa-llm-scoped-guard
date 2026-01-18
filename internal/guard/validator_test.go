@@ -25,7 +25,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -41,7 +41,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -57,7 +57,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -74,7 +74,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -89,7 +89,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -105,7 +105,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -122,7 +122,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -166,6 +166,7 @@ func TestValidatePostInput(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description 1",
 						},
 					},
@@ -251,6 +252,7 @@ func TestValidatePostInput_Body(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description 1",
 						},
 					},
@@ -320,6 +322,7 @@ func TestValidatePostInputSchema(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description 1",
 						},
 					},
@@ -384,6 +387,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description",
 							GitHubURLs:  []string{"https://github.com/owner/repo/pull/123"},
 						},
@@ -405,6 +409,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description",
 							GitHubURLs: []string{
 								"https://github.com/owner/repo/pull/123",
@@ -429,6 +434,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description",
 						},
 					},
@@ -449,6 +455,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description",
 							GitHubURLs:  []string{},
 						},
@@ -470,6 +477,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description",
 							GitHubURLs:  []string{"https://gitlab.com/owner/repo/pull/123"},
 						},
@@ -492,6 +500,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description",
 							GitHubURLs:  []string{"http://github.com/owner/repo/pull/123"},
 						},
@@ -514,6 +523,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description",
 							GitHubURLs:  []string{"https://api.github.com/repos/owner/repo"},
 						},
@@ -536,6 +546,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description",
 						},
 					},
@@ -557,6 +568,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description",
 						},
 					},
@@ -578,6 +590,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "# This is h1",
 						},
 					},
@@ -599,6 +612,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "## This is h2",
 						},
 					},
@@ -620,6 +634,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "### This is h3",
 						},
 					},
@@ -641,6 +656,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "Description",
 						},
 					},
@@ -661,6 +677,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "#### This is h4 heading",
 						},
 					},
@@ -681,12 +698,214 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							ID:          "task-1",
 							Title:       "Task 1",
 							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
 							Description: "##### This is h5 heading",
 						},
 					},
 				},
 			},
 			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			TrimPostInput(tt.input)
+			err := ValidatePostInput(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
+				t.Errorf("ValidatePostInput() error = %v, want error containing %q", err, tt.errMsg)
+			}
+		})
+	}
+}
+
+// TestValidateSummary はSummaryフィールドのバリデーションをテストします
+func TestValidateSummary(t *testing.T) {
+	tests := []struct {
+		name    string
+		summary []string
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name:    "有効（1行）",
+			summary: []string{"タスクの要約1"},
+			wantErr: false,
+		},
+		{
+			name:    "有効（2行）",
+			summary: []string{"タスクの要約1", "タスクの要約2"},
+			wantErr: false,
+		},
+		{
+			name:    "有効（3行）",
+			summary: []string{"タスクの要約1", "タスクの要約2", "タスクの要約3"},
+			wantErr: false,
+		},
+		{
+			name:    "有効（140字ちょうど）",
+			summary: []string{strings.Repeat("あ", 140)},
+			wantErr: false,
+		},
+		{
+			name:    "エラー（0行）",
+			summary: []string{},
+			wantErr: true,
+			errMsg:  "summary must have 1-3 items, got 0",
+		},
+		{
+			name:    "エラー（4行）",
+			summary: []string{"要約1", "要約2", "要約3", "要約4"},
+			wantErr: true,
+			errMsg:  "summary must have 1-3 items, got 4",
+		},
+		{
+			name:    "エラー（141字）",
+			summary: []string{strings.Repeat("あ", 141)},
+			wantErr: true,
+			errMsg:  "summary line 1 exceeds 140 characters",
+		},
+		{
+			name:    "エラー（2行目が141字）",
+			summary: []string{"正常な行", strings.Repeat("あ", 141)},
+			wantErr: true,
+			errMsg:  "summary line 2 exceeds 140 characters",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateSummary(tt.summary)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidateSummary() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
+				t.Errorf("ValidateSummary() error = %v, want error containing %q", err, tt.errMsg)
+			}
+		})
+	}
+}
+
+// TestValidatePostInput_Summary はタスクのSummaryフィールドのバリデーションをテストします
+func TestValidatePostInput_Summary(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   *PostInput
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "有効なSummary（1行）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"タスクの要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "有効なSummary（3行）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約1", "要約2", "要約3"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "Summary空配列（エラー）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "summary must have 1-3 items",
+		},
+		{
+			name: "Summary4行（エラー）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約1", "要約2", "要約3", "要約4"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "summary must have 1-3 items",
+		},
+		{
+			name: "Summary141字（エラー）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{strings.Repeat("あ", 141)},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "summary line 1 exceeds 140 characters",
 		},
 	}
 
