@@ -20,14 +20,14 @@ func TestGenerateSummarySection(t *testing.T) {
 			tasks: []Task{
 				{ID: "task-1", Title: "タスク1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "説明"},
 			},
-			want: "## サマリー\n- [ ] タスク1\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"タスク1\"]:::not_started\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
+			want: "## サマリー\n- [ ] タスク1\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"`タスク1`\"]:::not_started\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
 		},
 		{
 			name: "タスク1つ（completed）",
 			tasks: []Task{
 				{ID: "task-1", Title: "タスク1", Status: TaskStatusCompleted, Summary: []string{"要約"}, Description: "説明"},
 			},
-			want: "## サマリー\n- [x] タスク1\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"タスク1\"]:::completed\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
+			want: "## サマリー\n- [x] タスク1\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"`タスク1`\"]:::completed\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
 		},
 		{
 			name: "複数タスク（異なるステータス）",
@@ -36,7 +36,7 @@ func TestGenerateSummarySection(t *testing.T) {
 				{ID: "task-2", Title: "タスク2", Status: TaskStatusInProgress, Summary: []string{"要約"}, Description: "説明"},
 				{ID: "task-3", Title: "タスク3", Status: TaskStatusCompleted, Summary: []string{"要約"}, Description: "説明"},
 			},
-			want: "## サマリー\n- [ ] タスク1\n- [ ] タスク2\n- [x] タスク3\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"タスク1\"]:::not_started\n    task-2[\"タスク2\"]:::in_progress\n    task-3[\"タスク3\"]:::completed\n    done([タスク完了]):::goal\n\n    task-1 --> done\n    task-2 --> done\n    task-3 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
+			want: "## サマリー\n- [ ] タスク1\n- [ ] タスク2\n- [x] タスク3\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"`タスク1`\"]:::not_started\n    task-2[\"`タスク2`\"]:::in_progress\n    task-3[\"`タスク3`\"]:::completed\n    done([タスク完了]):::goal\n\n    task-1 --> done\n    task-2 --> done\n    task-3 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
 		},
 	}
 
@@ -349,7 +349,7 @@ func TestGenerateMarkdown(t *testing.T) {
 					},
 				},
 			},
-			want: "## サマリー\n- [ ] タスク1\n- [x] タスク2\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"タスク1\"]:::not_started\n    task-2[\"タスク2\"]:::completed\n    done([タスク完了]):::goal\n\n    task-1 --> done\n    task-2 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `not_started`\n\n- 要約:\n  - 要約1\n\n<details><summary>詳細を開く</summary>\n\n説明1\n\n</details>\n\n### タスク2\n- Status: `completed`\n\n- 要約:\n  - 要約2\n\n<details><summary>詳細を開く</summary>\n\n説明2\n\n</details>\n",
+			want: "## サマリー\n- [ ] タスク1\n- [x] タスク2\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"`タスク1`\"]:::not_started\n    task-2[\"`タスク2`\"]:::completed\n    done([タスク完了]):::goal\n\n    task-1 --> done\n    task-2 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n## 背景\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `not_started`\n\n- 要約:\n  - 要約1\n\n<details><summary>詳細を開く</summary>\n\n説明1\n\n</details>\n\n### タスク2\n- Status: `completed`\n\n- 要約:\n  - 要約2\n\n<details><summary>詳細を開く</summary>\n\n説明2\n\n</details>\n",
 		},
 		{
 			name: "全要素を含む",
@@ -367,7 +367,7 @@ func TestGenerateMarkdown(t *testing.T) {
 					},
 				},
 			},
-			want: "## サマリー\n- [ ] タスク1\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"タスク1\"]:::in_review\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n## 背景\n関連リンク:\n- https://example.com/doc\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `in_review`\n- Pull Request: https://github.com/owner/repo/pull/123\n\n- 要約:\n  - レビュー中の要約\n\n<details><summary>詳細を開く</summary>\n\nレビュー中のタスク\n\n</details>\n",
+			want: "## サマリー\n- [ ] タスク1\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"`タスク1`\"]:::in_review\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n## 背景\n関連リンク:\n- https://example.com/doc\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `in_review`\n- Pull Request: https://github.com/owner/repo/pull/123\n\n- 要約:\n  - レビュー中の要約\n\n<details><summary>詳細を開く</summary>\n\nレビュー中のタスク\n\n</details>\n",
 		},
 	}
 
@@ -397,7 +397,7 @@ func TestGenerateMermaidGraph(t *testing.T) {
 			tasks: []Task{
 				{ID: "task-1", Title: "タスク1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "説明"},
 			},
-			want: "\n```mermaid\ngraph TD\n    task-1[\"タスク1\"]:::not_started\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
+			want: "\n```mermaid\ngraph TD\n    task-1[\"`タスク1`\"]:::not_started\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
 		},
 		{
 			name: "依存関係なし（複数タスク）",
@@ -405,7 +405,7 @@ func TestGenerateMermaidGraph(t *testing.T) {
 				{ID: "task-1", Title: "タスク1", Status: TaskStatusCompleted, Summary: []string{"要約"}, Description: "説明"},
 				{ID: "task-2", Title: "タスク2", Status: TaskStatusInProgress, Summary: []string{"要約"}, Description: "説明"},
 			},
-			want: "\n```mermaid\ngraph TD\n    task-1[\"タスク1\"]:::completed\n    task-2[\"タスク2\"]:::in_progress\n    done([タスク完了]):::goal\n\n    task-1 --> done\n    task-2 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
+			want: "\n```mermaid\ngraph TD\n    task-1[\"`タスク1`\"]:::completed\n    task-2[\"`タスク2`\"]:::in_progress\n    done([タスク完了]):::goal\n\n    task-1 --> done\n    task-2 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
 		},
 		{
 			name: "シンプルな依存関係（A → B）",
@@ -413,7 +413,7 @@ func TestGenerateMermaidGraph(t *testing.T) {
 				{ID: "task-1", Title: "要件定義", Status: TaskStatusCompleted, Summary: []string{"要約"}, Description: "説明"},
 				{ID: "task-2", Title: "設計", Status: TaskStatusInProgress, Summary: []string{"要約"}, Description: "説明", DependsOn: []string{"task-1"}},
 			},
-			want: "\n```mermaid\ngraph TD\n    task-1[\"要件定義\"]:::completed\n    task-2[\"設計\"]:::in_progress\n    done([タスク完了]):::goal\n\n    task-1 --> task-2\n    task-2 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
+			want: "\n```mermaid\ngraph TD\n    task-1[\"`要件定義`\"]:::completed\n    task-2[\"`設計`\"]:::in_progress\n    done([タスク完了]):::goal\n\n    task-1 --> task-2\n    task-2 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
 		},
 		{
 			name: "複数依存先",
@@ -422,7 +422,7 @@ func TestGenerateMermaidGraph(t *testing.T) {
 				{ID: "task-2", Title: "タスク2", Status: TaskStatusCompleted, Summary: []string{"要約"}, Description: "説明"},
 				{ID: "task-3", Title: "タスク3", Status: TaskStatusInProgress, Summary: []string{"要約"}, Description: "説明", DependsOn: []string{"task-1", "task-2"}},
 			},
-			want: "\n```mermaid\ngraph TD\n    task-1[\"タスク1\"]:::completed\n    task-2[\"タスク2\"]:::completed\n    task-3[\"タスク3\"]:::in_progress\n    done([タスク完了]):::goal\n\n    task-1 --> task-3\n    task-2 --> task-3\n    task-3 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
+			want: "\n```mermaid\ngraph TD\n    task-1[\"`タスク1`\"]:::completed\n    task-2[\"`タスク2`\"]:::completed\n    task-3[\"`タスク3`\"]:::in_progress\n    done([タスク完了]):::goal\n\n    task-1 --> task-3\n    task-2 --> task-3\n    task-3 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
 		},
 		{
 			name: "長いチェーン依存",
@@ -432,7 +432,7 @@ func TestGenerateMermaidGraph(t *testing.T) {
 				{ID: "task-3", Title: "C", Status: TaskStatusInProgress, Summary: []string{"要約"}, Description: "説明", DependsOn: []string{"task-2"}},
 				{ID: "task-4", Title: "D", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "説明", DependsOn: []string{"task-3"}},
 			},
-			want: "\n```mermaid\ngraph TD\n    task-1[\"A\"]:::completed\n    task-2[\"B\"]:::completed\n    task-3[\"C\"]:::in_progress\n    task-4[\"D\"]:::not_started\n    done([タスク完了]):::goal\n\n    task-1 --> task-2\n    task-2 --> task-3\n    task-3 --> task-4\n    task-4 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
+			want: "\n```mermaid\ngraph TD\n    task-1[\"`A`\"]:::completed\n    task-2[\"`B`\"]:::completed\n    task-3[\"`C`\"]:::in_progress\n    task-4[\"`D`\"]:::not_started\n    done([タスク完了]):::goal\n\n    task-1 --> task-2\n    task-2 --> task-3\n    task-3 --> task-4\n    task-4 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
 		},
 		{
 			name: "全ステータス確認",
@@ -442,14 +442,14 @@ func TestGenerateMermaidGraph(t *testing.T) {
 				{ID: "task-3", Title: "レビュー中タスク", Status: TaskStatusInReview, Summary: []string{"要約"}, Description: "説明"},
 				{ID: "task-4", Title: "未着手タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "説明"},
 			},
-			want: "\n```mermaid\ngraph TD\n    task-1[\"完了タスク\"]:::completed\n    task-2[\"進行中タスク\"]:::in_progress\n    task-3[\"レビュー中タスク\"]:::in_review\n    task-4[\"未着手タスク\"]:::not_started\n    done([タスク完了]):::goal\n\n    task-1 --> done\n    task-2 --> done\n    task-3 --> done\n    task-4 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
+			want: "\n```mermaid\ngraph TD\n    task-1[\"`完了タスク`\"]:::completed\n    task-2[\"`進行中タスク`\"]:::in_progress\n    task-3[\"`レビュー中タスク`\"]:::in_review\n    task-4[\"`未着手タスク`\"]:::not_started\n    done([タスク完了]):::goal\n\n    task-1 --> done\n    task-2 --> done\n    task-3 --> done\n    task-4 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
 		},
 		{
-			name: "タイトルにダブルクォート含む",
+			name: "タイトルにバッククォート含む",
 			tasks: []Task{
-				{ID: "task-1", Title: "タスク\"1\"", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "説明"},
+				{ID: "task-1", Title: "タスク`1`", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "説明"},
 			},
-			want: "\n```mermaid\ngraph TD\n    task-1[\"タスク&quot;1&quot;\"]:::not_started\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
+			want: "\n```mermaid\ngraph TD\n    task-1[\"`タスク&#96;1&#96;`\"]:::not_started\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n",
 		},
 	}
 
