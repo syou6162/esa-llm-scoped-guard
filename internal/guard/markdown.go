@@ -119,7 +119,17 @@ func generateTaskMarkdown(task Task, taskTitles map[string]string) string {
 		}
 	}
 
-	sb.WriteString("\n")
+	// 要約セクションを追加
+	sb.WriteString("\n- 要約:\n")
+	for _, line := range task.Summary {
+		sb.WriteString("  - ")
+		sb.WriteString(line)
+		sb.WriteString("\n")
+	}
+
+	// Descriptionをdetailsで囲む
+	sb.WriteString("\n<details><summary>詳細を開く</summary>\n\n")
 	sb.WriteString(task.Description)
+	sb.WriteString("\n\n</details>\n")
 	return sb.String()
 }

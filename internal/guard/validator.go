@@ -128,6 +128,9 @@ func TrimPostInput(input *PostInput) {
 		input.Body.Tasks[i].ID = strings.TrimSpace(input.Body.Tasks[i].ID)
 		input.Body.Tasks[i].Title = strings.TrimSpace(input.Body.Tasks[i].Title)
 		input.Body.Tasks[i].Description = strings.TrimSpace(input.Body.Tasks[i].Description)
+		for j := range input.Body.Tasks[i].Summary {
+			input.Body.Tasks[i].Summary[j] = strings.TrimSpace(input.Body.Tasks[i].Summary[j])
+		}
 		for j := range input.Body.Tasks[i].GitHubURLs {
 			input.Body.Tasks[i].GitHubURLs[j] = strings.TrimSpace(input.Body.Tasks[i].GitHubURLs[j])
 		}
@@ -208,6 +211,11 @@ func ValidatePostInput(input *PostInput) error {
 		}
 		if string(task.Status) == "" {
 			return fmt.Errorf("task[%d].status cannot be empty", i)
+		}
+
+		// Summaryの検証
+		if err := ValidateSummary(task.Summary); err != nil {
+			return fmt.Errorf("task[%d].summary: %w", i, err)
 		}
 
 		// GitHub URLsの検証
@@ -304,4 +312,19 @@ func containsHeadingMarkers(text string, maxLevel int) bool {
 	pattern := fmt.Sprintf(`(?m)^\s*#{1,%d}\s`, maxLevel)
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(text)
+}
+
+// ValidateSummary はSummaryフィールドを検証します
+// - 最低1行、最大3行
+// - 各行140字以内
+func ValidateSummary(summary []string) error {
+	if len(summary) < 1 || len(summary) > 3 {
+		return fmt.Errorf("summary must have 1-3 items, got %d", len(summary))
+	}
+	for i, line := range summary {
+		if len([]rune(line)) > 140 {
+			return fmt.Errorf("summary line %d exceeds 140 characters", i+1)
+		}
+	}
+	return nil
 }
