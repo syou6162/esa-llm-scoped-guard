@@ -70,6 +70,14 @@
                   "format": "uri"
                 },
                 "description": "GitHub PR/Issue URLs (optional, must be https://github.com/...)"
+              },
+              "depends_on": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "List of task IDs that this task depends on (optional)"
               }
             },
             "required": ["id", "title", "status", "description"],
