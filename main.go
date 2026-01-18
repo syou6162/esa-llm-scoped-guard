@@ -34,7 +34,8 @@ JSON Schema:
           "id": "task-1",          // Required: unique identifier
           "title": "Task title",   // Required (auto-generated: "### {title}")
           "status": "not_started", // Required: not_started/in_progress/in_review/completed (auto-generated: "Status: {status}")
-          "description": "Task description", // Required (plain text, status/title auto-generated, no #/##/### at line start)
+          "summary": ["Task summary line 1", "Task summary line 2"], // Required: 1-3 items, each max 140 chars
+          "description": "Task description", // Required (wrapped in <details>, no #/##/### at line start)
           "github_urls": ["https://github.com/owner/repo/pull/123"] // Optional: GitHub PR/Issue URLs
         }
       ]
@@ -42,11 +43,12 @@ JSON Schema:
   }
 
 Markdown Output Example:
-  Input JSON with github_urls:
+  Input JSON with github_urls and summary:
     {
       "id": "task-1",
       "title": "Fix bug",
       "status": "in_progress",
+      "summary": ["Fix authentication issue"],
       "description": "Fix the authentication bug",
       "github_urls": ["https://github.com/owner/repo/pull/123"]
     }
@@ -56,7 +58,14 @@ Markdown Output Example:
     - Status: ` + "`in_progress`" + `
     - Pull Request: https://github.com/owner/repo/pull/123
 
+    - 要約:
+      - Fix authentication issue
+
+    <details><summary>詳細を開く</summary>
+
     Fix the authentication bug
+
+    </details>
 
 Note: Tags are automatically set to the Git repository name (no tags if not a git repository).
 
