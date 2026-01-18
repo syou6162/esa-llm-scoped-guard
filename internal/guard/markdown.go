@@ -234,9 +234,9 @@ func generateMermaidGraph(tasks []Task) string {
 	for _, task := range tasks {
 		sb.WriteString("    ")
 		sb.WriteString(task.ID)
-		sb.WriteString("[\"`")
+		sb.WriteString("[\"")
 		sb.WriteString(escapeMermaidTitle(task.Title))
-		sb.WriteString("`\"]:::")
+		sb.WriteString("\"]:::")
 		sb.WriteString(string(task.Status))
 		sb.WriteString("\n")
 	}
@@ -284,8 +284,7 @@ func generateMermaidGraph(tasks []Task) string {
 
 // escapeMermaidTitle はMermaidのノードラベル用にタイトルをエスケープします
 func escapeMermaidTitle(title string) string {
-	// バッククォートをエスケープ
-	return strings.ReplaceAll(title, "`", "&#96;")
+	return strings.ReplaceAll(title, "\"", "&quot;")
 }
 
 // findLeafNodes は他のタスクから依存されていないタスク（リーフノード）を見つけます
