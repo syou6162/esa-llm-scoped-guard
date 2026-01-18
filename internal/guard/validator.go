@@ -23,6 +23,15 @@ var (
 	schemaOnce         sync.Once
 )
 
+// visitState はDFSでのノード訪問状態を表す
+type visitState int
+
+const (
+	stateUnvisited visitState = iota // 未訪問
+	stateVisiting                    // 処理中（現在のDFSパス上）
+	stateVisited                     // 処理完了
+)
+
 // compileSchema はJSONスキーマを一度だけコンパイルします
 func compileSchema() {
 	compiler := jsonschema.NewCompiler()
@@ -62,6 +71,50 @@ func ValidatePostInputSchema(input *PostInput) error {
 	}
 
 	return nil
+}
+
+// detectCyclicDependency はDFSを使用して循環依存を検出します
+func detectCyclicDependency(tasks []Task) (bool, []string) {
+	// タスクIDから依存先へのマッピングを構築
+	graph := make(map[string][]string)
+	for _, task := range tasks {
+		graph[task.ID] = task.DependsOn
+	}
+
+	state := make(map[string]visitState)
+	var cyclePath []string
+
+	var dfs func(id string, path []string) bool
+	dfs = func(id string, path []string) bool {
+		if state[id] == stateVisiting {
+			// 処理中のノードに再訪 = 循環検出
+			cyclePath = append(path, id)
+			return true
+		}
+		if state[id] == stateVisited {
+			// 既に処理完了済み
+			return false
+		}
+
+		state[id] = stateVisiting
+		for _, depID := range graph[id] {
+			if dfs(depID, append(path, id)) {
+				return true
+			}
+		}
+		state[id] = stateVisited
+		return false
+	}
+
+	for _, task := range tasks {
+		if state[task.ID] == stateUnvisited {
+			if dfs(task.ID, nil) {
+				return true, cyclePath
+			}
+		}
+	}
+
+	return false, nil
 }
 
 // TrimPostInput はPostInputの各フィールドをトリミングします
@@ -184,6 +237,11 @@ func ValidatePostInput(input *PostInput) error {
 				return fmt.Errorf("task[%d].depends_on references non-existent task ID: %s", i, depID)
 			}
 		}
+	}
+
+	// 循環依存チェック
+	if hasCycle, cyclePath := detectCyclicDependency(input.Body.Tasks); hasCycle {
+		return fmt.Errorf("circular dependency detected: %s", strings.Join(cyclePath, " -> "))
 	}
 
 	return nil
