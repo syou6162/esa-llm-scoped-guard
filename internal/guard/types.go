@@ -15,8 +15,10 @@ type Task struct {
 	ID          string     `json:"id"`
 	Title       string     `json:"title"`
 	Status      TaskStatus `json:"status"`
+	Summary     []string   `json:"summary"`
 	Description string     `json:"description"`
 	GitHubURLs  []string   `json:"github_urls,omitempty"`
+	DependsOn   []string   `json:"depends_on,omitempty"`
 }
 
 // Body は本文の構造体

@@ -58,18 +58,21 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
         "id": "task-1",
         "title": "要件定義",
         "status": "completed",
+        "summary": ["データ分析の要件を整理", "必要なデータソースを特定"],
         "description": "データ分析の要件を定義する"
       },
       {
         "id": "task-2",
         "title": "実装",
         "status": "in_progress",
+        "summary": ["データ収集APIを実装中"],
         "description": "データ分析機能を実装する"
       },
       {
         "id": "task-3",
         "title": "テスト",
         "status": "not_started",
+        "summary": ["単体テストと統合テストを実施"],
         "description": "実装した機能をテストする"
       }
     ]
@@ -84,6 +87,11 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 上記のJSONから以下のマークダウンが生成されます：
 
 ```markdown
+## サマリー
+- [x] 要件定義
+- [ ] 実装
+- [ ] テスト
+
 ## 背景
 関連リンク:
 - https://github.com/owner/repo/issues/123
@@ -95,17 +103,39 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 ### 要件定義
 - Status: `completed`
 
+- 要約:
+  - データ分析の要件を整理
+  - 必要なデータソースを特定
+
+<details><summary>詳細を開く</summary>
+
 データ分析の要件を定義する
+
+</details>
 
 ### 実装
 - Status: `in_progress`
 
+- 要約:
+  - データ収集APIを実装中
+
+<details><summary>詳細を開く</summary>
+
 データ分析機能を実装する
+
+</details>
 
 ### テスト
 - Status: `not_started`
 
+- 要約:
+  - 単体テストと統合テストを実施
+
+<details><summary>詳細を開く</summary>
+
 実装した機能をテストする
+
+</details>
 ```
 
 **重要**:
@@ -132,7 +162,8 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 | `id` | Yes | タスクの一意識別子 | ユニークである必要あり |
 | `title` | Yes | タスクのタイトル | マークダウンで「### {title}」として自動生成される |
 | `status` | Yes | タスクのステータス | `not_started`, `in_progress`, `in_review`, `completed` のいずれか。マークダウンで「Status: {status}」として自動生成される |
-| `description` | Yes | タスクの詳細説明 | プレーンテキスト。ステータスやタイトルは含めない（自動生成される）。行頭に`#`、`##`、`###`を含めることはできない（`####`以下は可） |
+| `summary` | Yes | タスクの要約 | 1-3行の配列。各行は140字以内。マークダウンで「- 要約:」セクションとして出力される |
+| `description` | Yes | タスクの詳細説明 | プレーンテキスト。`<details><summary>詳細を開く</summary>`で囲まれて折りたたみ可能になる。行頭に`#`、`##`、`###`を含めることはできない（`####`以下は可） |
 | `github_urls` | No | GitHub PR/IssueのURL配列 | `https://github.com/...`形式のURL。単数の場合「Pull Request: URL」、複数の場合「Pull Requests:」+リスト形式で出力 |
 
 ### コマンド実行

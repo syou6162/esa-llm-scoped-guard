@@ -23,6 +23,15 @@ var (
 	schemaOnce         sync.Once
 )
 
+// visitState はDFSでのノード訪問状態を表す
+type visitState int
+
+const (
+	stateUnvisited visitState = iota // 未訪問
+	stateVisiting                    // 処理中（現在のDFSパス上）
+	stateVisited                     // 処理完了
+)
+
 // compileSchema はJSONスキーマを一度だけコンパイルします
 func compileSchema() {
 	compiler := jsonschema.NewCompiler()
@@ -64,6 +73,50 @@ func ValidatePostInputSchema(input *PostInput) error {
 	return nil
 }
 
+// detectCyclicDependency はDFSを使用して循環依存を検出します
+func detectCyclicDependency(tasks []Task) (bool, []string) {
+	// タスクIDから依存先へのマッピングを構築
+	graph := make(map[string][]string)
+	for _, task := range tasks {
+		graph[task.ID] = task.DependsOn
+	}
+
+	state := make(map[string]visitState)
+	var cyclePath []string
+
+	var dfs func(id string, path []string) bool
+	dfs = func(id string, path []string) bool {
+		if state[id] == stateVisiting {
+			// 処理中のノードに再訪 = 循環検出
+			cyclePath = append(path, id)
+			return true
+		}
+		if state[id] == stateVisited {
+			// 既に処理完了済み
+			return false
+		}
+
+		state[id] = stateVisiting
+		for _, depID := range graph[id] {
+			if dfs(depID, append(path, id)) {
+				return true
+			}
+		}
+		state[id] = stateVisited
+		return false
+	}
+
+	for _, task := range tasks {
+		if state[task.ID] == stateUnvisited {
+			if dfs(task.ID, nil) {
+				return true, cyclePath
+			}
+		}
+	}
+
+	return false, nil
+}
+
 // TrimPostInput はPostInputの各フィールドをトリミングします
 func TrimPostInput(input *PostInput) {
 	input.Name = strings.TrimSpace(input.Name)
@@ -75,8 +128,14 @@ func TrimPostInput(input *PostInput) {
 		input.Body.Tasks[i].ID = strings.TrimSpace(input.Body.Tasks[i].ID)
 		input.Body.Tasks[i].Title = strings.TrimSpace(input.Body.Tasks[i].Title)
 		input.Body.Tasks[i].Description = strings.TrimSpace(input.Body.Tasks[i].Description)
+		for j := range input.Body.Tasks[i].Summary {
+			input.Body.Tasks[i].Summary[j] = strings.TrimSpace(input.Body.Tasks[i].Summary[j])
+		}
 		for j := range input.Body.Tasks[i].GitHubURLs {
 			input.Body.Tasks[i].GitHubURLs[j] = strings.TrimSpace(input.Body.Tasks[i].GitHubURLs[j])
+		}
+		for j := range input.Body.Tasks[i].DependsOn {
+			input.Body.Tasks[i].DependsOn[j] = strings.TrimSpace(input.Body.Tasks[i].DependsOn[j])
 		}
 	}
 }
@@ -154,6 +213,11 @@ func ValidatePostInput(input *PostInput) error {
 			return fmt.Errorf("task[%d].status cannot be empty", i)
 		}
 
+		// Summaryの検証
+		if err := ValidateSummary(task.Summary); err != nil {
+			return fmt.Errorf("task[%d].summary: %w", i, err)
+		}
+
 		// GitHub URLsの検証
 		for j, ghURL := range task.GitHubURLs {
 			if !isGitHubURL(ghURL) {
@@ -166,6 +230,26 @@ func ValidatePostInput(input *PostInput) error {
 			return fmt.Errorf("duplicate task ID: %s", task.ID)
 		}
 		taskIDs[task.ID] = true
+	}
+
+	// 依存関係の検証
+	for i, task := range input.Body.Tasks {
+		for j, depID := range task.DependsOn {
+			if depID == "" {
+				return fmt.Errorf("task[%d].depends_on[%d]: empty task ID", i, j)
+			}
+			if depID == task.ID {
+				return fmt.Errorf("task[%d].depends_on: self-reference is not allowed", i)
+			}
+			if !taskIDs[depID] {
+				return fmt.Errorf("task[%d].depends_on references non-existent task ID: %s", i, depID)
+			}
+		}
+	}
+
+	// 循環依存チェック
+	if hasCycle, cyclePath := detectCyclicDependency(input.Body.Tasks); hasCycle {
+		return fmt.Errorf("circular dependency detected: %s", strings.Join(cyclePath, " -> "))
 	}
 
 	return nil
@@ -228,4 +312,19 @@ func containsHeadingMarkers(text string, maxLevel int) bool {
 	pattern := fmt.Sprintf(`(?m)^\s*#{1,%d}\s`, maxLevel)
 	re := regexp.MustCompile(pattern)
 	return re.MatchString(text)
+}
+
+// ValidateSummary はSummaryフィールドを検証します
+// - 最低1行、最大3行
+// - 各行140字以内
+func ValidateSummary(summary []string) error {
+	if len(summary) < 1 || len(summary) > 3 {
+		return fmt.Errorf("summary must have 1-3 items, got %d", len(summary))
+	}
+	for i, line := range summary {
+		if len([]rune(line)) > 140 {
+			return fmt.Errorf("summary line %d exceeds 140 characters", i+1)
+		}
+	}
+	return nil
 }
