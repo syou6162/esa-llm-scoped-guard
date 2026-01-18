@@ -78,6 +78,9 @@ func TrimPostInput(input *PostInput) {
 		for j := range input.Body.Tasks[i].GitHubURLs {
 			input.Body.Tasks[i].GitHubURLs[j] = strings.TrimSpace(input.Body.Tasks[i].GitHubURLs[j])
 		}
+		for j := range input.Body.Tasks[i].DependsOn {
+			input.Body.Tasks[i].DependsOn[j] = strings.TrimSpace(input.Body.Tasks[i].DependsOn[j])
+		}
 	}
 }
 
