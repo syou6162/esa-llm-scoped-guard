@@ -171,6 +171,21 @@ func ValidatePostInput(input *PostInput) error {
 		taskIDs[task.ID] = true
 	}
 
+	// 依存関係の検証
+	for i, task := range input.Body.Tasks {
+		for j, depID := range task.DependsOn {
+			if depID == "" {
+				return fmt.Errorf("task[%d].depends_on[%d]: empty task ID", i, j)
+			}
+			if depID == task.ID {
+				return fmt.Errorf("task[%d].depends_on: self-reference is not allowed", i)
+			}
+			if !taskIDs[depID] {
+				return fmt.Errorf("task[%d].depends_on references non-existent task ID: %s", i, depID)
+			}
+		}
+	}
+
 	return nil
 }
 

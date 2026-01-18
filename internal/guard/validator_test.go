@@ -704,3 +704,138 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 		})
 	}
 }
+
+func TestValidatePostInput_DependsOn(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   *PostInput
+		wantErr bool
+		errMsg  string
+	}{
+		{
+			name: "有効な依存関係（単一）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Description: "Desc", DependsOn: []string{"task-1"}},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "有効な依存関係（複数）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Description: "Desc"},
+						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Description: "Desc", DependsOn: []string{"task-1", "task-2"}},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "依存なし（省略）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "依存なし（空配列）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc", DependsOn: []string{}},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "存在しないタスクIDを参照",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc", DependsOn: []string{"task-999"}},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "task[0].depends_on references non-existent task ID: task-999",
+		},
+		{
+			name: "空文字のタスクID",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc", DependsOn: []string{""}},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "task[0].depends_on[0]: empty task ID",
+		},
+		{
+			name: "自己参照",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2025/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Description: "Desc", DependsOn: []string{"task-1"}},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "task[0].depends_on: self-reference is not allowed",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			TrimPostInput(tt.input)
+			err := ValidatePostInput(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
+				t.Errorf("ValidatePostInput() error = %v, want error containing %q", err, tt.errMsg)
+			}
+		})
+	}
+}
