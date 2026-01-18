@@ -102,9 +102,10 @@ func TestGenerateBackgroundSection(t *testing.T) {
 
 func TestGenerateTaskMarkdown(t *testing.T) {
 	tests := []struct {
-		name string
-		task Task
-		want string
+		name       string
+		task       Task
+		taskTitles map[string]string
+		want       string
 	}{
 		{
 			name: "基本的なタスク",
@@ -114,7 +115,8 @@ func TestGenerateTaskMarkdown(t *testing.T) {
 				Summary:     []string{"タスク1の要約"},
 				Description: "タスク1の詳細説明",
 			},
-			want: "\n### タスク1\n- Status: `not_started`\n\n- 要約:\n  - タスク1の要約\n\n<details><summary>詳細を開く</summary>\n\nタスク1の詳細説明\n\n</details>\n",
+			taskTitles: map[string]string{},
+			want:       "\n### タスク1\n- Status: `not_started`\n\n- 要約:\n  - タスク1の要約\n\n<details><summary>詳細を開く</summary>\n\nタスク1の詳細説明\n\n</details>\n",
 		},
 		{
 			name: "GitHub URL（単一）",
@@ -125,7 +127,8 @@ func TestGenerateTaskMarkdown(t *testing.T) {
 				Description: "タスク1の詳細説明",
 				GitHubURLs:  []string{"https://github.com/owner/repo/pull/123"},
 			},
-			want: "\n### タスク1\n- Status: `in_progress`\n- Pull Request: https://github.com/owner/repo/pull/123\n\n- 要約:\n  - タスク1の要約\n\n<details><summary>詳細を開く</summary>\n\nタスク1の詳細説明\n\n</details>\n",
+			taskTitles: map[string]string{},
+			want:       "\n### タスク1\n- Status: `in_progress`\n- Pull Request: https://github.com/owner/repo/pull/123\n\n- 要約:\n  - タスク1の要約\n\n<details><summary>詳細を開く</summary>\n\nタスク1の詳細説明\n\n</details>\n",
 		},
 		{
 			name: "GitHub URL（複数）",
@@ -139,7 +142,8 @@ func TestGenerateTaskMarkdown(t *testing.T) {
 					"https://github.com/owner/repo/issues/456",
 				},
 			},
-			want: "\n### タスク1\n- Status: `in_progress`\n- Pull Requests:\n  - https://github.com/owner/repo/pull/123\n  - https://github.com/owner/repo/issues/456\n\n- 要約:\n  - タスク1の要約\n\n<details><summary>詳細を開く</summary>\n\nタスク1の詳細説明\n\n</details>\n",
+			taskTitles: map[string]string{},
+			want:       "\n### タスク1\n- Status: `in_progress`\n- Pull Requests:\n  - https://github.com/owner/repo/pull/123\n  - https://github.com/owner/repo/issues/456\n\n- 要約:\n  - タスク1の要約\n\n<details><summary>詳細を開く</summary>\n\nタスク1の詳細説明\n\n</details>\n",
 		},
 		{
 			name: "GitHub URL空配列",
@@ -150,13 +154,64 @@ func TestGenerateTaskMarkdown(t *testing.T) {
 				Description: "タスク1の詳細説明",
 				GitHubURLs:  []string{},
 			},
-			want: "\n### タスク1\n- Status: `completed`\n\n- 要約:\n  - タスク1の要約\n\n<details><summary>詳細を開く</summary>\n\nタスク1の詳細説明\n\n</details>\n",
+			taskTitles: map[string]string{},
+			want:       "\n### タスク1\n- Status: `completed`\n\n- 要約:\n  - タスク1の要約\n\n<details><summary>詳細を開く</summary>\n\nタスク1の詳細説明\n\n</details>\n",
+		},
+		{
+			name: "依存関係（単一）",
+			task: Task{
+				ID:          "task-2",
+				Title:       "タスク2",
+				Status:      TaskStatusNotStarted,
+				Summary:     []string{"タスク2の要約"},
+				Description: "タスク2の詳細説明",
+				DependsOn:   []string{"task-1"},
+			},
+			taskTitles: map[string]string{
+				"task-1": "タスク1",
+				"task-2": "タスク2",
+			},
+			want: "\n### タスク2\n- Status: `not_started`\n- Depends on:\n  - タスク1\n\n- 要約:\n  - タスク2の要約\n\n<details><summary>詳細を開く</summary>\n\nタスク2の詳細説明\n\n</details>\n",
+		},
+		{
+			name: "依存関係（複数）",
+			task: Task{
+				ID:          "task-3",
+				Title:       "タスク3",
+				Status:      TaskStatusNotStarted,
+				Summary:     []string{"タスク3の要約"},
+				Description: "タスク3の詳細説明",
+				DependsOn:   []string{"task-1", "task-2"},
+			},
+			taskTitles: map[string]string{
+				"task-1": "タスク1",
+				"task-2": "タスク2",
+				"task-3": "タスク3",
+			},
+			want: "\n### タスク3\n- Status: `not_started`\n- Depends on:\n  - タスク1\n  - タスク2\n\n- 要約:\n  - タスク3の要約\n\n<details><summary>詳細を開く</summary>\n\nタスク3の詳細説明\n\n</details>\n",
+		},
+		{
+			name: "依存関係 + GitHub URL",
+			task: Task{
+				ID:          "task-2",
+				Title:       "タスク2",
+				Status:      TaskStatusInProgress,
+				Summary:     []string{"タスク2の要約"},
+				Description: "タスク2の詳細説明",
+				DependsOn:   []string{"task-1"},
+				GitHubURLs:  []string{"https://github.com/owner/repo/pull/123"},
+			},
+			taskTitles: map[string]string{
+				"task-1": "タスク1",
+				"task-2": "タスク2",
+			},
+			want: "\n### タスク2\n- Status: `in_progress`\n- Depends on:\n  - タスク1\n- Pull Request: https://github.com/owner/repo/pull/123\n\n- 要約:\n  - タスク2の要約\n\n<details><summary>詳細を開く</summary>\n\nタスク2の詳細説明\n\n</details>\n",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := generateTaskMarkdown(tt.task)
+			got := generateTaskMarkdown(tt.task, tt.taskTitles)
 			if got != tt.want {
 				t.Errorf("generateTaskMarkdown() = %q, want %q", got, tt.want)
 			}
@@ -204,6 +259,27 @@ func TestGenerateTasksSection(t *testing.T) {
 				},
 			},
 			want: "\n\n## タスク\n\n### タスク1\n- Status: `not_started`\n\n- 要約:\n  - 要約1\n\n<details><summary>詳細を開く</summary>\n\n説明1\n\n</details>\n\n### タスク2\n- Status: `in_progress`\n\n- 要約:\n  - 要約2\n\n<details><summary>詳細を開く</summary>\n\n説明2\n\n</details>\n",
+		},
+		{
+			name: "依存関係を含むタスク",
+			tasks: []Task{
+				{
+					ID:          "task-1",
+					Title:       "タスク1",
+					Status:      TaskStatusNotStarted,
+					Summary:     []string{"要約1"},
+					Description: "説明1",
+				},
+				{
+					ID:          "task-2",
+					Title:       "タスク2",
+					Status:      TaskStatusInProgress,
+					Summary:     []string{"要約2"},
+					Description: "説明2",
+					DependsOn:   []string{"task-1"},
+				},
+			},
+			want: "\n\n## タスク\n\n### タスク1\n- Status: `not_started`\n\n- 要約:\n  - 要約1\n\n<details><summary>詳細を開く</summary>\n\n説明1\n\n</details>\n\n### タスク2\n- Status: `in_progress`\n- Depends on:\n  - タスク1\n\n- 要約:\n  - 要約2\n\n<details><summary>詳細を開く</summary>\n\n説明2\n\n</details>\n",
 		},
 	}
 

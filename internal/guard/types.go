@@ -18,6 +18,7 @@ type Task struct {
 	Summary     []string   `json:"summary"`
 	Description string     `json:"description"`
 	GitHubURLs  []string   `json:"github_urls,omitempty"`
+	DependsOn   []string   `json:"depends_on,omitempty"`
 }
 
 // Body は本文の構造体

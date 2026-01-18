@@ -69,16 +69,22 @@ func generateTasksSection(tasks []Task) string {
 		return ""
 	}
 
+	// IDからタイトルへのマッピングを構築
+	taskTitles := make(map[string]string)
+	for _, t := range tasks {
+		taskTitles[t.ID] = t.Title
+	}
+
 	var sb strings.Builder
 	sb.WriteString("\n\n## タスク\n")
 	for _, task := range tasks {
-		sb.WriteString(generateTaskMarkdown(task))
+		sb.WriteString(generateTaskMarkdown(task, taskTitles))
 	}
 	return sb.String()
 }
 
 // generateTaskMarkdown は1つのタスクのマークダウンを生成します
-func generateTaskMarkdown(task Task) string {
+func generateTaskMarkdown(task Task, taskTitles map[string]string) string {
 	var sb strings.Builder
 
 	sb.WriteString("\n### ")
@@ -87,6 +93,16 @@ func generateTaskMarkdown(task Task) string {
 	sb.WriteString("- Status: `")
 	sb.WriteString(string(task.Status))
 	sb.WriteString("`\n")
+
+	// 依存関係の表示
+	if len(task.DependsOn) > 0 {
+		sb.WriteString("- Depends on:\n")
+		for _, depID := range task.DependsOn {
+			sb.WriteString("  - ")
+			sb.WriteString(taskTitles[depID])
+			sb.WriteString("\n")
+		}
+	}
 
 	if len(task.GitHubURLs) > 0 {
 		if len(task.GitHubURLs) == 1 {
