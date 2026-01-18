@@ -114,6 +114,6 @@ func generateTaskMarkdown(task Task) string {
 	// Descriptionをdetailsで囲む
 	sb.WriteString("\n<details><summary>詳細を開く</summary>\n\n")
 	sb.WriteString(task.Description)
-	sb.WriteString("\n\n</details>")
+	sb.WriteString("\n\n</details>\n")
 	return sb.String()
 }
