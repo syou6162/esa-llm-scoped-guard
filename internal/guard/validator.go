@@ -225,6 +225,11 @@ func ValidatePostInput(input *PostInput) error {
 			}
 		}
 
+		// ステータスとGitHub URLsの整合性チェック
+		if len(task.GitHubURLs) > 0 && task.Status == TaskStatusNotStarted {
+			return fmt.Errorf("task[%d]: status is 'not_started' but has GitHub URLs (should be 'in_progress' or later)", i)
+		}
+
 		// IDのユニーク性チェック
 		if taskIDs[task.ID] {
 			return fmt.Errorf("duplicate task ID: %s", task.ID)
