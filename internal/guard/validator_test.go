@@ -386,7 +386,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 						{
 							ID:          "task-1",
 							Title:       "Task 1",
-							Status:      TaskStatusNotStarted,
+							Status:      TaskStatusInProgress,
 							Summary:     []string{"要約"},
 							Description: "Description",
 							GitHubURLs:  []string{"https://github.com/owner/repo/pull/123"},
@@ -408,7 +408,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 						{
 							ID:          "task-1",
 							Title:       "Task 1",
-							Status:      TaskStatusNotStarted,
+							Status:      TaskStatusInProgress,
 							Summary:     []string{"要約"},
 							Description: "Description",
 							GitHubURLs: []string{
@@ -700,6 +700,95 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "##### This is h5 heading",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "PRリンクあり + not_started（エラー）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+							GitHubURLs:  []string{"https://github.com/owner/repo/pull/123"},
+						},
+					},
+				},
+			},
+			wantErr: true,
+			errMsg:  "status is 'not_started' but has GitHub URLs",
+		},
+		{
+			name: "PRリンクあり + in_progress（OK）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusInProgress,
+							Summary:     []string{"要約"},
+							Description: "Description",
+							GitHubURLs:  []string{"https://github.com/owner/repo/pull/123"},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "PRリンクあり + in_review（OK）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusInReview,
+							Summary:     []string{"要約"},
+							Description: "Description",
+							GitHubURLs:  []string{"https://github.com/owner/repo/pull/123"},
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "PRリンクあり + completed（OK）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusCompleted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+							GitHubURLs:  []string{"https://github.com/owner/repo/pull/123"},
 						},
 					},
 				},
