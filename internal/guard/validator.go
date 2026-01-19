@@ -144,52 +144,52 @@ func TrimPostInput(input *PostInput) {
 func ValidatePostInput(input *PostInput) error {
 	// create_newとpost_numberの検証
 	if input.CreateNew && input.PostNumber != nil {
-		return fmt.Errorf("cannot specify both create_new and post_number")
+		return NewValidationError(ErrCodeMutuallyExclusive, "cannot specify both create_new and post_number")
 	}
 	if !input.CreateNew && input.PostNumber == nil {
-		return fmt.Errorf("must specify either create_new or post_number")
+		return NewValidationError(ErrCodeMissingRequired, "must specify either create_new or post_number")
 	}
 	if input.PostNumber != nil && *input.PostNumber <= 0 {
-		return fmt.Errorf("post_number must be greater than 0")
+		return NewValidationError(ErrCodeInvalidValue, "post_number must be greater than 0").WithField("post_number")
 	}
 
 	// nameの検証
 	if input.Name == "" {
-		return fmt.Errorf("name cannot be empty")
+		return NewValidationError(ErrCodeFieldEmpty, "name cannot be empty").WithField("name")
 	}
 	if len(input.Name) > 255 {
-		return fmt.Errorf("name exceeds 255 bytes")
+		return NewValidationError(ErrCodeFieldTooLong, "name exceeds 255 bytes").WithField("name")
 	}
 	if containsControlCharacters(input.Name) {
-		return fmt.Errorf("name contains control characters")
+		return NewValidationError(ErrCodeFieldInvalidChars, "name contains control characters").WithField("name")
 	}
 	if strings.Contains(input.Name, "/") {
-		return fmt.Errorf("name cannot contain /")
+		return NewValidationError(ErrCodeFieldInvalidChars, "name cannot contain /").WithField("name")
 	}
 	if strings.ContainsAny(input.Name, "（）：") {
-		return fmt.Errorf("name cannot contain fullwidth parentheses or colon")
+		return NewValidationError(ErrCodeFieldInvalidChars, "name cannot contain fullwidth parentheses or colon").WithField("name")
 	}
 
 	// categoryの検証
 	if input.Category == "" {
-		return fmt.Errorf("category cannot be empty")
+		return NewValidationError(ErrCodeFieldEmpty, "category cannot be empty").WithField("category")
 	}
 	if !hasValidDateSuffix(input.Category) {
-		return fmt.Errorf("category must end with /yyyy/mm/dd format")
+		return NewValidationError(ErrCodeCategoryInvalidDateSuffix, "category must end with /yyyy/mm/dd format").WithField("category")
 	}
 
 	// bodyの検証
 	if input.Body.Background == "" {
-		return fmt.Errorf("background cannot be empty")
+		return NewValidationError(ErrCodeFieldEmpty, "background cannot be empty").WithField("background")
 	}
 	// backgroundには## 背景より上位の見出し（#, ##）を含めることができない
 	if containsHeadingMarkers(input.Body.Background, 2) {
-		return fmt.Errorf("background cannot contain heading markers (# or ##)")
+		return NewValidationError(ErrCodeFieldInvalidFormat, "background cannot contain heading markers (# or ##)").WithField("background")
 	}
 
 	// tasksの検証
 	if len(input.Body.Tasks) == 0 {
-		return fmt.Errorf("tasks cannot be empty")
+		return NewValidationError(ErrCodeFieldEmpty, "tasks cannot be empty").WithField("tasks")
 	}
 
 	// タスクIDのユニーク性チェック用マップ
@@ -197,42 +197,51 @@ func ValidatePostInput(input *PostInput) error {
 
 	for i, task := range input.Body.Tasks {
 		if task.ID == "" {
-			return fmt.Errorf("task[%d].id cannot be empty", i)
+			return NewValidationError(ErrCodeFieldEmpty, fmt.Sprintf("task[%d].id cannot be empty", i)).
+				WithField("task.id").WithIndex(i)
 		}
 		if task.Title == "" {
-			return fmt.Errorf("task[%d].title cannot be empty", i)
+			return NewValidationError(ErrCodeFieldEmpty, fmt.Sprintf("task[%d].title cannot be empty", i)).
+				WithField("task.title").WithIndex(i)
 		}
 		if task.Description == "" {
-			return fmt.Errorf("task[%d].description cannot be empty", i)
+			return NewValidationError(ErrCodeFieldEmpty, fmt.Sprintf("task[%d].description cannot be empty", i)).
+				WithField("task.description").WithIndex(i)
 		}
 		// descriptionには### タスクタイトルより上位の見出し（#, ##, ###）を含めることができない
 		if containsHeadingMarkers(task.Description, 3) {
-			return fmt.Errorf("task[%d].description cannot contain heading markers (# or ## or ###)", i)
+			return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("task[%d].description cannot contain heading markers (# or ## or ###)", i)).
+				WithField("task.description").WithIndex(i)
 		}
 		if string(task.Status) == "" {
-			return fmt.Errorf("task[%d].status cannot be empty", i)
+			return NewValidationError(ErrCodeFieldEmpty, fmt.Sprintf("task[%d].status cannot be empty", i)).
+				WithField("task.status").WithIndex(i)
 		}
 
 		// Summaryの検証
 		if err := ValidateSummary(task.Summary); err != nil {
-			return fmt.Errorf("task[%d].summary: %w", i, err)
+			return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("task[%d].summary: %v", i, err)).
+				WithField("task.summary").WithIndex(i).Wrap(err)
 		}
 
 		// GitHub URLsの検証
 		for j, ghURL := range task.GitHubURLs {
 			if !isGitHubURL(ghURL) {
-				return fmt.Errorf("task[%d].github_urls[%d]: must be a valid GitHub URL (https://github.com/...)", i, j)
+				return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("task[%d].github_urls[%d]: must be a valid GitHub URL (https://github.com/...)", i, j)).
+					WithField("task.github_urls").WithIndex(i)
 			}
 		}
 
 		// ステータスとGitHub URLsの整合性チェック
 		if len(task.GitHubURLs) > 0 && task.Status == TaskStatusNotStarted {
-			return fmt.Errorf("task[%d]: status is 'not_started' but has GitHub URLs (should be 'in_progress' or later)", i)
+			return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("task[%d]: status is 'not_started' but has GitHub URLs (should be 'in_progress' or later)", i)).
+				WithField("task.status").WithIndex(i)
 		}
 
 		// IDのユニーク性チェック
 		if taskIDs[task.ID] {
-			return fmt.Errorf("duplicate task ID: %s", task.ID)
+			return NewValidationError(ErrCodeDuplicateID, fmt.Sprintf("duplicate task ID: %s", task.ID)).
+				WithField("task.id")
 		}
 		taskIDs[task.ID] = true
 	}
@@ -241,20 +250,23 @@ func ValidatePostInput(input *PostInput) error {
 	for i, task := range input.Body.Tasks {
 		for j, depID := range task.DependsOn {
 			if depID == "" {
-				return fmt.Errorf("task[%d].depends_on[%d]: empty task ID", i, j)
+				return NewValidationError(ErrCodeFieldEmpty, fmt.Sprintf("task[%d].depends_on[%d]: empty task ID", i, j)).
+					WithField("task.depends_on").WithIndex(i)
 			}
 			if depID == task.ID {
-				return fmt.Errorf("task[%d].depends_on: self-reference is not allowed", i)
+				return NewValidationError(ErrCodeSelfReference, fmt.Sprintf("task[%d].depends_on: self-reference is not allowed", i)).
+					WithField("task.depends_on").WithIndex(i)
 			}
 			if !taskIDs[depID] {
-				return fmt.Errorf("task[%d].depends_on references non-existent task ID: %s", i, depID)
+				return NewValidationError(ErrCodeNonExistentRef, fmt.Sprintf("task[%d].depends_on references non-existent task ID: %s", i, depID)).
+					WithField("task.depends_on").WithIndex(i)
 			}
 		}
 	}
 
 	// 循環依存チェック
 	if hasCycle, cyclePath := detectCyclicDependency(input.Body.Tasks); hasCycle {
-		return fmt.Errorf("circular dependency detected: %s", strings.Join(cyclePath, " -> "))
+		return NewValidationError(ErrCodeCircularDependency, fmt.Sprintf("circular dependency detected: %s", strings.Join(cyclePath, " -> ")))
 	}
 
 	return nil
@@ -324,11 +336,11 @@ func containsHeadingMarkers(text string, maxLevel int) bool {
 // - 各行140字以内
 func ValidateSummary(summary []string) error {
 	if len(summary) < 1 || len(summary) > 3 {
-		return fmt.Errorf("summary must have 1-3 items, got %d", len(summary))
+		return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("summary must have 1-3 items, got %d", len(summary)))
 	}
 	for i, line := range summary {
 		if len([]rune(line)) > 140 {
-			return fmt.Errorf("summary line %d exceeds 140 characters", i+1)
+			return NewValidationError(ErrCodeFieldTooLong, fmt.Sprintf("summary line %d exceeds 140 characters", i+1))
 		}
 	}
 	return nil
