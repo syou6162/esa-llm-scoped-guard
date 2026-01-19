@@ -36,7 +36,8 @@ JSON Schema:
           "status": "not_started", // Required: not_started/in_progress/in_review/completed (auto-generated: "Status: {status}")
           "summary": ["Task summary line 1", "Task summary line 2"], // Required: 1-3 items, each max 140 chars
           "description": "Task description", // Required (wrapped in <details>, no #/##/### at line start)
-          "github_urls": ["https://github.com/owner/repo/pull/123"] // Optional: GitHub PR/Issue URLs
+          "github_urls": ["https://github.com/owner/repo/pull/123"], // Optional: GitHub PR/Issue URLs
+          "depends_on": ["task-0"]    // Optional: dependent task IDs (no self-ref, no cycles)
         }
       ]
     }
@@ -64,6 +65,21 @@ Markdown Output Example:
     <details><summary>詳細を開く</summary>
 
     Fix the authentication bug
+
+    </details>
+
+  Output (with depends_on):
+    ### Implement feature
+    - Status: ` + "`in_progress`" + `
+    - Depends on:
+      - ` + "`Define requirements`" + `
+
+    - 要約:
+      - Implement the new feature
+
+    <details><summary>詳細を開く</summary>
+
+    Implement the feature according to requirements
 
     </details>
 

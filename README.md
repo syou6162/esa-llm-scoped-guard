@@ -66,14 +66,16 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
         "title": "実装",
         "status": "in_progress",
         "summary": ["データ収集APIを実装中"],
-        "description": "データ分析機能を実装する"
+        "description": "データ分析機能を実装する",
+        "depends_on": ["task-1"]
       },
       {
         "id": "task-3",
         "title": "テスト",
         "status": "not_started",
         "summary": ["単体テストと統合テストを実施"],
-        "description": "実装した機能をテストする"
+        "description": "実装した機能をテストする",
+        "depends_on": ["task-2"]
       }
     ]
   }
@@ -91,6 +93,26 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 - [x] 要件定義
 - [ ] 実装
 - [ ] テスト
+
+### 依存関係グラフ
+
+```mermaid
+graph TD
+    task-1["要件定義"]:::completed
+    task-2["実装"]:::in_progress
+    task-3["テスト"]:::not_started
+    done([タスク完了]):::goal
+
+    task-1 --> task-2
+    task-2 --> task-3
+    task-3 --> done
+
+    classDef completed fill:#90EE90
+    classDef in_progress fill:#FFD700
+    classDef in_review fill:#FFA500
+    classDef not_started fill:#D3D3D3
+    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px
+```
 
 ## 背景
 関連リンク:
@@ -115,6 +137,8 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 
 ### 実装
 - Status: `in_progress`
+- Depends on:
+  - `要件定義`
 
 - 要約:
   - データ収集APIを実装中
@@ -127,6 +151,8 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 
 ### テスト
 - Status: `not_started`
+- Depends on:
+  - `実装`
 
 - 要約:
   - 単体テストと統合テストを実施
@@ -165,6 +191,7 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 | `summary` | Yes | タスクの要約 | 1-3行の配列。各行は140字以内。マークダウンで「- 要約:」セクションとして出力される |
 | `description` | Yes | タスクの詳細説明 | プレーンテキスト。`<details><summary>詳細を開く</summary>`で囲まれて折りたたみ可能になる。行頭に`#`、`##`、`###`を含めることはできない（`####`以下は可） |
 | `github_urls` | No | GitHub PR/IssueのURL配列 | `https://github.com/...`形式のURL。単数の場合「Pull Request: URL」、複数の場合「Pull Requests:」+リスト形式で出力 |
+| `depends_on` | No | 依存する他タスクのID配列 | 自己参照不可、循環依存不可 |
 
 ### コマンド実行
 
