@@ -1,6 +1,7 @@
 package guard
 
 import (
+	"errors"
 	"strings"
 	"testing"
 )
@@ -11,10 +12,10 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 	postNumNeg := -1
 
 	tests := []struct {
-		name    string
-		input   *PostInput
-		wantErr bool
-		errMsg  string
+		name        string
+		input       *PostInput
+		wantErr     bool
+		wantErrCode ValidationErrorCode
 	}{
 		{
 			name: "create_new=true, post_number=nil (OK: 新規作成)",
@@ -45,8 +46,8 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "cannot specify both create_new and post_number",
+			wantErr:     true,
+			wantErrCode: ErrCodeMutuallyExclusive,
 		},
 		{
 			name: "create_new=false, post_number=nil (エラー: どちらも未指定)",
@@ -61,8 +62,8 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "must specify either create_new or post_number",
+			wantErr:     true,
+			wantErrCode: ErrCodeMissingRequired,
 		},
 		{
 			name: "create_new=false, post_number=123 (OK: 更新)",
@@ -109,8 +110,8 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "post_number must be greater than 0",
+			wantErr:     true,
+			wantErrCode: ErrCodeInvalidValue,
 		},
 		{
 			name: "create_new=false, post_number=-1 (エラー: post_number <= 0)",
@@ -126,8 +127,8 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "post_number must be greater than 0",
+			wantErr:     true,
+			wantErrCode: ErrCodeInvalidValue,
 		},
 	}
 
@@ -139,8 +140,15 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
-				t.Errorf("ValidatePostInput() error = %v, want error containing %q", err, tt.errMsg)
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("ValidatePostInput() error = %v, expected ValidationError", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
 			}
 		})
 	}
@@ -148,10 +156,10 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 
 func TestValidatePostInput(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   *PostInput
-		wantErr bool
-		errMsg  string
+		name        string
+		input       *PostInput
+		wantErr     bool
+		wantErrCode ValidationErrorCode
 	}{
 		{
 			name: "有効な入力（新規作成）",
@@ -184,8 +192,8 @@ func TestValidatePostInput(t *testing.T) {
 					Background: "Content",
 				},
 			},
-			wantErr: true,
-			errMsg:  "name cannot be empty",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldEmpty,
 		},
 		{
 			name: "categoryが空",
@@ -197,8 +205,8 @@ func TestValidatePostInput(t *testing.T) {
 					Background: "Content",
 				},
 			},
-			wantErr: true,
-			errMsg:  "category cannot be empty",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldEmpty,
 		},
 		{
 			name: "categoryが日付形式で終わらない",
@@ -210,8 +218,8 @@ func TestValidatePostInput(t *testing.T) {
 					Background: "Content",
 				},
 			},
-			wantErr: true,
-			errMsg:  "category must end with /yyyy/mm/dd format",
+			wantErr:     true,
+			wantErrCode: ErrCodeCategoryInvalidDateSuffix,
 		},
 	}
 
@@ -224,8 +232,15 @@ func TestValidatePostInput(t *testing.T) {
 				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
-				t.Errorf("ValidatePostInput() error = %v, want error containing %q", err, tt.errMsg)
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("ValidatePostInput() error = %v, expected ValidationError", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
 			}
 		})
 	}
@@ -234,10 +249,10 @@ func TestValidatePostInput(t *testing.T) {
 // TestValidatePostInput_Body はBody構造体のバリデーションをテストします
 func TestValidatePostInput_Body(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   *PostInput
-		wantErr bool
-		errMsg  string
+		name        string
+		input       *PostInput
+		wantErr     bool
+		wantErrCode ValidationErrorCode
 	}{
 		{
 			name: "有効な入力（backgroundとtasks）",
@@ -270,8 +285,8 @@ func TestValidatePostInput_Body(t *testing.T) {
 					Background: "",
 				},
 			},
-			wantErr: true,
-			errMsg:  "background cannot be empty",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldEmpty,
 		},
 		{
 			name: "backgroundが空白のみ",
@@ -283,8 +298,8 @@ func TestValidatePostInput_Body(t *testing.T) {
 					Background: "   \n  ",
 				},
 			},
-			wantErr: true,
-			errMsg:  "background cannot be empty",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldEmpty,
 		},
 	}
 
@@ -296,8 +311,15 @@ func TestValidatePostInput_Body(t *testing.T) {
 				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
-				t.Errorf("ValidatePostInput() error = %v, want error containing %q", err, tt.errMsg)
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("ValidatePostInput() error = %v, expected ValidationError", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
 			}
 		})
 	}
