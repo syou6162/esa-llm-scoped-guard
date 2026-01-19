@@ -1,6 +1,7 @@
 package guard
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -12,7 +13,7 @@ func TestReadPostInputFromFile(t *testing.T) {
 		name        string
 		jsonContent string
 		wantErr     bool
-		errMsg      string
+		wantErrCode ValidationErrorCode
 		validate    func(*testing.T, *PostInput)
 	}{
 		{
@@ -57,7 +58,7 @@ func TestReadPostInputFromFile(t *testing.T) {
 			name:        "不正なJSON",
 			jsonContent: `{"name": "Test"`,
 			wantErr:     true,
-			errMsg:      "failed to parse JSON",
+			wantErrCode: ErrCodeJSONInvalid,
 		},
 		{
 			name: "未知のフィールド",
@@ -69,8 +70,8 @@ func TestReadPostInputFromFile(t *testing.T) {
 				},
 				"unknown_field": "value"
 			}`,
-			wantErr: true,
-			errMsg:  "failed to parse JSON",
+			wantErr:     true,
+			wantErrCode: ErrCodeJSONInvalid,
 		},
 		{
 			name: "複数のJSONオブジェクト",
@@ -88,8 +89,8 @@ func TestReadPostInputFromFile(t *testing.T) {
 					"background": "Content2"
 				}
 			}`,
-			wantErr: true,
-			errMsg:  "JSON file contains multiple values",
+			wantErr:     true,
+			wantErrCode: ErrCodeJSONInvalid,
 		},
 		{
 			name: "trailing data",
@@ -100,8 +101,8 @@ func TestReadPostInputFromFile(t *testing.T) {
 					"background": "Content"
 				}
 			} extra data`,
-			wantErr: true,
-			errMsg:  "JSON file contains multiple values",
+			wantErr:     true,
+			wantErrCode: ErrCodeJSONInvalid,
 		},
 	}
 
@@ -121,8 +122,13 @@ func TestReadPostInputFromFile(t *testing.T) {
 			}
 
 			if tt.wantErr {
-				if err != nil && tt.errMsg != "" && !strings.Contains(err.Error(), tt.errMsg) {
-					t.Errorf("ReadPostInputFromFile() error = %v, want error containing %q", err, tt.errMsg)
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
 				}
 				return
 			}
@@ -147,9 +153,15 @@ func TestReadPostInputFromFile_FileSize(t *testing.T) {
 	_, err := ReadPostInputFromFile(jsonPath)
 	if err == nil {
 		t.Error("Expected error for file size exceeding 10MB, got nil")
+		return
 	}
-	if err != nil && !strings.Contains(err.Error(), "file size exceeds 10MB") {
-		t.Errorf("Expected 'file size exceeds 10MB' error, got %v", err)
+	var ve *ValidationError
+	if !errors.As(err, &ve) {
+		t.Errorf("Expected ValidationError, got %T", err)
+		return
+	}
+	if ve.Code() != ErrCodeFileSizeExceeded {
+		t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), ErrCodeFileSizeExceeded)
 	}
 }
 
@@ -160,8 +172,14 @@ func TestReadPostInputFromFile_NonRegularFile(t *testing.T) {
 	_, err := ReadPostInputFromFile(tmpDir)
 	if err == nil {
 		t.Error("Expected error for non-regular file, got nil")
+		return
 	}
-	if err != nil && !strings.Contains(err.Error(), "not a regular file") {
-		t.Errorf("Expected 'not a regular file' error, got %v", err)
+	var ve *ValidationError
+	if !errors.As(err, &ve) {
+		t.Errorf("Expected ValidationError, got %T", err)
+		return
+	}
+	if ve.Code() != ErrCodeNotRegularFile {
+		t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), ErrCodeNotRegularFile)
 	}
 }

@@ -9,15 +9,17 @@ import (
 // パストラバーサル（..）、空セグメント、先頭/末尾スラッシュを拒否します。
 func NormalizeCategory(category string) (string, error) {
 	if category == "" {
-		return "", fmt.Errorf("category cannot be empty")
+		return "", NewValidationError(ErrCodeCategoryEmpty, "category cannot be empty")
 	}
 
 	// 先頭/末尾スラッシュチェック
 	if strings.HasPrefix(category, "/") {
-		return "", fmt.Errorf("category cannot start with /: %s", category)
+		return "", NewValidationError(ErrCodeCategoryInvalidPath, fmt.Sprintf("category cannot start with /: %s", category)).
+			WithField("category")
 	}
 	if strings.HasSuffix(category, "/") {
-		return "", fmt.Errorf("category cannot end with /: %s", category)
+		return "", NewValidationError(ErrCodeCategoryInvalidPath, fmt.Sprintf("category cannot end with /: %s", category)).
+			WithField("category")
 	}
 
 	// パスを/で分割
@@ -26,10 +28,12 @@ func NormalizeCategory(category string) (string, error) {
 	// 各セグメントを検証
 	for _, seg := range segments {
 		if seg == "" {
-			return "", fmt.Errorf("category contains empty segment: %s", category)
+			return "", NewValidationError(ErrCodeCategoryInvalidPath, fmt.Sprintf("category contains empty segment: %s", category)).
+				WithField("category")
 		}
 		if seg == "." || seg == ".." {
-			return "", fmt.Errorf("category contains . or ..: %s", category)
+			return "", NewValidationError(ErrCodeCategoryInvalidPath, fmt.Sprintf("category contains . or ..: %s", category)).
+				WithField("category")
 		}
 	}
 
@@ -51,7 +55,8 @@ func IsAllowedCategory(category string, allowedCategories []string) (bool, error
 		// 許可カテゴリも正規化（設定ファイルから読み込まれた値も検証）
 		normalizedAllowed, err := NormalizeCategory(allowed)
 		if err != nil {
-			return false, fmt.Errorf("invalid allowed category %s: %w", allowed, err)
+			return false, NewValidationError(ErrCodeCategoryInvalidPath, fmt.Sprintf("invalid allowed category %s: %v", allowed, err)).
+				Wrap(err)
 		}
 
 		// 完全一致
@@ -75,15 +80,18 @@ func ValidateUpdateRequest(existingCategory, newCategory string, allowedCategori
 	// 既存カテゴリが許可範囲内か確認
 	allowedExisting, err := IsAllowedCategory(existingCategory, allowedCategories)
 	if err != nil {
-		return fmt.Errorf("existing category validation failed: %w", err)
+		return NewValidationError(ErrCodeCategoryNotAllowed, fmt.Sprintf("existing category validation failed: %v", err)).
+			Wrap(err)
 	}
 	if !allowedExisting {
-		return fmt.Errorf("existing post category %s is not allowed", existingCategory)
+		return NewValidationError(ErrCodeCategoryNotAllowed, fmt.Sprintf("existing post category %s is not allowed", existingCategory)).
+			WithField("category")
 	}
 
 	// カテゴリホッピング防止（既存カテゴリ == 入力カテゴリ）
 	if existingCategory != newCategory {
-		return fmt.Errorf("category change is not allowed (existing: %s, new: %s)", existingCategory, newCategory)
+		return NewValidationError(ErrCodeCategoryChangeNotAllowed, fmt.Sprintf("category change is not allowed (existing: %s, new: %s)", existingCategory, newCategory)).
+			WithField("category")
 	}
 
 	return nil

@@ -38,7 +38,7 @@ func ReadPostInputFromFile(path string) (*PostInput, error) {
 
 	// 通常ファイルかチェック
 	if !fileInfo.Mode().IsRegular() {
-		return nil, fmt.Errorf("file is not a regular file: %s", realPath)
+		return nil, NewValidationError(ErrCodeNotRegularFile, fmt.Sprintf("file is not a regular file: %s", realPath))
 	}
 
 	// サイズ制限付きで読み込み（10MB+1バイト読んで超過を検出）
@@ -51,7 +51,7 @@ func ReadPostInputFromFile(path string) (*PostInput, error) {
 
 	// サイズ超過チェック
 	if len(data) > maxSize {
-		return nil, fmt.Errorf("file size exceeds 10MB")
+		return nil, NewValidationError(ErrCodeFileSizeExceeded, "file size exceeds 10MB")
 	}
 
 	// 読み込んだデータをデコード
@@ -60,18 +60,18 @@ func ReadPostInputFromFile(path string) (*PostInput, error) {
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&input); err != nil {
-		return nil, fmt.Errorf("failed to parse JSON: %w", err)
+		return nil, NewValidationError(ErrCodeJSONInvalid, fmt.Sprintf("failed to parse JSON: %v", err)).Wrap(err)
 	}
 
 	// JSON EOF確認（追加データがないことを確認）
 	if decoder.More() {
-		return nil, fmt.Errorf("JSON file contains multiple values")
+		return nil, NewValidationError(ErrCodeJSONInvalid, "JSON file contains multiple values")
 	}
 
 	// 2回目のDecodeでEOFを確認
 	var dummy interface{}
 	if err := decoder.Decode(&dummy); err != io.EOF {
-		return nil, fmt.Errorf("JSON file contains trailing data")
+		return nil, NewValidationError(ErrCodeJSONInvalid, "JSON file contains trailing data")
 	}
 
 	return &input, nil
