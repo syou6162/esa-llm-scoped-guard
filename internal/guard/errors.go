@@ -51,7 +51,7 @@ func (e *ValidationError) Index() int                { return e.index }
 func (e *ValidationError) Message() string           { return e.message }
 func (e *ValidationError) Unwrap() error             { return e.err }
 
-// Error は既存メッセージを返す（後方互換）
+// Error は error インターフェースを実装し、エラーメッセージを返す
 func (e *ValidationError) Error() string {
 	return e.message
 }
