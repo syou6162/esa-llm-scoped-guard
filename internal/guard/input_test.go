@@ -123,10 +123,12 @@ func TestReadPostInputFromFile(t *testing.T) {
 
 			if tt.wantErr {
 				var ve *ValidationError
-				if errors.As(err, &ve) {
-					if ve.Code() != tt.wantErrCode {
-						t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
-					}
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
 				}
 				return
 			}

@@ -206,7 +206,7 @@ func TestValidatePostInput(t *testing.T) {
 				},
 			},
 			wantErr:     true,
-			wantErrCode: ErrCodeFieldEmpty,
+			wantErrCode: ErrCodeCategoryEmpty,
 		},
 		{
 			name: "categoryが日付形式で終わらない",
@@ -391,10 +391,10 @@ func TestValidatePostInputSchema(t *testing.T) {
 // TestValidatePostInput_GitHubURLs はタスクのGitHub URLsのバリデーションをテストします
 func TestValidatePostInput_GitHubURLs(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   *PostInput
-		wantErr bool
-		errMsg  string
+		name        string
+		input       *PostInput
+		wantErr     bool
+		wantErrCode ValidationErrorCode
 	}{
 		{
 			name: "有効なGitHub URL（単一）",
@@ -506,8 +506,8 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "must be a valid GitHub URL",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
 			name: "HTTPスキーム（許可しない）",
@@ -529,8 +529,8 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "must be a valid GitHub URL",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
 			name: "サブドメイン（許可しない）",
@@ -552,8 +552,8 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "must be a valid GitHub URL",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
 			name: "backgroundに# h1見出し（許可しない）",
@@ -574,8 +574,8 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "background cannot contain heading markers",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
 			name: "backgroundに## h2見出し（許可しない）",
@@ -596,8 +596,8 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "background cannot contain heading markers",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
 			name: "descriptionに# h1見出し（許可しない）",
@@ -618,8 +618,8 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "description cannot contain heading markers",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
 			name: "descriptionに## h2見出し（許可しない）",
@@ -640,8 +640,8 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "description cannot contain heading markers",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
 			name: "descriptionに### h3見出し（許可しない）",
@@ -662,8 +662,8 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "description cannot contain heading markers",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
 			name: "backgroundに#### h4見出し（許可する）",
@@ -748,8 +748,8 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "status is 'not_started' but has GitHub URLs",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
 			name: "PRリンクあり + in_progress（OK）",
@@ -827,8 +827,15 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
-				t.Errorf("ValidatePostInput() error = %v, want error containing %q", err, tt.errMsg)
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
 			}
 		})
 	}
@@ -837,10 +844,10 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 // TestValidateSummary はSummaryフィールドのバリデーションをテストします
 func TestValidateSummary(t *testing.T) {
 	tests := []struct {
-		name    string
-		summary []string
-		wantErr bool
-		errMsg  string
+		name        string
+		summary     []string
+		wantErr     bool
+		wantErrCode ValidationErrorCode
 	}{
 		{
 			name:    "有効（1行）",
@@ -863,28 +870,28 @@ func TestValidateSummary(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name:    "エラー（0行）",
-			summary: []string{},
-			wantErr: true,
-			errMsg:  "summary must have 1-3 items, got 0",
+			name:        "エラー（0行）",
+			summary:     []string{},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
-			name:    "エラー（4行）",
-			summary: []string{"要約1", "要約2", "要約3", "要約4"},
-			wantErr: true,
-			errMsg:  "summary must have 1-3 items, got 4",
+			name:        "エラー（4行）",
+			summary:     []string{"要約1", "要約2", "要約3", "要約4"},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
-			name:    "エラー（141字）",
-			summary: []string{strings.Repeat("あ", 141)},
-			wantErr: true,
-			errMsg:  "summary line 1 exceeds 140 characters",
+			name:        "エラー（141字）",
+			summary:     []string{strings.Repeat("あ", 141)},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldTooLong,
 		},
 		{
-			name:    "エラー（2行目が141字）",
-			summary: []string{"正常な行", strings.Repeat("あ", 141)},
-			wantErr: true,
-			errMsg:  "summary line 2 exceeds 140 characters",
+			name:        "エラー（2行目が141字）",
+			summary:     []string{"正常な行", strings.Repeat("あ", 141)},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldTooLong,
 		},
 	}
 
@@ -895,8 +902,15 @@ func TestValidateSummary(t *testing.T) {
 				t.Errorf("ValidateSummary() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
-				t.Errorf("ValidateSummary() error = %v, want error containing %q", err, tt.errMsg)
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
 			}
 		})
 	}
@@ -905,10 +919,10 @@ func TestValidateSummary(t *testing.T) {
 // TestValidatePostInput_Summary はタスクのSummaryフィールドのバリデーションをテストします
 func TestValidatePostInput_Summary(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   *PostInput
-		wantErr bool
-		errMsg  string
+		name        string
+		input       *PostInput
+		wantErr     bool
+		wantErrCode ValidationErrorCode
 	}{
 		{
 			name: "有効なSummary（1行）",
@@ -971,8 +985,8 @@ func TestValidatePostInput_Summary(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "summary must have 1-3 items",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
 			name: "Summary4行（エラー）",
@@ -993,8 +1007,8 @@ func TestValidatePostInput_Summary(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "summary must have 1-3 items",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
 		},
 		{
 			name: "Summary141字（エラー）",
@@ -1015,8 +1029,8 @@ func TestValidatePostInput_Summary(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "summary line 1 exceeds 140 characters",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldTooLong,
 		},
 	}
 
@@ -1028,8 +1042,15 @@ func TestValidatePostInput_Summary(t *testing.T) {
 				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
-				t.Errorf("ValidatePostInput() error = %v, want error containing %q", err, tt.errMsg)
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
 			}
 		})
 	}
@@ -1037,10 +1058,10 @@ func TestValidatePostInput_Summary(t *testing.T) {
 
 func TestValidatePostInput_DependsOn(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   *PostInput
-		wantErr bool
-		errMsg  string
+		name        string
+		input       *PostInput
+		wantErr     bool
+		wantErrCode ValidationErrorCode
 	}{
 		{
 			name: "有効な依存関係（単一）",
@@ -1118,8 +1139,8 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "task[0].depends_on references non-existent task ID: task-999",
+			wantErr:     true,
+			wantErrCode: ErrCodeNonExistentRef,
 		},
 		{
 			name: "空文字のタスクID",
@@ -1134,8 +1155,8 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "task[0].depends_on[0]: empty task ID",
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldEmpty,
 		},
 		{
 			name: "自己参照",
@@ -1150,8 +1171,8 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "task[0].depends_on: self-reference is not allowed",
+			wantErr:     true,
+			wantErrCode: ErrCodeSelfReference,
 		},
 	}
 
@@ -1163,8 +1184,15 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
-				t.Errorf("ValidatePostInput() error = %v, want error containing %q", err, tt.errMsg)
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
 			}
 		})
 	}
@@ -1172,10 +1200,10 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 
 func TestValidatePostInput_CyclicDependency(t *testing.T) {
 	tests := []struct {
-		name    string
-		input   *PostInput
-		wantErr bool
-		errMsg  string
+		name        string
+		input       *PostInput
+		wantErr     bool
+		wantErrCode ValidationErrorCode
 	}{
 		// エラーになるべきケース
 		{
@@ -1192,8 +1220,8 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "circular dependency detected",
+			wantErr:     true,
+			wantErrCode: ErrCodeCircularDependency,
 		},
 		{
 			name: "3タスク循環（A → B → C → A）",
@@ -1210,8 +1238,8 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "circular dependency detected",
+			wantErr:     true,
+			wantErrCode: ErrCodeCircularDependency,
 		},
 		{
 			name: "長い循環（A → B → C → D → E → A）",
@@ -1230,8 +1258,8 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "circular dependency detected",
+			wantErr:     true,
+			wantErrCode: ErrCodeCircularDependency,
 		},
 		{
 			name: "部分的循環（A → B, B → C → B）",
@@ -1248,8 +1276,8 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "circular dependency detected",
+			wantErr:     true,
+			wantErrCode: ErrCodeCircularDependency,
 		},
 		{
 			name: "複数依存先の1つが循環（A → [B, C], B → C → B）",
@@ -1266,8 +1294,8 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "circular dependency detected",
+			wantErr:     true,
+			wantErrCode: ErrCodeCircularDependency,
 		},
 		{
 			name: "間接的な循環（A → B → C → D → B）",
@@ -1285,8 +1313,8 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 					},
 				},
 			},
-			wantErr: true,
-			errMsg:  "circular dependency detected",
+			wantErr:     true,
+			wantErrCode: ErrCodeCircularDependency,
 		},
 		// OKになるべきケース
 		{
@@ -1457,8 +1485,15 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if tt.wantErr && err != nil && !strings.Contains(err.Error(), tt.errMsg) {
-				t.Errorf("ValidatePostInput() error = %v, want error containing %q", err, tt.errMsg)
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
 			}
 		})
 	}

@@ -3,6 +3,7 @@ package guard
 import (
 	_ "embed"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
@@ -67,7 +68,7 @@ func ValidatePostInputSchema(input *PostInput) error {
 	}
 
 	if err := compiledSchema.Validate(v); err != nil {
-		return fmt.Errorf("schema validation failed: %w", err)
+		return NewValidationError(ErrCodeInvalidValue, fmt.Sprintf("schema validation failed: %v", err)).Wrap(err)
 	}
 
 	return nil
@@ -172,7 +173,7 @@ func ValidatePostInput(input *PostInput) error {
 
 	// categoryの検証
 	if input.Category == "" {
-		return NewValidationError(ErrCodeFieldEmpty, "category cannot be empty").WithField("category")
+		return NewValidationError(ErrCodeCategoryEmpty, "category cannot be empty").WithField("category")
 	}
 	if !hasValidDateSuffix(input.Category) {
 		return NewValidationError(ErrCodeCategoryInvalidDateSuffix, "category must end with /yyyy/mm/dd format").WithField("category")
@@ -220,6 +221,13 @@ func ValidatePostInput(input *PostInput) error {
 
 		// Summaryの検証
 		if err := ValidateSummary(task.Summary); err != nil {
+			var ve *ValidationError
+			if errors.As(err, &ve) {
+				// ValidationErrorの場合はコードを保持してインデックスを追加
+				return NewValidationError(ve.Code(), fmt.Sprintf("task[%d].summary: %v", i, err)).
+					WithField("task.summary").WithIndex(i).Wrap(err)
+			}
+			// それ以外のエラーはFieldInvalidFormatとして扱う
 			return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("task[%d].summary: %v", i, err)).
 				WithField("task.summary").WithIndex(i).Wrap(err)
 		}

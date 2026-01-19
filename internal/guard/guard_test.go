@@ -1,6 +1,7 @@
 package guard
 
 import (
+	"errors"
 	"testing"
 )
 
@@ -114,10 +115,11 @@ func TestIsAllowedCategory(t *testing.T) {
 
 func TestNormalizeCategory(t *testing.T) {
 	tests := []struct {
-		name     string
-		category string
-		want     string
-		wantErr  bool
+		name        string
+		category    string
+		want        string
+		wantErr     bool
+		wantErrCode ValidationErrorCode
 	}{
 		{
 			name:     "通常のカテゴリ",
@@ -130,34 +132,40 @@ func TestNormalizeCategory(t *testing.T) {
 			want:     "ABC/def-123_456",
 		},
 		{
-			name:     "空文字列",
-			category: "",
-			wantErr:  true,
+			name:        "空文字列",
+			category:    "",
+			wantErr:     true,
+			wantErrCode: ErrCodeCategoryEmpty,
 		},
 		{
-			name:     "..を含む",
-			category: "LLM/../Tasks",
-			wantErr:  true,
+			name:        "..を含む",
+			category:    "LLM/../Tasks",
+			wantErr:     true,
+			wantErrCode: ErrCodeCategoryInvalidPath,
 		},
 		{
-			name:     ".を含む",
-			category: "LLM/./Tasks",
-			wantErr:  true,
+			name:        ".を含む",
+			category:    "LLM/./Tasks",
+			wantErr:     true,
+			wantErrCode: ErrCodeCategoryInvalidPath,
 		},
 		{
-			name:     "末尾スラッシュ",
-			category: "LLM/Tasks/",
-			wantErr:  true,
+			name:        "末尾スラッシュ",
+			category:    "LLM/Tasks/",
+			wantErr:     true,
+			wantErrCode: ErrCodeCategoryInvalidPath,
 		},
 		{
-			name:     "先頭スラッシュ",
-			category: "/LLM/Tasks",
-			wantErr:  true,
+			name:        "先頭スラッシュ",
+			category:    "/LLM/Tasks",
+			wantErr:     true,
+			wantErrCode: ErrCodeCategoryInvalidPath,
 		},
 		{
-			name:     "連続スラッシュ",
-			category: "LLM//Tasks",
-			wantErr:  true,
+			name:        "連続スラッシュ",
+			category:    "LLM//Tasks",
+			wantErr:     true,
+			wantErrCode: ErrCodeCategoryInvalidPath,
 		},
 		{
 			name:     "日本語カテゴリ",
@@ -178,6 +186,16 @@ func TestNormalizeCategory(t *testing.T) {
 				t.Errorf("NormalizeCategory() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
+			}
 			if !tt.wantErr && got != tt.want {
 				t.Errorf("NormalizeCategory() = %v, want %v", got, tt.want)
 			}
@@ -192,6 +210,7 @@ func TestValidateUpdateRequest(t *testing.T) {
 		newCategory       string
 		allowedCategories []string
 		wantErr           bool
+		wantErrCode       ValidationErrorCode
 	}{
 		{
 			name:              "通常の更新（カテゴリ一致）",
@@ -206,6 +225,7 @@ func TestValidateUpdateRequest(t *testing.T) {
 			newCategory:       "Unauthorized/Category",
 			allowedCategories: []string{"LLM/Tasks"},
 			wantErr:           true,
+			wantErrCode:       ErrCodeCategoryNotAllowed,
 		},
 		{
 			name:              "カテゴリ変更を試みる",
@@ -213,6 +233,7 @@ func TestValidateUpdateRequest(t *testing.T) {
 			newCategory:       "LLM/Tasks/New",
 			allowedCategories: []string{"LLM/Tasks"},
 			wantErr:           true,
+			wantErrCode:       ErrCodeCategoryChangeNotAllowed,
 		},
 		{
 			name:              "サブカテゴリの更新（カテゴリ一致）",
@@ -228,6 +249,17 @@ func TestValidateUpdateRequest(t *testing.T) {
 			err := ValidateUpdateRequest(tt.existingCategory, tt.newCategory, tt.allowedCategories)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidateUpdateRequest() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
 			}
 		})
 	}
