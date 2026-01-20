@@ -25,6 +25,7 @@ type Task struct {
 type Body struct {
 	Background   string   `json:"background"`
 	RelatedLinks []string `json:"related_links,omitempty"`
+	Instructions []string `json:"instructions,omitempty"`
 	Tasks        []Task   `json:"tasks"`
 }
 
