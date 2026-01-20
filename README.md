@@ -53,6 +53,10 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
   "body": {
     "background": "このタスクではデータ分析機能を実装します。",
     "related_links": ["https://github.com/owner/repo/issues/123"],
+    "instructions": [
+      "t_wada式のTDDの形式で開発を進める",
+      "各フェーズ完了時に小まめにコミットする"
+    ],
     "tasks": [
       {
         "id": "task-1",
@@ -120,6 +124,12 @@ graph TD
 
 このタスクではデータ分析機能を実装します。
 
+
+## 開発指針
+- t_wada式のTDDの形式で開発を進める
+- 各フェーズ完了時に小まめにコミットする
+
+
 ## タスク
 
 ### 要件定義
@@ -176,9 +186,10 @@ graph TD
 | `post_number` | No | esa記事番号（**既存記事の更新時に指定。create_newと同時指定不可**） | 1以上の整数 |
 | `name` | Yes | 記事タイトル | 最大255バイト、制御文字・`/`・全角括弧`（）`・全角コロン`：`不可 |
 | `category` | Yes | カテゴリパス | 許可カテゴリ配下で、必ず`/yyyy/mm/dd`形式の日付で終わること（例: `LLM/Tasks/2025/01/18`） |
-| `body` | Yes | 本文（構造化形式） | backgroundフィールド必須、tasksフィールド必須、related_links配列は任意（URI形式） |
+| `body` | Yes | 本文（構造化形式） | backgroundフィールド必須、tasksフィールド必須、related_links配列とinstructions配列は任意 |
 | `body.background` | Yes | 背景説明（プレーンテキスト） | 「## 背景」ヘッダーは含めない（自動追加される）。行頭に`#`または`##`を含めることはできない（`####`以下は可） |
 | `body.related_links` | No | 関連リンク配列 | URI形式の文字列配列 |
+| `body.instructions` | No | 開発指針配列 | 最大10項目、各項目500文字以内。「## 開発指針」セクションとして箇条書きで出力される。行頭に`#`、`##`や`-`、`*`、`+`、`1.`などのリストマーカー禁止（自動追加される） |
 | `body.tasks` | Yes | タスク配列 | Task配列（最低1つ必要） |
 
 **Taskフィールド仕様**:
