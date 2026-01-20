@@ -1498,3 +1498,444 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 		})
 	}
 }
+
+// TestValidateInstructions はInstructionsフィールドのバリデーションをテストします
+func TestValidateInstructions(t *testing.T) {
+	tests := []struct {
+		name         string
+		instructions []string
+		wantErr      bool
+		wantErrCode  ValidationErrorCode
+	}{
+		{
+			name:         "有効（0項目）",
+			instructions: []string{},
+			wantErr:      false,
+		},
+		{
+			name:         "有効（1項目）",
+			instructions: []string{"t_wada式のTDDで開発する"},
+			wantErr:      false,
+		},
+		{
+			name: "有効（10項目）",
+			instructions: []string{
+				"指示1", "指示2", "指示3", "指示4", "指示5",
+				"指示6", "指示7", "指示8", "指示9", "指示10",
+			},
+			wantErr: false,
+		},
+		{
+			name: "エラー（11項目）",
+			instructions: []string{
+				"指示1", "指示2", "指示3", "指示4", "指示5",
+				"指示6", "指示7", "指示8", "指示9", "指示10", "指示11",
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
+		},
+		{
+			name:         "有効（500文字ちょうど）",
+			instructions: []string{strings.Repeat("あ", 500)},
+			wantErr:      false,
+		},
+		{
+			name:         "エラー（501文字）",
+			instructions: []string{strings.Repeat("あ", 501)},
+			wantErr:      true,
+			wantErrCode:  ErrCodeFieldTooLong,
+		},
+		{
+			name:         "エラー（# h1見出し）",
+			instructions: []string{"# This is h1"},
+			wantErr:      true,
+			wantErrCode:  ErrCodeFieldInvalidFormat,
+		},
+		{
+			name:         "エラー（## h2見出し）",
+			instructions: []string{"## This is h2"},
+			wantErr:      true,
+			wantErrCode:  ErrCodeFieldInvalidFormat,
+		},
+		{
+			name:         "有効（### h3見出し以下は許可）",
+			instructions: []string{"### This is h3"},
+			wantErr:      false,
+		},
+		{
+			name:         "有効（#### h4見出し）",
+			instructions: []string{"#### This is h4"},
+			wantErr:      false,
+		},
+		{
+			name:         "エラー（先頭に - ）",
+			instructions: []string{"- リスト項目"},
+			wantErr:      true,
+			wantErrCode:  ErrCodeFieldInvalidFormat,
+		},
+		{
+			name:         "エラー（先頭に * ）",
+			instructions: []string{"* リスト項目"},
+			wantErr:      true,
+			wantErrCode:  ErrCodeFieldInvalidFormat,
+		},
+		{
+			name:         "エラー（先頭に + ）",
+			instructions: []string{"+ リスト項目"},
+			wantErr:      true,
+			wantErrCode:  ErrCodeFieldInvalidFormat,
+		},
+		{
+			name:         "エラー（先頭に 1. ）",
+			instructions: []string{"1. リスト項目"},
+			wantErr:      true,
+			wantErrCode:  ErrCodeFieldInvalidFormat,
+		},
+		{
+			name:         "エラー（先頭に 2. ）",
+			instructions: []string{"2. リスト項目"},
+			wantErr:      true,
+			wantErrCode:  ErrCodeFieldInvalidFormat,
+		},
+		{
+			name:         "有効（途中に - があるのはOK）",
+			instructions: []string{"これは - を含む文章"},
+			wantErr:      false,
+		},
+		{
+			name:         "エラー（空白+リストマーカー）",
+			instructions: []string{"  - リスト項目"},
+			wantErr:      true,
+			wantErrCode:  ErrCodeFieldInvalidFormat,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateInstructions(tt.instructions)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidateInstructions() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
+			}
+		})
+	}
+}
+
+// TestValidatePostInput_Instructions はInstructionsフィールドのバリデーションを統合的にテストします
+func TestValidatePostInput_Instructions(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       *PostInput
+		wantErr     bool
+		wantErrCode ValidationErrorCode
+	}{
+		{
+			name: "有効（instructionsなし - omitempty）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "有効（instructions空配列）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background:   "Background",
+					Instructions: []string{},
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "有効（instructions 1項目）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background:   "Background",
+					Instructions: []string{"t_wada式のTDDで開発する"},
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "有効（instructions 10項目）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Instructions: []string{
+						"指示1", "指示2", "指示3", "指示4", "指示5",
+						"指示6", "指示7", "指示8", "指示9", "指示10",
+					},
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "エラー（instructions 11項目）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Background",
+					Instructions: []string{
+						"指示1", "指示2", "指示3", "指示4", "指示5",
+						"指示6", "指示7", "指示8", "指示9", "指示10", "指示11",
+					},
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
+		},
+		{
+			name: "エラー（501文字）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background:   "Background",
+					Instructions: []string{strings.Repeat("あ", 501)},
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldTooLong,
+		},
+		{
+			name: "エラー（見出しマーカー #）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background:   "Background",
+					Instructions: []string{"# This is h1"},
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
+		},
+		{
+			name: "エラー（見出しマーカー ##）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background:   "Background",
+					Instructions: []string{"## This is h2"},
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
+		},
+		{
+			name: "エラー（リストマーカー - ）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background:   "Background",
+					Instructions: []string{"- リスト項目"},
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
+		},
+		{
+			name: "エラー（リストマーカー * ）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background:   "Background",
+					Instructions: []string{"* リスト項目"},
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
+		},
+		{
+			name: "エラー（リストマーカー + ）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background:   "Background",
+					Instructions: []string{"+ リスト項目"},
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
+		},
+		{
+			name: "エラー（番号付きリストマーカー 1. ）",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background:   "Background",
+					Instructions: []string{"1. リスト項目"},
+					Tasks: []Task{
+						{
+							ID:          "task-1",
+							Title:       "Task 1",
+							Status:      TaskStatusNotStarted,
+							Summary:     []string{"要約"},
+							Description: "Description",
+						},
+					},
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeFieldInvalidFormat,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			TrimPostInput(tt.input)
+			err := ValidatePostInput(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
+			}
+		})
+	}
+}
