@@ -124,6 +124,11 @@ func TrimPostInput(input *PostInput) {
 	input.Category = strings.TrimSpace(input.Category)
 	input.Body.Background = strings.TrimSpace(input.Body.Background)
 
+	// Instructionsの各要素をトリミング
+	for i := range input.Body.Instructions {
+		input.Body.Instructions[i] = strings.TrimSpace(input.Body.Instructions[i])
+	}
+
 	// Tasksの各フィールドをトリミング
 	for i := range input.Body.Tasks {
 		input.Body.Tasks[i].ID = strings.TrimSpace(input.Body.Tasks[i].ID)
@@ -186,6 +191,19 @@ func ValidatePostInput(input *PostInput) error {
 	// backgroundには## 背景より上位の見出し（#, ##）を含めることができない
 	if containsHeadingMarkers(input.Body.Background, 2) {
 		return NewValidationError(ErrCodeFieldInvalidFormat, "background cannot contain heading markers (# or ##)").WithField("background")
+	}
+
+	// instructionsの検証
+	if err := ValidateInstructions(input.Body.Instructions); err != nil {
+		var ve *ValidationError
+		if errors.As(err, &ve) {
+			// ValidationErrorの場合はコードを保持
+			return NewValidationError(ve.Code(), fmt.Sprintf("instructions: %v", err)).
+				WithField("instructions").Wrap(err)
+		}
+		// それ以外のエラーはFieldInvalidFormatとして扱う
+		return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("instructions: %v", err)).
+			WithField("instructions").Wrap(err)
 	}
 
 	// tasksの検証
@@ -292,6 +310,8 @@ func containsControlCharacters(s string) bool {
 
 var dateSuffixRegex = regexp.MustCompile(`/(\d{4})/(\d{2})/(\d{2})$`)
 
+var numberedListMarkerRegex = regexp.MustCompile(`^\d+\.\s`)
+
 // hasValidDateSuffix はcategoryが/yyyy/mm/dd形式で終わっているかチェックします
 func hasValidDateSuffix(category string) bool {
 	matches := dateSuffixRegex.FindStringSubmatch(category)
@@ -349,6 +369,36 @@ func ValidateSummary(summary []string) error {
 	for i, line := range summary {
 		if len([]rune(line)) > 140 {
 			return NewValidationError(ErrCodeFieldTooLong, fmt.Sprintf("summary line %d exceeds 140 characters", i+1))
+		}
+	}
+	return nil
+}
+
+// ValidateInstructions はInstructionsフィールドを検証します
+// - 最大10項目（0項目もOK）
+// - 各項目500文字以内
+// - 見出しマーカー（#, ##）禁止
+// - リストマーカー（-, *, +, 数字+.）で始まる項目を禁止
+func ValidateInstructions(instructions []string) error {
+	if len(instructions) > 10 {
+		return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("instructions must have at most 10 items, got %d", len(instructions)))
+	}
+	for i, item := range instructions {
+		if len([]rune(item)) > 500 {
+			return NewValidationError(ErrCodeFieldTooLong, fmt.Sprintf("instructions item %d exceeds 500 characters", i+1))
+		}
+		// 見出しマーカーチェック
+		if containsHeadingMarkers(item, 2) {
+			return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("instructions item %d cannot contain heading markers (# or ##)", i+1))
+		}
+		// リストマーカーチェック（行頭の -, *, +, 数字+. を禁止）
+		trimmed := strings.TrimSpace(item)
+		if strings.HasPrefix(trimmed, "- ") || strings.HasPrefix(trimmed, "* ") || strings.HasPrefix(trimmed, "+ ") {
+			return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("instructions item %d cannot start with list markers (-, *, +)", i+1))
+		}
+		// 数字 + . のパターンチェック（例: "1. ", "2. "）
+		if numberedListMarkerRegex.MatchString(trimmed) {
+			return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("instructions item %d cannot start with numbered list markers (e.g., '1. ')", i+1))
 		}
 	}
 	return nil
