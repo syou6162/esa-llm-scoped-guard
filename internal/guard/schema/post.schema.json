@@ -38,6 +38,15 @@
           },
           "description": "Related links (optional)"
         },
+        "instructions": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "maxItems": 10,
+          "description": "Development instructions and guidelines to follow throughout the task (optional). Examples: 'Use t_wada-style TDD', 'Commit frequently'. Do not start items with list markers (-, *, +, or numbers with .) as they will be added automatically in markdown output."
+        },
         "tasks": {
           "type": "array",
           "items": {

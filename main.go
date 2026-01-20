@@ -29,6 +29,7 @@ JSON Schema:
     "body": {                      // Required: structured format
       "background": "Task background (plain text, no '## 背景' header, no # or ## at line start)",
       "related_links": ["https://example.com"], // Optional: related URLs
+      "instructions": ["Use t_wada-style TDD", "Commit frequently"], // Optional: development instructions (max 10 items, each max 500 chars, no # or ## or list markers at line start)
       "tasks": [                   // Required: task array
         {
           "id": "task-1",          // Required: unique identifier
@@ -80,6 +81,25 @@ Markdown Output Example:
     <details><summary>詳細を開く</summary>
 
     Implement the feature according to requirements
+
+    </details>
+
+  Full example with instructions (generated markdown):
+    ## 開発指針
+    - Use t_wada-style TDD
+    - Commit frequently
+
+    ## タスク
+
+    ### Task title
+    - Status: ` + "`not_started`" + `
+
+    - 要約:
+      - Task summary
+
+    <details><summary>詳細を開く</summary>
+
+    Task description
 
     </details>
 
