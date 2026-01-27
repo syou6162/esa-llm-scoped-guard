@@ -33,7 +33,7 @@ JSON Schema:
       "tasks": [                   // Required: task array
         {
           "id": "task-1",          // Required: unique identifier
-          "title": "Task title",   // Required (auto-generated: "### {title}")
+          "title": "Task 1: Task title",   // Required: format "Task N: name" where N is sequential integer from 1 (auto-generated: "### {title}")
           "status": "not_started", // Required: not_started/in_progress/in_review/completed (auto-generated: "Status: {status}")
           "summary": ["Task summary line 1", "Task summary line 2"], // Required: 1-3 items, each max 140 chars
           "description": "Task description", // Required (wrapped in <details>, no #/##/### at line start)
@@ -48,7 +48,7 @@ Markdown Output Example:
   Input JSON with github_urls and summary:
     {
       "id": "task-1",
-      "title": "Fix bug",
+      "title": "Task 1: Fix bug",
       "status": "in_progress",
       "summary": ["Fix authentication issue"],
       "description": "Fix the authentication bug",
@@ -56,7 +56,7 @@ Markdown Output Example:
     }
 
   Output:
-    ### Fix bug
+    ### Task 1: Fix bug
     - Status: ` + "`in_progress`" + `
     - Pull Request: https://github.com/owner/repo/pull/123
 

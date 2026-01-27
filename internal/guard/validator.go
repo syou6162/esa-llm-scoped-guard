@@ -272,6 +272,11 @@ func ValidatePostInput(input *PostInput) error {
 		taskIDs[task.ID] = true
 	}
 
+	// タスク番号の形式と連続性を検証
+	if err := ValidateTaskNumberSequence(input.Body.Tasks); err != nil {
+		return err
+	}
+
 	// 依存関係の検証
 	for i, task := range input.Body.Tasks {
 		for j, depID := range task.DependsOn {
