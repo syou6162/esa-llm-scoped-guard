@@ -312,6 +312,12 @@ var dateSuffixRegex = regexp.MustCompile(`/(\d{4})/(\d{2})/(\d{2})$`)
 
 var numberedListMarkerRegex = regexp.MustCompile(`^\d+\.\s`)
 
+// taskTitlePrefixRegex はタスクタイトルのプレフィックス形式を検証します
+// 形式: "Task N: タスク名" (Nは数字、タスク名に改行を含まない)
+// 先頭ゼロや0は後続の diagnoseTaskTitleError や ValidateTaskNumberSequence で検証
+// [^\n]+ で改行を禁止
+var taskTitlePrefixRegex = regexp.MustCompile(`^Task (\d+): ([^\n]+)$`)
+
 // hasValidDateSuffix はcategoryが/yyyy/mm/dd形式で終わっているかチェックします
 func hasValidDateSuffix(category string) bool {
 	matches := dateSuffixRegex.FindStringSubmatch(category)
@@ -401,5 +407,215 @@ func ValidateInstructions(instructions []string) error {
 			return NewValidationError(ErrCodeFieldInvalidFormat, fmt.Sprintf("instructions item %d cannot start with numbered list markers (e.g., '1. ')", i+1))
 		}
 	}
+	return nil
+}
+
+// ValidateTaskTitleFormat は単一タスクのタイトル形式を検証します
+// 形式: "Task N: タスク名"（Nは1から始まる正の整数、先頭ゼロ禁止）
+// 戻り値: タスク番号, タスク名, エラー
+func ValidateTaskTitleFormat(title string, index int) (int, string, error) {
+	matches := taskTitlePrefixRegex.FindStringSubmatch(title)
+	if matches == nil {
+		// 形式が不正な場合、具体的な問題を診断
+		return 0, "", diagnoseTaskTitleError(title, index)
+	}
+
+	numberStr := matches[1]
+
+	// 先頭ゼロチェック（01, 001, 010 などを弾く）
+	if len(numberStr) > 1 && numberStr[0] == '0' {
+		return 0, "", NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: task number cannot have leading zero (got: '%s')", index, numberStr)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	taskNumber, err := strconv.Atoi(numberStr)
+	if err != nil {
+		// 数値変換エラー（整数が大きすぎる場合など）
+		return 0, "", NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: task number '%s' is too large", index, numberStr)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	// 番号0チェック（タスク番号は1から始まる）
+	if taskNumber == 0 {
+		return 0, "", NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: task number must start from 1, not 0", index)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	taskName := matches[2]
+	if strings.TrimSpace(taskName) == "" {
+		return 0, "", NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: task name cannot be empty (format: 'Task N: タスク名')", index)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	return taskNumber, taskName, nil
+}
+
+// diagnoseTaskTitleError はタイトル形式のエラーを診断し、具体的な修正案を提示します
+func diagnoseTaskTitleError(title string, index int) error {
+	// ケース1: プレフィックスがない
+	if !strings.HasPrefix(title, "Task ") && !strings.HasPrefix(strings.ToLower(title), "task ") {
+		suggestion := fmt.Sprintf("Task %d: %s", index+1, title)
+		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: must start with 'Task N: ' prefix (got: '%s', suggestion: '%s')",
+				index, title, suggestion)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	// ケース2: 大文字小文字が不正 (TASK, task など)
+	if strings.HasPrefix(strings.ToUpper(title), "TASK ") && !strings.HasPrefix(title, "Task ") {
+		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: 'Task' must be capitalized exactly as 'Task' (got: '%s')",
+				index, title)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	// ケース3: "Task" の後にスペースがない
+	if strings.HasPrefix(title, "Task") && !strings.HasPrefix(title, "Task ") {
+		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: must have a space after 'Task' (got: '%s')",
+				index, title)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	// ケース4: 番号部分の問題を診断
+	afterPrefix := strings.TrimPrefix(title, "Task ")
+	colonIndex := strings.Index(afterPrefix, ":")
+
+	if colonIndex == -1 {
+		// コロンがない
+		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: missing ':' after task number (format: 'Task N: タスク名', got: '%s')",
+				index, title)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	numberPart := strings.TrimSpace(afterPrefix[:colonIndex])
+
+	// 番号が空
+	if numberPart == "" {
+		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: task number is missing (format: 'Task N: タスク名', got: '%s')",
+				index, title)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	// 小数点を含む (e.g., "2.1")
+	if strings.Contains(numberPart, ".") {
+		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: task number must be integer, not decimal (got: '%s')",
+				index, numberPart)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	// ハイフンを含む (e.g., "6-7")
+	if strings.Contains(numberPart, "-") {
+		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: task number must be single integer, not range (got: '%s')",
+				index, numberPart)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	// アルファベットを含む (e.g., "2A", "A2")
+	for _, r := range numberPart {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') {
+			return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+				fmt.Sprintf("task[%d].title: task number must be integer only, no letters (got: '%s')",
+					index, numberPart)).
+				WithField("task.title").WithIndex(index)
+		}
+	}
+
+	// 先頭ゼロ (e.g., "01", "001")
+	// 番号0は連続性チェックで弾くため、先頭ゼロは1文字目が0で2文字以上の場合のみ
+	if len(numberPart) > 1 && numberPart[0] == '0' {
+		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: task number cannot have leading zero (got: '%s')",
+				index, numberPart)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	// 番号の後にスペースがない
+	if colonIndex+1 < len(afterPrefix) && afterPrefix[colonIndex+1] != ' ' {
+		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: must have a space after ':' (got: '%s')",
+				index, title)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	// タスク名に改行が含まれる
+	if strings.Contains(title, "\n") {
+		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: task name cannot contain newline characters",
+				index)).
+			WithField("task.title").WithIndex(index)
+	}
+
+	// その他の形式エラー
+	return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+		fmt.Sprintf("task[%d].title: invalid format (got: '%s', expected: 'Task N: タスク名')",
+			index, title)).
+		WithField("task.title").WithIndex(index)
+}
+
+// ValidateTaskNumberSequence はタスク番号が1から連続しているかを検証します
+func ValidateTaskNumberSequence(tasks []Task) error {
+	if len(tasks) == 0 {
+		return nil
+	}
+
+	// 各タスクの番号を収集
+	taskNumbers := make(map[int]int) // taskNumber -> taskIndex
+
+	for i, task := range tasks {
+		taskNum, _, err := ValidateTaskTitleFormat(task.Title, i)
+		if err != nil {
+			return err // 形式エラーは先に返す
+		}
+
+		// 重複チェック
+		if existingIndex, exists := taskNumbers[taskNum]; exists {
+			return NewValidationError(ErrCodeTaskNumberDuplicate,
+				fmt.Sprintf("duplicate task number %d found at task[%d] and task[%d]",
+					taskNum, existingIndex, i)).
+				WithField("task.title")
+		}
+		taskNumbers[taskNum] = i
+	}
+
+	// 1から連続しているかチェック
+	var missingNumbers []int
+	var outOfRangeNumbers []int
+
+	for i := 1; i <= len(tasks); i++ {
+		if _, exists := taskNumbers[i]; !exists {
+			missingNumbers = append(missingNumbers, i)
+		}
+	}
+
+	for num := range taskNumbers {
+		if num < 1 || num > len(tasks) {
+			outOfRangeNumbers = append(outOfRangeNumbers, num)
+		}
+	}
+
+	if len(missingNumbers) > 0 || len(outOfRangeNumbers) > 0 {
+		var msg strings.Builder
+		msg.WriteString("task numbers must be sequential from 1")
+
+		if len(missingNumbers) > 0 {
+			msg.WriteString(fmt.Sprintf("; missing: %v", missingNumbers))
+		}
+		if len(outOfRangeNumbers) > 0 {
+			msg.WriteString(fmt.Sprintf("; out of range (expected 1-%d): %v", len(tasks), outOfRangeNumbers))
+		}
+
+		return NewValidationError(ErrCodeTaskNumberNotSequential, msg.String()).
+			WithField("task.title")
+	}
+
 	return nil
 }
