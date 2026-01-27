@@ -319,9 +319,9 @@ var numberedListMarkerRegex = regexp.MustCompile(`^\d+\.\s`)
 
 // taskTitlePrefixRegex はタスクタイトルのプレフィックス形式を検証します
 // 形式: "Task N: タスク名" (Nは数字、タスク名に改行を含まない)
-// 先頭ゼロや0は後続の diagnoseTaskTitleError や ValidateTaskNumberSequence で検証
-// [^\n]+ で改行を禁止
-var taskTitlePrefixRegex = regexp.MustCompile(`^Task (\d+): ([^\n]+)$`)
+// 先頭ゼロや0は ValidateTaskTitleFormat 内で検証
+// [^\r\n]+ で改行（CR/LF）を禁止
+var taskTitlePrefixRegex = regexp.MustCompile(`^Task (\d+): ([^\r\n]+)$`)
 
 // hasValidDateSuffix はcategoryが/yyyy/mm/dd形式で終わっているかチェックします
 func hasValidDateSuffix(category string) bool {
@@ -552,7 +552,7 @@ func diagnoseTaskTitleError(title string, index int) error {
 	}
 
 	// タスク名に改行が含まれる
-	if strings.Contains(title, "\n") {
+	if strings.ContainsAny(title, "\r\n") {
 		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
 			fmt.Sprintf("task[%d].title: task name cannot contain newline characters",
 				index)).

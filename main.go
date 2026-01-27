@@ -70,7 +70,7 @@ Markdown Output Example:
     </details>
 
   Output (with depends_on):
-    ### Implement feature
+    ### Task 1: Implement feature
     - Status: ` + "`in_progress`" + `
     - Depends on:
       - ` + "`Define requirements`" + `
@@ -91,7 +91,7 @@ Markdown Output Example:
 
     ## タスク
 
-    ### Task title
+    ### Task 1: Task title
     - Status: ` + "`not_started`" + `
 
     - 要約:
