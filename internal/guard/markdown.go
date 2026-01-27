@@ -14,6 +14,10 @@ func GenerateMarkdown(body *Body) string {
 
 	sb.WriteString(generateBackgroundSection(body.Background, body.RelatedLinks))
 
+	if instructions := generateInstructionsSection(body.Instructions); instructions != "" {
+		sb.WriteString(instructions)
+	}
+
 	if tasks := generateTasksSection(body.Tasks); tasks != "" {
 		sb.WriteString(tasks)
 	}
@@ -67,6 +71,22 @@ func generateBackgroundSection(background string, relatedLinks []string) string 
 	}
 
 	sb.WriteString(background)
+	return sb.String()
+}
+
+// generateInstructionsSection は開発指針セクションを生成します
+func generateInstructionsSection(instructions []string) string {
+	if len(instructions) == 0 {
+		return ""
+	}
+
+	var sb strings.Builder
+	sb.WriteString("\n\n## 開発指針\n")
+	for _, instruction := range instructions {
+		sb.WriteString("- ")
+		sb.WriteString(instruction)
+		sb.WriteString("\n")
+	}
 	return sb.String()
 }
 

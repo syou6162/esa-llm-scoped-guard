@@ -100,6 +100,43 @@ func TestGenerateBackgroundSection(t *testing.T) {
 	}
 }
 
+func TestGenerateInstructionsSection(t *testing.T) {
+	tests := []struct {
+		name         string
+		instructions []string
+		want         string
+	}{
+		{
+			name:         "指示なし",
+			instructions: []string{},
+			want:         "",
+		},
+		{
+			name:         "指示1つ",
+			instructions: []string{"t_wada式のTDDで開発する"},
+			want:         "\n\n## 開発指針\n- t_wada式のTDDで開発する\n",
+		},
+		{
+			name: "指示複数",
+			instructions: []string{
+				"t_wada式のTDDで開発する",
+				"各フェーズ完了時に小まめにコミットする",
+				"テストを書く前にTODOリストを作成する",
+			},
+			want: "\n\n## 開発指針\n- t_wada式のTDDで開発する\n- 各フェーズ完了時に小まめにコミットする\n- テストを書く前にTODOリストを作成する\n",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := generateInstructionsSection(tt.instructions)
+			if got != tt.want {
+				t.Errorf("generateInstructionsSection() = %q, want %q", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestGenerateTaskMarkdown(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -368,6 +405,23 @@ func TestGenerateMarkdown(t *testing.T) {
 				},
 			},
 			want: "## サマリー\n- [ ] タスク1\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"タスク1\"]:::in_review\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n## 背景\n関連リンク:\n- https://example.com/doc\n\n背景説明\n\n## タスク\n\n### タスク1\n- Status: `in_review`\n- Pull Request: https://github.com/owner/repo/pull/123\n\n- 要約:\n  - レビュー中の要約\n\n<details><summary>詳細を開く</summary>\n\nレビュー中のタスク\n\n</details>\n",
+		},
+		{
+			name: "instructionsを含む",
+			body: &Body{
+				Background:   "背景説明",
+				Instructions: []string{"t_wada式のTDDで開発する", "小まめにコミットする"},
+				Tasks: []Task{
+					{
+						ID:          "task-1",
+						Title:       "タスク1",
+						Status:      TaskStatusNotStarted,
+						Summary:     []string{"要約1"},
+						Description: "説明1",
+					},
+				},
+			},
+			want: "## サマリー\n- [ ] タスク1\n\n### 依存関係グラフ\n\n```mermaid\ngraph TD\n    task-1[\"タスク1\"]:::not_started\n    done([タスク完了]):::goal\n\n    task-1 --> done\n\n    classDef completed fill:#90EE90\n    classDef in_progress fill:#FFD700\n    classDef in_review fill:#FFA500\n    classDef not_started fill:#D3D3D3\n    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px\n```\n## 背景\n\n背景説明\n\n## 開発指針\n- t_wada式のTDDで開発する\n- 小まめにコミットする\n\n\n## タスク\n\n### タスク1\n- Status: `not_started`\n\n- 要約:\n  - 要約1\n\n<details><summary>詳細を開く</summary>\n\n説明1\n\n</details>\n",
 		},
 	}
 
