@@ -1343,9 +1343,9 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
-						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
 						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
 					},
 				},
 			},
@@ -2044,13 +2044,14 @@ func TestValidateTaskNumberSequence(t *testing.T) {
 			wantErr: false,
 		},
 		{
-			name: "順番が入れ替わっていてもOK（3,1,2）",
+			name: "順番が不正（3,1,2）",
 			tasks: []Task{
 				{ID: "task-3", Title: "Task 3: 3番目", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 				{ID: "task-1", Title: "Task 1: 1番目", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 				{ID: "task-2", Title: "Task 2: 2番目", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 			},
-			wantErr: false,
+			wantErr:     true,
+			wantErrCode: ErrCodeTaskNumberNotSequential,
 		},
 
 		// 異常系: タイトル形式エラー（ValidateTaskTitleFormatで検出されるべきエラー）

@@ -566,13 +566,14 @@ func diagnoseTaskTitleError(title string, index int) error {
 		WithField("task.title").WithIndex(index)
 }
 
-// ValidateTaskNumberSequence はタスク番号が1から連続しているかを検証します
+// ValidateTaskNumberSequence はタスク番号が1から厳密に連続しているかを検証します
+// タスクは配列の順番通りに1, 2, 3, 4... と並んでいる必要があります
 func ValidateTaskNumberSequence(tasks []Task) error {
 	if len(tasks) == 0 {
 		return nil
 	}
 
-	// 各タスクの番号を収集
+	// まず各タスクの番号を取得し、重複チェック
 	taskNumbers := make(map[int]int) // taskNumber -> taskIndex
 
 	for i, task := range tasks {
@@ -591,35 +592,18 @@ func ValidateTaskNumberSequence(tasks []Task) error {
 		taskNumbers[taskNum] = i
 	}
 
-	// 1から連続しているかチェック
-	var missingNumbers []int
-	var outOfRangeNumbers []int
+	// 次に順序チェック
+	for i, task := range tasks {
+		taskNum, _, _ := ValidateTaskTitleFormat(task.Title, i)
 
-	for i := 1; i <= len(tasks); i++ {
-		if _, exists := taskNumbers[i]; !exists {
-			missingNumbers = append(missingNumbers, i)
+		// 期待される番号は i+1（0-indexed なので）
+		expectedNum := i + 1
+		if taskNum != expectedNum {
+			return NewValidationError(ErrCodeTaskNumberNotSequential,
+				fmt.Sprintf("task[%d].title: expected Task %d but got Task %d (tasks must be numbered sequentially: 1, 2, 3, ...)",
+					i, expectedNum, taskNum)).
+				WithField("task.title").WithIndex(i)
 		}
-	}
-
-	for num := range taskNumbers {
-		if num < 1 || num > len(tasks) {
-			outOfRangeNumbers = append(outOfRangeNumbers, num)
-		}
-	}
-
-	if len(missingNumbers) > 0 || len(outOfRangeNumbers) > 0 {
-		var msg strings.Builder
-		msg.WriteString("task numbers must be sequential from 1")
-
-		if len(missingNumbers) > 0 {
-			msg.WriteString(fmt.Sprintf("; missing: %v", missingNumbers))
-		}
-		if len(outOfRangeNumbers) > 0 {
-			msg.WriteString(fmt.Sprintf("; out of range (expected 1-%d): %v", len(tasks), outOfRangeNumbers))
-		}
-
-		return NewValidationError(ErrCodeTaskNumberNotSequential, msg.String()).
-			WithField("task.title")
 	}
 
 	return nil
