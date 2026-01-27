@@ -2139,3 +2139,180 @@ func TestValidateTaskNumberSequence(t *testing.T) {
 		})
 	}
 }
+
+// TestValidatePostInput_TaskTitlePrefix はValidatePostInputを通してタスクタイトル形式のバリデーションをテストする統合テスト
+func TestValidatePostInput_TaskTitlePrefix(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   PostInput
+		wantErr bool
+		errCode ValidationErrorCode
+	}{
+		{
+			name: "正常: Task 1: タスク名",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク名", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "正常: 複数タスク（連続番号）",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-3", Title: "Task 3: タスク3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "異常: プレフィックスなし",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "タスク名のみ", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskTitleInvalidPrefix,
+		},
+		{
+			name: "異常: 大文字不正（TASK）",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "TASK 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskTitleInvalidPrefix,
+		},
+		{
+			name: "異常: 先頭ゼロ",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 001: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskTitleInvalidPrefix,
+		},
+		{
+			name: "異常: 番号0",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 0: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskTitleInvalidPrefix,
+		},
+		{
+			name: "異常: 番号飛び（1,3）",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-3", Title: "Task 3: タスク3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskNumberNotSequential,
+		},
+		{
+			name: "異常: 番号重複",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 1: タスク2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskNumberDuplicate,
+		},
+		{
+			name: "異常: 2から始まる",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskNumberNotSequential,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidatePostInput(&tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err != nil {
+				var verr *ValidationError
+				if errors.As(err, &verr) {
+					if verr.Code() != tt.errCode {
+						t.Errorf("ValidationError.Code() = %v, want %v", verr.Code(), tt.errCode)
+					}
+				} else {
+					t.Errorf("Expected ValidationError, got %T", err)
+				}
+			}
+		})
+	}
+}
