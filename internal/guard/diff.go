@@ -3,7 +3,6 @@ package guard
 import (
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/sergi/go-diff/diffmatchpatch"
 	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
@@ -82,10 +81,9 @@ func generateUnifiedDiff(oldText, newText string) string {
 	}
 
 	// unified diff形式で出力
-	now := time.Now().Format("2006-01-02 15:04:05 -0700")
 	var result strings.Builder
-	result.WriteString("--- old\t" + now + "\n")
-	result.WriteString("+++ new\t" + now + "\n")
+	result.WriteString("--- old\n")
+	result.WriteString("+++ new\n")
 
 	const contextLines = 3
 	oldLineNum := 1
