@@ -62,7 +62,10 @@ func executeDiffWithClient(jsonPath string, allowedCategories []string, client e
 
 func generateUnifiedDiff(oldText, newText string) string {
 	dmp := diffmatchpatch.New()
-	diffs := dmp.DiffMain(oldText, newText, false)
+	// 行単位で差分を計算（可読性と性能向上）
+	a, b, c := dmp.DiffLinesToChars(oldText, newText)
+	diffs := dmp.DiffMain(a, b, false)
+	diffs = dmp.DiffCharsToLines(diffs, c)
 	patches := dmp.PatchMake(oldText, diffs)
 	return dmp.PatchToText(patches)
 }

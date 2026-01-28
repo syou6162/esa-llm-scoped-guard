@@ -151,8 +151,15 @@ func runPost(args []string) {
 	fs := flag.NewFlagSet("post", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
+	var showHelp bool
 	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
+
+	if showHelp {
+		fs.Usage()
+		os.Exit(0)
+	}
 
 	if jsonPath == "" {
 		fmt.Fprint(os.Stderr, usage)
@@ -169,8 +176,15 @@ func runValidate(args []string) {
 	fs := flag.NewFlagSet("validate", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
+	var showHelp bool
 	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
+
+	if showHelp {
+		fs.Usage()
+		os.Exit(0)
+	}
 
 	if jsonPath == "" {
 		fmt.Fprint(os.Stderr, usage)
@@ -187,8 +201,15 @@ func runPreview(args []string) {
 	fs := flag.NewFlagSet("preview", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
+	var showHelp bool
 	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
+
+	if showHelp {
+		fs.Usage()
+		os.Exit(0)
+	}
 
 	if jsonPath == "" {
 		fmt.Fprint(os.Stderr, usage)
@@ -205,8 +226,15 @@ func runDiff(args []string) {
 	fs := flag.NewFlagSet("diff", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
+	var showHelp bool
 	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
+
+	if showHelp {
+		fs.Usage()
+		os.Exit(0)
+	}
 
 	if jsonPath == "" {
 		fmt.Fprint(os.Stderr, usage)
