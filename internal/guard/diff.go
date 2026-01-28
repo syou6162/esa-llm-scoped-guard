@@ -110,8 +110,8 @@ func generateUnifiedDiff(oldText, newText string) string {
 
 	for i, diff := range diffs {
 		lines := strings.Split(diff.Text, "\n")
-		// 最後の空行を削除
-		if len(lines) > 0 && lines[len(lines)-1] == "" {
+		// テキストが\nで終わる場合のみ、最後の空要素を削除
+		if len(lines) > 0 && lines[len(lines)-1] == "" && strings.HasSuffix(diff.Text, "\n") {
 			lines = lines[:len(lines)-1]
 		}
 
