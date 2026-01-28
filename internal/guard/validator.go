@@ -603,7 +603,7 @@ func ValidateTaskNumberSequence(tasks []Task) error {
 			return NewValidationError(ErrCodeTaskNumberDuplicate,
 				fmt.Sprintf("duplicate task number %d found at task[%d] and task[%d]",
 					taskNum, existingIndex, i)).
-				WithField("task.title")
+				WithField("task.title").WithIndex(i)
 		}
 		seen[taskNum] = i
 		taskNumbers[i] = taskNum // 番号を保存
