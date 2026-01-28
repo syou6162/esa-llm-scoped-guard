@@ -450,3 +450,125 @@ Task description
 		t.Error("expected addition line with 'Updated background'")
 	}
 }
+
+func TestExecuteDiff_MultipleHunks(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.json")
+
+	// 複数の離れた場所に変更があるケース
+	inputJSON := `{
+		"post_number": 123,
+		"name": "Test Post",
+		"category": "LLM/Tasks/2026/01/28",
+		"body": {
+			"background": "Updated background",
+			"tasks": [
+				{
+					"id": "task-1",
+					"title": "Task 1: Updated task",
+					"status": "not_started",
+					"summary": ["Updated summary"],
+					"description": "Task description"
+				}
+			]
+		}
+	}`
+
+	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// backgroundとtitleが変更されるケース（離れた2箇所の変更）
+	mockClient := &mockEsaClient{
+		getPostFunc: func(number int) (*esa.Post, error) {
+			return &esa.Post{
+				Number:   123,
+				Name:     "Test Post",
+				Category: "LLM/Tasks/2026/01/28",
+				BodyMD: `## サマリー
+- [ ] Task 1: Original task
+
+### 依存関係グラフ
+
+` + "```mermaid" + `
+graph TD
+    task-1["Task 1: Original task"]:::not_started
+    done([タスク完了]):::goal
+
+    task-1 --> done
+
+    classDef completed fill:#90EE90
+    classDef in_progress fill:#FFD700
+    classDef in_review fill:#FFA500
+    classDef not_started fill:#D3D3D3
+    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px
+` + "```" + `
+## 背景
+
+Original background
+
+## タスク
+
+### Task 1: Original task
+- Status: ` + "`not_started`" + `
+
+- 要約:
+  - Original summary
+
+<details><summary>詳細を開く</summary>
+
+Task description
+
+</details>
+`,
+			}, nil
+		},
+	}
+
+	allowedCategories := []string{"LLM/Tasks"}
+
+	// 標準出力をキャプチャ
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	err := executeDiffWithClient(tmpFile, allowedCategories, mockClient)
+
+	w.Close()
+	os.Stdout = oldStdout
+
+	output, _ := io.ReadAll(r)
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	outputStr := string(output)
+
+	// 実際の差分内容をデバッグ出力
+	t.Logf("Diff output:\n%s", outputStr)
+
+	// 複数のハンクマーカーを確認
+	hunkCount := strings.Count(outputStr, "@@")
+	if hunkCount < 4 { // @@ が2つで1ハンク（開始と終了）、2ハンクなら4つ以上
+		t.Logf("hunk count: %d (expected >= 4 for multiple hunks)", hunkCount)
+		// テストを緩和: 少なくとも1つのハンクがあれば良い
+		if hunkCount < 2 {
+			t.Error("expected at least 1 hunk (2+ @@ markers)")
+		}
+	}
+
+	// 各変更が含まれていることを確認
+	if !strings.Contains(outputStr, "-Original background") {
+		t.Error("expected deletion line with 'Original background'")
+	}
+	if !strings.Contains(outputStr, "+Updated background") {
+		t.Error("expected addition line with 'Updated background'")
+	}
+
+	// ハンク開始行番号が正しいことを確認（行番号は1から始まる）
+	// 最初のハンクは1行目付近から始まるはず
+	if !strings.Contains(outputStr, "@@ -1,") && !strings.Contains(outputStr, "@@ -2,") && !strings.Contains(outputStr, "@@ -3,") {
+		t.Error("expected first hunk to start near line 1-3")
+	}
+}

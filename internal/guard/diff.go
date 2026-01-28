@@ -123,6 +123,9 @@ func generateUnifiedDiff(oldText, newText string) string {
 				if len(hunkLines) == 0 {
 					// 新しいハンク開始: 最大contextLines行前から
 					if j < len(lines)-contextLines && i < len(diffs)-1 {
+						// スキップする行でも行番号を進める
+						oldLineNum++
+						newLineNum++
 						continue
 					}
 					hunkOldStart = oldLineNum
