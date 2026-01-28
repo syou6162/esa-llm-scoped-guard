@@ -461,8 +461,10 @@ func ValidateTaskTitleFormat(title string, index int) (int, string, error) {
 
 // diagnoseTaskTitleError はタイトル形式のエラーを診断し、具体的な修正案を提示します
 func diagnoseTaskTitleError(title string, index int) error {
-	// ケース1: プレフィックスがない
-	if !strings.HasPrefix(title, "Task ") && !strings.HasPrefix(strings.ToLower(title), "task ") {
+	// ケース1: "Task" で始まるかチェック（大文字小文字含む）
+	lowerTitle := strings.ToLower(title)
+	if !strings.HasPrefix(lowerTitle, "task") {
+		// "Task" すら含まない場合はプレフィックスなし
 		suggestion := fmt.Sprintf("Task %d: %s", index+1, title)
 		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
 			fmt.Sprintf("task[%d].title: must start with 'Task N: ' prefix (got: '%s', suggestion: '%s')",
@@ -470,18 +472,18 @@ func diagnoseTaskTitleError(title string, index int) error {
 			WithField("task.title").WithIndex(index)
 	}
 
-	// ケース2: 大文字小文字が不正 (TASK, task など)
-	if strings.HasPrefix(strings.ToUpper(title), "TASK ") && !strings.HasPrefix(title, "Task ") {
+	// ケース2: "Task" の後にスペースがない (e.g., "Task1:")
+	if strings.HasPrefix(title, "Task") && !strings.HasPrefix(title, "Task ") {
 		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
-			fmt.Sprintf("task[%d].title: 'Task' must be capitalized exactly as 'Task' (got: '%s')",
+			fmt.Sprintf("task[%d].title: must have a space after 'Task' (got: '%s')",
 				index, title)).
 			WithField("task.title").WithIndex(index)
 	}
 
-	// ケース3: "Task" の後にスペースがない
-	if strings.HasPrefix(title, "Task") && !strings.HasPrefix(title, "Task ") {
+	// ケース3: 大文字小文字が不正 (TASK, task など)
+	if !strings.HasPrefix(title, "Task ") && strings.HasPrefix(lowerTitle, "task ") {
 		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
-			fmt.Sprintf("task[%d].title: must have a space after 'Task' (got: '%s')",
+			fmt.Sprintf("task[%d].title: 'Task' must be capitalized exactly as 'Task' (got: '%s')",
 				index, title)).
 			WithField("task.title").WithIndex(index)
 	}
@@ -586,8 +588,9 @@ func ValidateTaskNumberSequence(tasks []Task) error {
 		return nil
 	}
 
-	// まず各タスクの番号を取得し、重複チェック
-	taskNumbers := make(map[int]int) // taskNumber -> taskIndex
+	// 各タスクの番号を取得し、重複チェックと順序チェックを行う
+	taskNumbers := make([]int, len(tasks)) // 各タスクの番号を保存
+	seen := make(map[int]int)              // taskNumber -> taskIndex (重複検出用)
 
 	for i, task := range tasks {
 		taskNum, _, err := ValidateTaskTitleFormat(task.Title, i)
@@ -596,19 +599,18 @@ func ValidateTaskNumberSequence(tasks []Task) error {
 		}
 
 		// 重複チェック
-		if existingIndex, exists := taskNumbers[taskNum]; exists {
+		if existingIndex, exists := seen[taskNum]; exists {
 			return NewValidationError(ErrCodeTaskNumberDuplicate,
 				fmt.Sprintf("duplicate task number %d found at task[%d] and task[%d]",
 					taskNum, existingIndex, i)).
 				WithField("task.title")
 		}
-		taskNumbers[taskNum] = i
+		seen[taskNum] = i
+		taskNumbers[i] = taskNum // 番号を保存
 	}
 
-	// 次に順序チェック
-	for i, task := range tasks {
-		taskNum, _, _ := ValidateTaskTitleFormat(task.Title, i)
-
+	// 順序チェック（保存した番号を再利用）
+	for i, taskNum := range taskNumbers {
 		// 期待される番号は i+1（0-indexed なので）
 		expectedNum := i + 1
 		if taskNum != expectedNum {
