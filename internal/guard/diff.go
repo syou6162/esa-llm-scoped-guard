@@ -8,12 +8,12 @@ import (
 )
 
 // ExecuteDiff は既存記事との差分を標準出力に出力する。
-func ExecuteDiff(jsonPath string, teamName string, accessToken string) error {
+func ExecuteDiff(jsonPath string, teamName string, allowedCategories []string, accessToken string) error {
 	client := esa.NewEsaClient(teamName, accessToken)
-	return executeDiffWithClient(jsonPath, client)
+	return executeDiffWithClient(jsonPath, allowedCategories, client)
 }
 
-func executeDiffWithClient(jsonPath string, client esa.EsaClientInterface) error {
+func executeDiffWithClient(jsonPath string, allowedCategories []string, client esa.EsaClientInterface) error {
 	input, err := ReadPostInputFromFile(jsonPath)
 	if err != nil {
 		return fmt.Errorf("failed to read JSON file: %w", err)
@@ -36,6 +36,11 @@ func executeDiffWithClient(jsonPath string, client esa.EsaClientInterface) error
 		return fmt.Errorf("failed to get existing post: %w", err)
 	}
 
+	// セキュリティチェック: 既存記事のカテゴリが許可範囲内か検証
+	if err := ValidateUpdateRequest(existingPost.Category, input.Category, allowedCategories); err != nil {
+		return fmt.Errorf("category validation failed: %w", err)
+	}
+
 	newMarkdown := GenerateMarkdown(&input.Body)
 
 	diff := generateUnifiedDiff(existingPost.BodyMD, newMarkdown)
@@ -47,5 +52,6 @@ func executeDiffWithClient(jsonPath string, client esa.EsaClientInterface) error
 func generateUnifiedDiff(oldText, newText string) string {
 	dmp := diffmatchpatch.New()
 	diffs := dmp.DiffMain(oldText, newText, false)
-	return dmp.DiffPrettyText(diffs)
+	patches := dmp.PatchMake(oldText, diffs)
+	return dmp.PatchToText(patches)
 }

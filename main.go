@@ -151,6 +151,7 @@ func main() {
 
 func runPost(args []string) {
 	fs := flag.NewFlagSet("post", flag.ExitOnError)
+	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
 	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
 	fs.Parse(args)
@@ -168,6 +169,7 @@ func runPost(args []string) {
 
 func runValidate(args []string) {
 	fs := flag.NewFlagSet("validate", flag.ExitOnError)
+	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
 	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
 	fs.Parse(args)
@@ -185,6 +187,7 @@ func runValidate(args []string) {
 
 func runPreview(args []string) {
 	fs := flag.NewFlagSet("preview", flag.ExitOnError)
+	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
 	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
 	fs.Parse(args)
@@ -202,6 +205,7 @@ func runPreview(args []string) {
 
 func runDiff(args []string) {
 	fs := flag.NewFlagSet("diff", flag.ExitOnError)
+	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
 	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
 	fs.Parse(args)
@@ -229,7 +233,7 @@ func runDiff(args []string) {
 		os.Exit(1)
 	}
 
-	if err := guard.ExecuteDiff(jsonPath, config.Esa.TeamName, accessToken); err != nil {
+	if err := guard.ExecuteDiff(jsonPath, config.Esa.TeamName, config.AllowedCategories, accessToken); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
