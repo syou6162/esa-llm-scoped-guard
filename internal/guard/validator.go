@@ -176,9 +176,13 @@ func ValidatePostInput(input *PostInput) error {
 		return NewValidationError(ErrCodeFieldInvalidChars, "name cannot contain fullwidth parentheses or colon").WithField("name")
 	}
 
-	// categoryの検証
+	// categoryの検証（パス正規化を含む）
 	if input.Category == "" {
 		return NewValidationError(ErrCodeCategoryEmpty, "category cannot be empty").WithField("category")
+	}
+	// パストラバーサル、空セグメント、先頭/末尾スラッシュをチェック
+	if _, err := NormalizeCategory(input.Category); err != nil {
+		return err
 	}
 	if !hasValidDateSuffix(input.Category) {
 		return NewValidationError(ErrCodeCategoryInvalidDateSuffix, "category must end with /yyyy/mm/dd format").WithField("category")

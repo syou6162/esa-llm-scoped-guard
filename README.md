@@ -206,12 +206,40 @@ graph TD
 
 ### コマンド実行
 
+#### validate: JSONバリデーションのみ
+
+```bash
+# JSONの妥当性を検証（設定不要）
+esa-llm-scoped-guard validate -json ./tasks/new-task.json
+```
+
+正常時は何も出力せず終了コード0を返します。
+
+#### preview: Markdownプレビュー
+
+```bash
+# 生成されるMarkdownを標準出力に表示（設定不要）
+esa-llm-scoped-guard preview -json ./tasks/new-task.json
+```
+
+#### diff: 記事の差分表示
+
+```bash
+# 新規作成前に全体を確認（設定・トークン必要、create_new: true の場合は全行が + で表示）
+esa-llm-scoped-guard diff -json ./tasks/new-task.json
+
+# 既存記事との差分を表示（設定・トークン必要、post_number 指定時）
+esa-llm-scoped-guard diff -json ./tasks/update-task.json
+```
+
+#### post: esa.ioへ投稿
+
 ```bash
 # 新規作成
-esa-llm-scoped-guard -json ./tasks/new-task.json
+esa-llm-scoped-guard post -json ./tasks/new-task.json
 
 # 更新（post_numberを指定）
-esa-llm-scoped-guard -json ./tasks/update-task.json
+esa-llm-scoped-guard post -json ./tasks/update-task.json
 ```
 
 ### ヘルプ表示
