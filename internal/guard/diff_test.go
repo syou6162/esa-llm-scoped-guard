@@ -114,7 +114,7 @@ func TestExecuteDiff_CreateNewError(t *testing.T) {
 	mockClient := &mockEsaClient{}
 	err := executeDiffWithClient(tmpFile, allowedCategories, mockClient)
 	if err == nil {
-		t.Error("expected error for create_new")
+		t.Fatal("expected error for create_new")
 	}
 	if !strings.Contains(err.Error(), "post_number") {
 		t.Errorf("expected error message to mention post_number, got: %v", err)
@@ -184,7 +184,7 @@ func TestExecuteDiff_CategoryNotAllowed(t *testing.T) {
 	allowedCategories := []string{"LLM/Tasks"}
 	err := executeDiffWithClient(tmpFile, allowedCategories, mockClient)
 	if err == nil {
-		t.Error("expected error for category not allowed")
+		t.Fatal("expected error for category not allowed")
 	}
 	if !strings.Contains(err.Error(), "category") {
 		t.Errorf("expected error message to mention category, got: %v", err)
@@ -232,7 +232,7 @@ func TestExecuteDiff_CategoryChangeAttempt(t *testing.T) {
 	allowedCategories := []string{"LLM/Tasks"}
 	err := executeDiffWithClient(tmpFile, allowedCategories, mockClient)
 	if err == nil {
-		t.Error("expected error for category change attempt")
+		t.Fatal("expected error for category change attempt")
 	}
 	if !strings.Contains(err.Error(), "category change") {
 		t.Errorf("expected error message to mention category change, got: %v", err)
