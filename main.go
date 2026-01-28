@@ -12,13 +12,19 @@ import (
 const usage = `esa-llm-scoped-guard - Write to esa.io with category restrictions
 
 Usage:
-  esa-llm-scoped-guard -json <path>
+  esa-llm-scoped-guard <command> [options]
 
-Flags:
+Commands:
+  validate  Validate JSON file only (no config required)
+  preview   Preview the generated Markdown without posting (no config required)
+  diff      Show diff between existing post and new content (requires config)
+  post      Create or update a post on esa.io (requires config)
+
+Options:
   -json string
         Path to JSON file containing post data
   -help
-        Show this help message and JSON schema
+        Show help message for the command
 
 JSON Schema:
   {
@@ -111,36 +117,157 @@ Environment Variables:
 Configuration:
   ~/.config/esa-llm-scoped-guard/config.yaml
 
-Example:
-  esa-llm-scoped-guard -json ./tasks/123.json
+Examples:
+  esa-llm-scoped-guard validate -json ./tasks/123.json # Validate JSON
+  esa-llm-scoped-guard preview -json ./tasks/123.json  # Preview markdown
+  esa-llm-scoped-guard diff -json ./tasks/123.json     # Show diff with existing
+  esa-llm-scoped-guard post -json ./tasks/123.json     # Post to esa.io
 `
 
 func main() {
-	var jsonPath string
-	var showHelp bool
-
-	flag.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
-	flag.BoolVar(&showHelp, "help", false, "Show help message")
-	flag.Usage = func() {
+	if len(os.Args) < 2 {
 		fmt.Fprint(os.Stderr, usage)
-	}
-	flag.Parse()
-
-	if showHelp || jsonPath == "" {
-		flag.Usage()
-		if showHelp {
-			os.Exit(0)
-		}
 		os.Exit(1)
 	}
 
-	if err := run(jsonPath); err != nil {
+	switch os.Args[1] {
+	case "post":
+		runPost(os.Args[2:])
+	case "validate":
+		runValidate(os.Args[2:])
+	case "preview":
+		runPreview(os.Args[2:])
+	case "diff":
+		runDiff(os.Args[2:])
+	case "-help", "--help", "help":
+		fmt.Fprint(os.Stderr, usage)
+		os.Exit(0)
+	default:
+		fmt.Fprintf(os.Stderr, "Unknown subcommand: %s\n\n", os.Args[1])
+		fmt.Fprint(os.Stderr, usage)
+		os.Exit(1)
+	}
+}
+
+func runPost(args []string) {
+	fs := flag.NewFlagSet("post", flag.ExitOnError)
+	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
+	var jsonPath string
+	var showHelp bool
+	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.BoolVar(&showHelp, "help", false, "Show help message")
+	fs.Parse(args)
+
+	if showHelp {
+		fs.Usage()
+		os.Exit(0)
+	}
+
+	if jsonPath == "" {
+		fmt.Fprint(os.Stderr, usage)
+		os.Exit(1)
+	}
+
+	if err := execPost(jsonPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func run(jsonPath string) error {
+func runValidate(args []string) {
+	fs := flag.NewFlagSet("validate", flag.ExitOnError)
+	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
+	var jsonPath string
+	var showHelp bool
+	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.BoolVar(&showHelp, "help", false, "Show help message")
+	fs.Parse(args)
+
+	if showHelp {
+		fs.Usage()
+		os.Exit(0)
+	}
+
+	if jsonPath == "" {
+		fmt.Fprint(os.Stderr, usage)
+		os.Exit(1)
+	}
+
+	if err := guard.ExecuteValidate(jsonPath); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func runPreview(args []string) {
+	fs := flag.NewFlagSet("preview", flag.ExitOnError)
+	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
+	var jsonPath string
+	var showHelp bool
+	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.BoolVar(&showHelp, "help", false, "Show help message")
+	fs.Parse(args)
+
+	if showHelp {
+		fs.Usage()
+		os.Exit(0)
+	}
+
+	if jsonPath == "" {
+		fmt.Fprint(os.Stderr, usage)
+		os.Exit(1)
+	}
+
+	if err := guard.ExecutePreview(jsonPath); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func runDiff(args []string) {
+	fs := flag.NewFlagSet("diff", flag.ExitOnError)
+	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
+	var jsonPath string
+	var showHelp bool
+	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.BoolVar(&showHelp, "help", false, "Show help message")
+	fs.Parse(args)
+
+	if showHelp {
+		fs.Usage()
+		os.Exit(0)
+	}
+
+	if jsonPath == "" {
+		fmt.Fprint(os.Stderr, usage)
+		os.Exit(1)
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: failed to get home directory: %v\n", err)
+		os.Exit(1)
+	}
+	configPath := filepath.Join(homeDir, ".config", "esa-llm-scoped-guard", "config.yaml")
+	config, err := LoadAndValidateConfig(configPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: failed to load config: %v\n", err)
+		os.Exit(1)
+	}
+
+	accessToken := os.Getenv("ESA_ACCESS_TOKEN")
+	if accessToken == "" {
+		fmt.Fprintf(os.Stderr, "Error: ESA_ACCESS_TOKEN environment variable is not set\n")
+		os.Exit(1)
+	}
+
+	if err := guard.ExecuteDiff(jsonPath, config.Esa.TeamName, config.AllowedCategories, accessToken); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func execPost(jsonPath string) error {
 	// 1. 設定ファイルの読み込み
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -158,6 +285,5 @@ func run(jsonPath string) error {
 		return fmt.Errorf("ESA_ACCESS_TOKEN environment variable is not set")
 	}
 
-	// 3. esa.io記事の作成/更新を実行
 	return guard.ExecutePost(jsonPath, config.Esa.TeamName, config.AllowedCategories, accessToken)
 }
