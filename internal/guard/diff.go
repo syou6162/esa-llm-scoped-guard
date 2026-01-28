@@ -1,9 +1,10 @@
 package guard
 
 import (
+	"bytes"
 	"fmt"
 
-	"github.com/sergi/go-diff/diffmatchpatch"
+	"github.com/pmezard/go-difflib/difflib"
 	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
 )
 
@@ -50,8 +51,15 @@ func executeDiffWithClient(jsonPath string, allowedCategories []string, client e
 }
 
 func generateUnifiedDiff(oldText, newText string) string {
-	dmp := diffmatchpatch.New()
-	diffs := dmp.DiffMain(oldText, newText, false)
-	patches := dmp.PatchMake(oldText, diffs)
-	return dmp.PatchToText(patches)
+	diff := difflib.UnifiedDiff{
+		A:        difflib.SplitLines(oldText),
+		B:        difflib.SplitLines(newText),
+		FromFile: "old",
+		ToFile:   "new",
+		Context:  3,
+	}
+
+	var buf bytes.Buffer
+	difflib.WriteUnifiedDiff(&buf, diff)
+	return buf.String()
 }

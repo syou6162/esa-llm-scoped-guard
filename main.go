@@ -23,8 +23,6 @@ Commands:
 Options:
   -json string
         Path to JSON file containing post data
-  -help
-        Show this help message and JSON schema
 
 JSON Schema:
   {
