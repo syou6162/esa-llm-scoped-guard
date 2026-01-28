@@ -62,6 +62,26 @@ func executeDiffWithClient(jsonPath string, allowedCategories []string, client e
 }
 
 func generateUnifiedDiff(oldText, newText string) string {
+	// EOF newlineの有無と総行数を記録
+	oldHasEOFNewline := strings.HasSuffix(oldText, "\n")
+	newHasEOFNewline := strings.HasSuffix(newText, "\n")
+
+	// 総行数を計算（空文字列の場合は0行）
+	oldTotalLines := 0
+	if oldText != "" {
+		oldTotalLines = strings.Count(oldText, "\n")
+		if !oldHasEOFNewline {
+			oldTotalLines++ // 最後の行がnewlineで終わっていない場合、1行追加
+		}
+	}
+	newTotalLines := 0
+	if newText != "" {
+		newTotalLines = strings.Count(newText, "\n")
+		if !newHasEOFNewline {
+			newTotalLines++ // 最後の行がnewlineで終わっていない場合、1行追加
+		}
+	}
+
 	// 行単位の差分を生成
 	dmp := diffmatchpatch.New()
 	a, b, lineArray := dmp.DiffLinesToChars(oldText, newText)
@@ -167,10 +187,14 @@ func generateUnifiedDiff(oldText, newText string) string {
 				hunkNewStart = newLineNum
 			}
 			contextAfter = 0
-			for _, line := range lines {
+			for idx, line := range lines {
 				hunkLines = append(hunkLines, "-"+line+"\n")
 				hunkOldCount++
 				oldLineNum++
+				// 最後の行で、oldTextがnewlineで終わっていない場合、マーカーを追加
+				if idx == len(lines)-1 && oldLineNum-1 == oldTotalLines && !oldHasEOFNewline {
+					hunkLines = append(hunkLines, "\\ No newline at end of file\n")
+				}
 			}
 		case diffmatchpatch.DiffInsert:
 			if len(hunkLines) == 0 {
@@ -179,10 +203,14 @@ func generateUnifiedDiff(oldText, newText string) string {
 				hunkNewStart = newLineNum
 			}
 			contextAfter = 0
-			for _, line := range lines {
+			for idx, line := range lines {
 				hunkLines = append(hunkLines, "+"+line+"\n")
 				hunkNewCount++
 				newLineNum++
+				// 最後の行で、newTextがnewlineで終わっていない場合、マーカーを追加
+				if idx == len(lines)-1 && newLineNum-1 == newTotalLines && !newHasEOFNewline {
+					hunkLines = append(hunkLines, "\\ No newline at end of file\n")
+				}
 			}
 		}
 	}

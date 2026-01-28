@@ -23,6 +23,11 @@ func TestGenerateUnifiedDiff_EOFNewlineRemoved(t *testing.T) {
 	if !strings.Contains(diff, "+a") {
 		t.Error("diff should contain '+a' (new line without newline)")
 	}
+
+	// Should contain "No newline at end of file" marker after the +a line
+	if !strings.Contains(diff, "\\ No newline at end of file") {
+		t.Error("diff should contain '\\ No newline at end of file' marker")
+	}
 }
 
 // TestGenerateUnifiedDiff_EOFNewlineAdded tests that adding a trailing newline is visible in the diff
@@ -42,6 +47,11 @@ func TestGenerateUnifiedDiff_EOFNewlineAdded(t *testing.T) {
 	}
 	if !strings.Contains(diff, "+a") {
 		t.Error("diff should contain '+a' (new line with newline)")
+	}
+
+	// Should contain "No newline at end of file" marker after the -a line
+	if !strings.Contains(diff, "\\ No newline at end of file") {
+		t.Error("diff should contain '\\ No newline at end of file' marker")
 	}
 }
 
