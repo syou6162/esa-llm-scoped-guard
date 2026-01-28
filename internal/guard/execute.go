@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
@@ -161,14 +162,31 @@ func updateJSONAfterCreate(jsonPath string, postNumber int) error {
 	}
 
 	// 一時ファイルに書き込み（原子的更新のため）
-	tmpFile := jsonPath + ".tmp"
-	if err := os.WriteFile(tmpFile, data, fileInfo.Mode().Perm()); err != nil {
+	// 同一ディレクトリにユニークな一時ファイルを作成
+	dir := filepath.Dir(jsonPath)
+	tmpFile, err := os.CreateTemp(dir, ".esa-guard-*.tmp")
+	if err != nil {
+		return fmt.Errorf("failed to create temp file: %w", err)
+	}
+	tmpPath := tmpFile.Name()
+	defer func() {
+		tmpFile.Close()
+		os.Remove(tmpPath) // 失敗時のクリーンアップ
+	}()
+
+	// パーミッションを設定して書き込み
+	if err := tmpFile.Chmod(fileInfo.Mode().Perm()); err != nil {
+		return fmt.Errorf("failed to set temp file permissions: %w", err)
+	}
+	if _, err := tmpFile.Write(data); err != nil {
 		return fmt.Errorf("failed to write temp file: %w", err)
+	}
+	if err := tmpFile.Close(); err != nil {
+		return fmt.Errorf("failed to close temp file: %w", err)
 	}
 
 	// 原子的にリネーム
-	if err := os.Rename(tmpFile, jsonPath); err != nil {
-		os.Remove(tmpFile) // クリーンアップ
+	if err := os.Rename(tmpPath, jsonPath); err != nil {
 		return fmt.Errorf("failed to rename temp file: %w", err)
 	}
 
