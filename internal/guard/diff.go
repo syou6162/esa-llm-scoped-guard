@@ -63,24 +63,38 @@ func executeDiffWithClient(jsonPath string, allowedCategories []string, client e
 }
 
 func generateUnifiedDiff(oldText, newText string) string {
-	// 標準的なunified diff形式を生成
-	now := time.Now().Format("2006-01-02 15:04:05 -0700")
-
+	// 行単位の差分を生成
 	dmp := diffmatchpatch.New()
-	diffs := dmp.DiffMain(oldText, newText, false)
+	a, b, lineArray := dmp.DiffLinesToChars(oldText, newText)
+	diffs := dmp.DiffMain(a, b, false)
+	diffs = dmp.DiffCharsToLines(diffs, lineArray)
 	diffs = dmp.DiffCleanupSemantic(diffs)
 
+	// 差分がない場合は空文字列を返す
+	hasChanges := false
+	for _, diff := range diffs {
+		if diff.Type != diffmatchpatch.DiffEqual {
+			hasChanges = true
+			break
+		}
+	}
+	if !hasChanges {
+		return ""
+	}
+
+	// unified diff形式で出力
+	now := time.Now().Format("2006-01-02 15:04:05 -0700")
 	var result strings.Builder
 	result.WriteString("--- old\t" + now + "\n")
 	result.WriteString("+++ new\t" + now + "\n")
 
+	const contextLines = 3
 	oldLineNum := 1
 	newLineNum := 1
-	hunkOldStart := 1
-	hunkNewStart := 1
-	hunkOldCount := 0
-	hunkNewCount := 0
 	var hunkLines []string
+	var hunkOldStart, hunkNewStart int
+	var hunkOldCount, hunkNewCount int
+	contextAfter := 0
 
 	flushHunk := func() {
 		if len(hunkLines) > 0 {
@@ -89,33 +103,58 @@ func generateUnifiedDiff(oldText, newText string) string {
 				result.WriteString(line)
 			}
 			hunkLines = nil
+			hunkOldCount = 0
+			hunkNewCount = 0
+			contextAfter = 0
 		}
 	}
 
-	for _, diff := range diffs {
+	for i, diff := range diffs {
 		lines := strings.Split(diff.Text, "\n")
+		// 最後の空行を削除
 		if len(lines) > 0 && lines[len(lines)-1] == "" {
 			lines = lines[:len(lines)-1]
 		}
 
 		switch diff.Type {
 		case diffmatchpatch.DiffEqual:
-			for i, line := range lines {
-				if i == 0 && len(hunkLines) == 0 {
+			for j, line := range lines {
+				// ハンク開始前または変更直後のコンテキスト行
+				if len(hunkLines) == 0 {
+					// 新しいハンク開始: 最大contextLines行前から
+					if j < len(lines)-contextLines && i < len(diffs)-1 {
+						continue
+					}
 					hunkOldStart = oldLineNum
 					hunkNewStart = newLineNum
+				} else if contextAfter >= contextLines {
+					// contextLines行以上の等価行が続いたらハンクを分割
+					flushHunk()
+					// 次のハンクのために位置を調整
+					if j < len(lines)-contextLines {
+						oldLineNum++
+						newLineNum++
+						continue
+					}
+					hunkOldStart = oldLineNum
+					hunkNewStart = newLineNum
+					contextAfter = 0
 				}
+
 				hunkLines = append(hunkLines, " "+line+"\n")
 				hunkOldCount++
 				hunkNewCount++
 				oldLineNum++
 				newLineNum++
+				contextAfter++
 			}
 		case diffmatchpatch.DiffDelete:
 			if len(hunkLines) == 0 {
+				// 新しいハンク開始
 				hunkOldStart = oldLineNum
 				hunkNewStart = newLineNum
 			}
+			contextAfter = 0
 			for _, line := range lines {
 				hunkLines = append(hunkLines, "-"+line+"\n")
 				hunkOldCount++
@@ -123,9 +162,11 @@ func generateUnifiedDiff(oldText, newText string) string {
 			}
 		case diffmatchpatch.DiffInsert:
 			if len(hunkLines) == 0 {
+				// 新しいハンク開始
 				hunkOldStart = oldLineNum
 				hunkNewStart = newLineNum
 			}
+			contextAfter = 0
 			for _, line := range lines {
 				hunkLines = append(hunkLines, "+"+line+"\n")
 				hunkNewCount++

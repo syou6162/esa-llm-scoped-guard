@@ -1,6 +1,7 @@
 package guard
 
 import (
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -236,5 +237,216 @@ func TestExecuteDiff_CategoryChangeAttempt(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "category change") {
 		t.Errorf("expected error message to mention category change, got: %v", err)
+	}
+}
+
+func TestExecuteDiff_IdenticalContent(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.json")
+
+	// 既存記事と同じ内容のJSON
+	inputJSON := `{
+		"post_number": 123,
+		"name": "Test Post",
+		"category": "LLM/Tasks/2026/01/28",
+		"body": {
+			"background": "Test background",
+			"tasks": [
+				{
+					"id": "task-1",
+					"title": "Task 1: Test task",
+					"status": "not_started",
+					"summary": ["Task summary"],
+					"description": "Task description"
+				}
+			]
+		}
+	}`
+
+	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// 同一内容を返すモック（実際のGenerateMarkdownの出力と完全に同一）
+	mockClient := &mockEsaClient{
+		getPostFunc: func(number int) (*esa.Post, error) {
+			return &esa.Post{
+				Number:   123,
+				Name:     "Test Post",
+				Category: "LLM/Tasks/2026/01/28",
+				// GenerateMarkdownが生成するフォーマットと完全に同一
+				BodyMD: `## サマリー
+- [ ] Task 1: Test task
+
+### 依存関係グラフ
+
+` + "```mermaid" + `
+graph TD
+    task-1["Task 1: Test task"]:::not_started
+    done([タスク完了]):::goal
+
+    task-1 --> done
+
+    classDef completed fill:#90EE90
+    classDef in_progress fill:#FFD700
+    classDef in_review fill:#FFA500
+    classDef not_started fill:#D3D3D3
+    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px
+` + "```" + `
+## 背景
+
+Test background
+
+## タスク
+
+### Task 1: Test task
+- Status: ` + "`not_started`" + `
+
+- 要約:
+  - Task summary
+
+<details><summary>詳細を開く</summary>
+
+Task description
+
+</details>
+`,
+			}, nil
+		},
+	}
+
+	allowedCategories := []string{"LLM/Tasks"}
+
+	// 標準出力をキャプチャ
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	err := executeDiffWithClient(tmpFile, allowedCategories, mockClient)
+
+	w.Close()
+	os.Stdout = oldStdout
+
+	output, _ := io.ReadAll(r)
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	// 同一内容の場合は空出力であるべき
+	if len(output) > 0 {
+		t.Errorf("expected empty output for identical content, got:\n%s", string(output))
+	}
+}
+
+func TestExecuteDiff_InlineChange(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.json")
+
+	inputJSON := `{
+		"post_number": 123,
+		"name": "Test Post",
+		"category": "LLM/Tasks/2026/01/28",
+		"body": {
+			"background": "Updated background",
+			"tasks": [
+				{
+					"id": "task-1",
+					"title": "Task 1: Test task",
+					"status": "not_started",
+					"summary": ["Task summary"],
+					"description": "Task description"
+				}
+			]
+		}
+	}`
+
+	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// 1行内で単語が変わるケース（backgroundの1行だけ変更）
+	mockClient := &mockEsaClient{
+		getPostFunc: func(number int) (*esa.Post, error) {
+			return &esa.Post{
+				Number:   123,
+				Name:     "Test Post",
+				Category: "LLM/Tasks/2026/01/28",
+				BodyMD: `## サマリー
+- [ ] Task 1: Test task
+
+### 依存関係グラフ
+
+` + "```mermaid" + `
+graph TD
+    task-1["Task 1: Test task"]:::not_started
+    done([タスク完了]):::goal
+
+    task-1 --> done
+
+    classDef completed fill:#90EE90
+    classDef in_progress fill:#FFD700
+    classDef in_review fill:#FFA500
+    classDef not_started fill:#D3D3D3
+    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px
+` + "```" + `
+## 背景
+
+Original background
+
+## タスク
+
+### Task 1: Test task
+- Status: ` + "`not_started`" + `
+
+- 要約:
+  - Task summary
+
+<details><summary>詳細を開く</summary>
+
+Task description
+
+</details>
+`,
+			}, nil
+		},
+	}
+
+	allowedCategories := []string{"LLM/Tasks"}
+
+	// 標準出力をキャプチャ
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	err := executeDiffWithClient(tmpFile, allowedCategories, mockClient)
+
+	w.Close()
+	os.Stdout = oldStdout
+
+	output, _ := io.ReadAll(r)
+
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	outputStr := string(output)
+
+	// unified diff形式のヘッダーを確認
+	if !strings.Contains(outputStr, "---") || !strings.Contains(outputStr, "+++") {
+		t.Error("expected unified diff headers (--- and +++)")
+	}
+
+	// ハンク形式を確認
+	if !strings.Contains(outputStr, "@@") {
+		t.Error("expected hunk marker (@@)")
+	}
+
+	// 行単位の変更を確認
+	if !strings.Contains(outputStr, "-Original background") {
+		t.Error("expected deletion line with 'Original background'")
+	}
+	if !strings.Contains(outputStr, "+Updated background") {
+		t.Error("expected addition line with 'Updated background'")
 	}
 }
