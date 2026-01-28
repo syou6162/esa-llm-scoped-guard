@@ -103,12 +103,17 @@ esa.ioへ投稿する前に、以下のワークフローを推奨します：
    - 意図しないHTMLタグ（`<details>`や`<summary>`など）が含まれていないか確認
    - Markdown構造が正しいか確認
 
-3. **diff**: 既存記事の更新時は差分を確認
+3. **diff**: 新規作成前や既存記事の更新時は差分を確認
    ```bash
-   esa-llm-scoped-guard diff -json ./tasks/123.json
+   # 新規作成前に全体を確認（全行が + で表示される）
+   esa-llm-scoped-guard diff -json ./tasks/new-task.json
+
+   # 既存記事との差分を確認
+   esa-llm-scoped-guard diff -json ./tasks/update-task.json
    ```
    - 意図した変更になっているか検証
    - 不要な変更が含まれていないか確認
+   - 新規作成時は全体の内容を最終確認
 
 4. **post**: 最終確認後に投稿
    ```bash

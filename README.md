@@ -222,10 +222,13 @@ esa-llm-scoped-guard validate -json ./tasks/new-task.json
 esa-llm-scoped-guard preview -json ./tasks/new-task.json
 ```
 
-#### diff: 既存記事との差分表示
+#### diff: 記事の差分表示
 
 ```bash
-# 既存記事との差分を表示（設定・トークン必要、post_number指定時のみ）
+# 新規作成前に全体を確認（設定・トークン必要、create_new: true の場合は全行が + で表示）
+esa-llm-scoped-guard diff -json ./tasks/new-task.json
+
+# 既存記事との差分を表示（設定・トークン必要、post_number 指定時）
 esa-llm-scoped-guard diff -json ./tasks/update-task.json
 ```
 
