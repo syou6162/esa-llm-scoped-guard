@@ -548,14 +548,10 @@ Task description
 	// 実際の差分内容をデバッグ出力
 	t.Logf("Diff output:\n%s", outputStr)
 
-	// 複数のハンクマーカーを確認
+	// 複数のハンクマーカーを確認（@@ が2つで1ハンク、2ハンクなら4つ以上）
 	hunkCount := strings.Count(outputStr, "@@")
-	if hunkCount < 4 { // @@ が2つで1ハンク（開始と終了）、2ハンクなら4つ以上
-		t.Logf("hunk count: %d (expected >= 4 for multiple hunks)", hunkCount)
-		// テストを緩和: 少なくとも1つのハンクがあれば良い
-		if hunkCount < 2 {
-			t.Error("expected at least 1 hunk (2+ @@ markers)")
-		}
+	if hunkCount < 4 {
+		t.Errorf("expected at least 2 hunks (4+ @@ markers), got %d", hunkCount)
 	}
 
 	// 各変更が含まれていることを確認
@@ -570,5 +566,23 @@ Task description
 	// 最初のハンクは1行目付近から始まるはず
 	if !strings.Contains(outputStr, "@@ -1,") && !strings.Contains(outputStr, "@@ -2,") && !strings.Contains(outputStr, "@@ -3,") {
 		t.Error("expected first hunk to start near line 1-3")
+	}
+
+	// 2つ目以降のハンクの行番号も検証
+	// 複数ハンクがある場合、2つ目のハンクは10行目以降から始まるはず
+	lines := strings.Split(outputStr, "\n")
+	hunkHeaders := []string{}
+	for _, line := range lines {
+		if strings.HasPrefix(line, "@@") {
+			hunkHeaders = append(hunkHeaders, line)
+		}
+	}
+	if len(hunkHeaders) >= 2 {
+		// 2つ目のハンクヘッダーを検証
+		secondHunk := hunkHeaders[1]
+		// 2つ目のハンクは1行目より後から始まるはず
+		if strings.Contains(secondHunk, "@@ -1,") {
+			t.Errorf("second hunk should not start at line 1: %s", secondHunk)
+		}
 	}
 }
