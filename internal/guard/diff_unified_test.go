@@ -184,3 +184,37 @@ func TestGenerateUnifiedDiff_SingleHunkNotSplit(t *testing.T) {
 		t.Errorf("expected exactly 1 hunk (2 @@ markers), got %d markers", hunkCount)
 	}
 }
+
+// TestGenerateUnifiedDiff_EmptyToContent tests that adding content to empty file uses correct line numbers
+func TestGenerateUnifiedDiff_EmptyToContent(t *testing.T) {
+	old := ""
+	new := "line1\nline2\n"
+
+	diff := generateUnifiedDiff(old, new)
+
+	if diff == "" {
+		t.Error("expected non-empty diff when adding content to empty file")
+	}
+
+	// Should use @@ -0,0 +1,2 @@ format for empty old file
+	if !strings.Contains(diff, "@@ -0,0 +1,2 @@") {
+		t.Error("diff should contain '@@ -0,0 +1,2 @@' for empty to content")
+	}
+}
+
+// TestGenerateUnifiedDiff_ContentToEmpty tests that removing all content uses correct line numbers
+func TestGenerateUnifiedDiff_ContentToEmpty(t *testing.T) {
+	old := "line1\nline2\n"
+	new := ""
+
+	diff := generateUnifiedDiff(old, new)
+
+	if diff == "" {
+		t.Error("expected non-empty diff when removing all content")
+	}
+
+	// Should use @@ -1,2 +0,0 @@ format for empty new file
+	if !strings.Contains(diff, "@@ -1,2 +0,0 @@") {
+		t.Error("diff should contain '@@ -1,2 +0,0 @@' for content to empty")
+	}
+}

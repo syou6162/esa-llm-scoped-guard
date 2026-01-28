@@ -106,8 +106,15 @@ func generateUnifiedDiff(oldText, newText string) string {
 	result.WriteString("+++ new\n")
 
 	const contextLines = 3
+	// 空ファイルの場合は行番号を0から開始（標準的なunified diff形式）
 	oldLineNum := 1
+	if oldText == "" {
+		oldLineNum = 0
+	}
 	newLineNum := 1
+	if newText == "" {
+		newLineNum = 0
+	}
 	var hunkLines []string
 	var hunkOldStart, hunkNewStart int
 	var hunkOldCount, hunkNewCount int

@@ -267,50 +267,21 @@ func TestExecuteDiff_IdenticalContent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// 同一内容を返すモック（実際のGenerateMarkdownの出力と完全に同一）
+	// JSONファイルから入力を読み込んでMarkdownを生成
+	input, err := ReadPostInputFromFile(tmpFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedMarkdown := GenerateMarkdown(&input.Body)
+
+	// 同一内容を返すモック（GenerateMarkdownの出力をそのまま使用）
 	mockClient := &mockEsaClient{
 		getPostFunc: func(number int) (*esa.Post, error) {
 			return &esa.Post{
 				Number:   123,
 				Name:     "Test Post",
 				Category: "LLM/Tasks/2026/01/28",
-				// GenerateMarkdownが生成するフォーマットと完全に同一
-				BodyMD: `## サマリー
-- [ ] Task 1: Test task
-
-### 依存関係グラフ
-
-` + "```mermaid" + `
-graph TD
-    task-1["Task 1: Test task"]:::not_started
-    done([タスク完了]):::goal
-
-    task-1 --> done
-
-    classDef completed fill:#90EE90
-    classDef in_progress fill:#FFD700
-    classDef in_review fill:#FFA500
-    classDef not_started fill:#D3D3D3
-    classDef goal fill:#87CEEB,stroke:#4169E1,stroke-width:3px
-` + "```" + `
-## 背景
-
-Test background
-
-## タスク
-
-### Task 1: Test task
-- Status: ` + "`not_started`" + `
-
-- 要約:
-  - Task summary
-
-<details><summary>詳細を開く</summary>
-
-Task description
-
-</details>
-`,
+				BodyMD:   expectedMarkdown,
 			}, nil
 		},
 	}
@@ -322,7 +293,7 @@ Task description
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	err := executeDiffWithClient(tmpFile, allowedCategories, mockClient)
+	err = executeDiffWithClient(tmpFile, allowedCategories, mockClient)
 
 	w.Close()
 	os.Stdout = oldStdout
