@@ -39,6 +39,19 @@ func executeDiffWithClient(jsonPath string, allowedCategories []string, client e
 	var oldMarkdown string
 
 	if input.CreateNew {
+		// 新規作成の場合でもカテゴリが許可範囲内か検証
+		normalized, err := NormalizeCategory(input.Category)
+		if err != nil {
+			return fmt.Errorf("category normalization failed: %w", err)
+		}
+		allowed, err := IsAllowedCategory(normalized, allowedCategories)
+		if err != nil {
+			return fmt.Errorf("failed to check category: %w", err)
+		}
+		if !allowed {
+			return fmt.Errorf("category not allowed: %s", input.Category)
+		}
+
 		// 新規作成の場合は空文字列との差分
 		oldMarkdown = ""
 	} else {
