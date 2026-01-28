@@ -17,6 +17,11 @@ const (
 	ErrCodeFieldInvalidChars  ValidationErrorCode = "field_invalid_chars"
 	ErrCodeFieldInvalidFormat ValidationErrorCode = "field_invalid_format"
 
+	// Task title errors
+	ErrCodeTaskTitleInvalidPrefix  ValidationErrorCode = "task_title_invalid_prefix"
+	ErrCodeTaskNumberNotSequential ValidationErrorCode = "task_number_not_sequential"
+	ErrCodeTaskNumberDuplicate     ValidationErrorCode = "task_number_duplicate"
+
 	// Reference errors
 	ErrCodeDuplicateID        ValidationErrorCode = "duplicate_id"
 	ErrCodeNonExistentRef     ValidationErrorCode = "non_existent_ref"
@@ -111,6 +116,11 @@ var (
 	ErrFieldTooLong       = &ValidationError{code: ErrCodeFieldTooLong, index: -1}
 	ErrFieldInvalidChars  = &ValidationError{code: ErrCodeFieldInvalidChars, index: -1}
 	ErrFieldInvalidFormat = &ValidationError{code: ErrCodeFieldInvalidFormat, index: -1}
+
+	// Task title errors
+	ErrTaskTitleInvalidPrefix  = &ValidationError{code: ErrCodeTaskTitleInvalidPrefix, index: -1}
+	ErrTaskNumberNotSequential = &ValidationError{code: ErrCodeTaskNumberNotSequential, index: -1}
+	ErrTaskNumberDuplicate     = &ValidationError{code: ErrCodeTaskNumberDuplicate, index: -1}
 
 	// Reference errors
 	ErrDuplicateID        = &ValidationError{code: ErrCodeDuplicateID, index: -1}
