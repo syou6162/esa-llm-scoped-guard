@@ -1,10 +1,9 @@
 package guard
 
 import (
-	"bytes"
 	"fmt"
 
-	"github.com/pmezard/go-difflib/difflib"
+	"github.com/sergi/go-diff/diffmatchpatch"
 	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
 )
 
@@ -51,18 +50,8 @@ func executeDiffWithClient(jsonPath string, allowedCategories []string, client e
 }
 
 func generateUnifiedDiff(oldText, newText string) string {
-	diff := difflib.UnifiedDiff{
-		A:        difflib.SplitLines(oldText),
-		B:        difflib.SplitLines(newText),
-		FromFile: "old",
-		ToFile:   "new",
-		Context:  3,
-	}
-
-	var buf bytes.Buffer
-	if err := difflib.WriteUnifiedDiff(&buf, diff); err != nil {
-		// エラー時は空文字列を返すが、実際にはWriteUnifiedDiffはほぼ失敗しない
-		return ""
-	}
-	return buf.String()
+	dmp := diffmatchpatch.New()
+	diffs := dmp.DiffMain(oldText, newText, false)
+	patches := dmp.PatchMake(oldText, diffs)
+	return dmp.PatchToText(patches)
 }
