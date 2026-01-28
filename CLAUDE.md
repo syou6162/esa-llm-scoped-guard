@@ -87,6 +87,34 @@ if len(data) > 10*1024*1024 {
 }
 ```
 
+## LLMエージェント向け推奨ワークフロー
+
+esa.ioへ投稿する前に、以下のワークフローを推奨します：
+
+1. **validate**: JSONの妥当性を検証
+   ```bash
+   esa-llm-scoped-guard validate -json ./tasks/123.json
+   ```
+
+2. **preview**: 生成されるMarkdownを確認
+   ```bash
+   esa-llm-scoped-guard preview -json ./tasks/123.json
+   ```
+   - 意図しないHTMLタグ（`<details>`や`<summary>`など）が含まれていないか確認
+   - Markdown構造が正しいか確認
+
+3. **diff**: 既存記事の更新時は差分を確認
+   ```bash
+   esa-llm-scoped-guard diff -json ./tasks/123.json
+   ```
+   - 意図した変更になっているか検証
+   - 不要な変更が含まれていないか確認
+
+4. **post**: 最終確認後に投稿
+   ```bash
+   esa-llm-scoped-guard post -json ./tasks/123.json
+   ```
+
 ## トラブルシューティング
 
 ### テスト失敗時
