@@ -169,18 +169,24 @@ func updateJSONAfterCreate(jsonPath string, postNumber int) error {
 		return fmt.Errorf("failed to create temp file: %w", err)
 	}
 	tmpPath := tmpFile.Name()
-	defer func() {
-		tmpFile.Close()
-		os.Remove(tmpPath) // 失敗時のクリーンアップ
-	}()
+	defer os.Remove(tmpPath) // 失敗時のクリーンアップ
 
 	// パーミッションを設定して書き込み
 	if err := tmpFile.Chmod(fileInfo.Mode().Perm()); err != nil {
+		tmpFile.Close()
 		return fmt.Errorf("failed to set temp file permissions: %w", err)
 	}
 	if _, err := tmpFile.Write(data); err != nil {
+		tmpFile.Close()
 		return fmt.Errorf("failed to write temp file: %w", err)
 	}
+
+	// ディスクへの同期（耐障害性向上）
+	if err := tmpFile.Sync(); err != nil {
+		tmpFile.Close()
+		return fmt.Errorf("failed to sync temp file: %w", err)
+	}
+
 	if err := tmpFile.Close(); err != nil {
 		return fmt.Errorf("failed to close temp file: %w", err)
 	}
