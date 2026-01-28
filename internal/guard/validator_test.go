@@ -2299,6 +2299,8 @@ func TestValidatePostInput_TaskTitlePrefix(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// 実運用と同じ経路でトリム処理を適用
+			TrimPostInput(&tt.input)
 			err := ValidatePostInput(&tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)

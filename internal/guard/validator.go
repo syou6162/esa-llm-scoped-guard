@@ -551,6 +551,19 @@ func diagnoseTaskTitleError(title string, index int) error {
 			WithField("task.title").WithIndex(index)
 	}
 
+	// タスク名が空または空白のみ
+	taskNamePart := ""
+	if colonIndex+1 < len(afterPrefix) {
+		taskNamePart = afterPrefix[colonIndex+1:]
+	}
+	if strings.TrimSpace(taskNamePart) == "" {
+		suggestion := fmt.Sprintf("Task %s: <タスク名>", numberPart)
+		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
+			fmt.Sprintf("task[%d].title: task name cannot be empty (got: '%s', suggestion: '%s')",
+				index, title, suggestion)).
+			WithField("task.title").WithIndex(index)
+	}
+
 	// タスク名に改行が含まれる
 	if strings.ContainsAny(title, "\r\n") {
 		return NewValidationError(ErrCodeTaskTitleInvalidPrefix,
