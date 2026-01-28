@@ -138,6 +138,12 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 
 // updateJSONAfterCreate は新規作成成功後にJSONファイルを更新します
 func updateJSONAfterCreate(jsonPath string, postNumber int) error {
+	// 元のファイルのパーミッションを取得
+	fileInfo, err := os.Stat(jsonPath)
+	if err != nil {
+		return fmt.Errorf("failed to stat JSON file: %w", err)
+	}
+
 	// JSONファイルを読み込み
 	input, err := ReadPostInputFromFile(jsonPath)
 	if err != nil {
@@ -154,9 +160,16 @@ func updateJSONAfterCreate(jsonPath string, postNumber int) error {
 		return fmt.Errorf("failed to marshal JSON: %w", err)
 	}
 
-	// ファイルに書き込み
-	if err := os.WriteFile(jsonPath, data, 0644); err != nil {
-		return fmt.Errorf("failed to write JSON file: %w", err)
+	// 一時ファイルに書き込み（原子的更新のため）
+	tmpFile := jsonPath + ".tmp"
+	if err := os.WriteFile(tmpFile, data, fileInfo.Mode().Perm()); err != nil {
+		return fmt.Errorf("failed to write temp file: %w", err)
+	}
+
+	// 原子的にリネーム
+	if err := os.Rename(tmpFile, jsonPath); err != nil {
+		os.Remove(tmpFile) // クリーンアップ
+		return fmt.Errorf("failed to rename temp file: %w", err)
 	}
 
 	return nil
