@@ -85,7 +85,7 @@ func TestExecuteDiff_WithPostNumber(t *testing.T) {
 	}
 }
 
-func TestExecuteDiff_CreateNewError(t *testing.T) {
+func TestExecuteDiff_CreateNew(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "new.json")
 
@@ -113,12 +113,31 @@ func TestExecuteDiff_CreateNewError(t *testing.T) {
 
 	allowedCategories := []string{"LLM/Tasks"}
 	mockClient := &mockEsaClient{}
+
+	// 標準出力をキャプチャ
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
 	err := executeDiffWithClient(tmpFile, allowedCategories, mockClient)
-	if err == nil {
-		t.Fatal("expected error for create_new")
+
+	w.Close()
+	os.Stdout = oldStdout
+
+	output, _ := io.ReadAll(r)
+
+	if err != nil {
+		t.Fatalf("expected no error for create_new, got %v", err)
 	}
-	if !strings.Contains(err.Error(), "post_number") {
-		t.Errorf("expected error message to mention post_number, got: %v", err)
+
+	// 全行が+で始まる差分が出力されているはず
+	if !strings.Contains(string(output), "+## サマリー") {
+		t.Error("expected diff output with all lines starting with +")
+	}
+
+	// @@ -0,0 +1,N @@ 形式のヘッダーがあるはず
+	if !strings.Contains(string(output), "@@ -0,0") {
+		t.Error("expected unified diff header with @@ -0,0")
 	}
 }
 

@@ -28,34 +28,40 @@ func executeDiffWithClient(jsonPath string, allowedCategories []string, client e
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
-	if input.CreateNew {
-		return fmt.Errorf("diff command requires post_number (cannot diff new posts)")
-	}
-
-	existingPost, err := client.GetPost(*input.PostNumber)
-	if err != nil {
-		return fmt.Errorf("failed to get existing post: %w", err)
-	}
-
-	// サイズチェック: 既存記事の本文が大きすぎる場合は拒否（DoS対策）
-	const maxBodySize = 10 * 1024 * 1024 // 10MB
-	if len(existingPost.BodyMD) > maxBodySize {
-		return fmt.Errorf("existing post body too large (%d bytes, max %d bytes)", len(existingPost.BodyMD), maxBodySize)
-	}
-
-	// セキュリティチェック: 既存記事のカテゴリが許可範囲内か検証
-	if err := ValidateUpdateRequest(existingPost.Category, input.Category, allowedCategories); err != nil {
-		return fmt.Errorf("category validation failed: %w", err)
-	}
-
 	newMarkdown := GenerateMarkdown(&input.Body)
 
 	// サイズチェック: 新しいMarkdownが大きすぎる場合は拒否（DoS対策）
+	const maxBodySize = 10 * 1024 * 1024 // 10MB
 	if len(newMarkdown) > maxBodySize {
 		return fmt.Errorf("new markdown too large (%d bytes, max %d bytes)", len(newMarkdown), maxBodySize)
 	}
 
-	diff := generateUnifiedDiff(existingPost.BodyMD, newMarkdown)
+	var oldMarkdown string
+
+	if input.CreateNew {
+		// 新規作成の場合は空文字列との差分
+		oldMarkdown = ""
+	} else {
+		// 既存記事を取得
+		existingPost, err := client.GetPost(*input.PostNumber)
+		if err != nil {
+			return fmt.Errorf("failed to get existing post: %w", err)
+		}
+
+		// サイズチェック: 既存記事の本文が大きすぎる場合は拒否（DoS対策）
+		if len(existingPost.BodyMD) > maxBodySize {
+			return fmt.Errorf("existing post body too large (%d bytes, max %d bytes)", len(existingPost.BodyMD), maxBodySize)
+		}
+
+		// セキュリティチェック: 既存記事のカテゴリが許可範囲内か検証
+		if err := ValidateUpdateRequest(existingPost.Category, input.Category, allowedCategories); err != nil {
+			return fmt.Errorf("category validation failed: %w", err)
+		}
+
+		oldMarkdown = existingPost.BodyMD
+	}
+
+	diff := generateUnifiedDiff(oldMarkdown, newMarkdown)
 	fmt.Print(diff)
 
 	return nil
