@@ -2,6 +2,8 @@ package guard
 
 import (
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/sergi/go-diff/diffmatchpatch"
 	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
@@ -61,11 +63,77 @@ func executeDiffWithClient(jsonPath string, allowedCategories []string, client e
 }
 
 func generateUnifiedDiff(oldText, newText string) string {
+	// 標準的なunified diff形式を生成
+	now := time.Now().Format("2006-01-02 15:04:05 -0700")
+
 	dmp := diffmatchpatch.New()
-	// 行単位で差分を計算（可読性と性能向上）
-	a, b, c := dmp.DiffLinesToChars(oldText, newText)
-	diffs := dmp.DiffMain(a, b, false)
-	diffs = dmp.DiffCharsToLines(diffs, c)
-	patches := dmp.PatchMake(oldText, diffs)
-	return dmp.PatchToText(patches)
+	diffs := dmp.DiffMain(oldText, newText, false)
+	diffs = dmp.DiffCleanupSemantic(diffs)
+
+	var result strings.Builder
+	result.WriteString("--- old\t" + now + "\n")
+	result.WriteString("+++ new\t" + now + "\n")
+
+	oldLineNum := 1
+	newLineNum := 1
+	hunkOldStart := 1
+	hunkNewStart := 1
+	hunkOldCount := 0
+	hunkNewCount := 0
+	var hunkLines []string
+
+	flushHunk := func() {
+		if len(hunkLines) > 0 {
+			result.WriteString(fmt.Sprintf("@@ -%d,%d +%d,%d @@\n", hunkOldStart, hunkOldCount, hunkNewStart, hunkNewCount))
+			for _, line := range hunkLines {
+				result.WriteString(line)
+			}
+			hunkLines = nil
+		}
+	}
+
+	for _, diff := range diffs {
+		lines := strings.Split(diff.Text, "\n")
+		if len(lines) > 0 && lines[len(lines)-1] == "" {
+			lines = lines[:len(lines)-1]
+		}
+
+		switch diff.Type {
+		case diffmatchpatch.DiffEqual:
+			for i, line := range lines {
+				if i == 0 && len(hunkLines) == 0 {
+					hunkOldStart = oldLineNum
+					hunkNewStart = newLineNum
+				}
+				hunkLines = append(hunkLines, " "+line+"\n")
+				hunkOldCount++
+				hunkNewCount++
+				oldLineNum++
+				newLineNum++
+			}
+		case diffmatchpatch.DiffDelete:
+			if len(hunkLines) == 0 {
+				hunkOldStart = oldLineNum
+				hunkNewStart = newLineNum
+			}
+			for _, line := range lines {
+				hunkLines = append(hunkLines, "-"+line+"\n")
+				hunkOldCount++
+				oldLineNum++
+			}
+		case diffmatchpatch.DiffInsert:
+			if len(hunkLines) == 0 {
+				hunkOldStart = oldLineNum
+				hunkNewStart = newLineNum
+			}
+			for _, line := range lines {
+				hunkLines = append(hunkLines, "+"+line+"\n")
+				hunkNewCount++
+				newLineNum++
+			}
+		}
+	}
+
+	flushHunk()
+	return result.String()
 }

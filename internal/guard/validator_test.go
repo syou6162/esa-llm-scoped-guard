@@ -221,6 +221,58 @@ func TestValidatePostInput(t *testing.T) {
 			wantErr:     true,
 			wantErrCode: ErrCodeCategoryInvalidDateSuffix,
 		},
+		{
+			name: "categoryにパストラバーサル（..）が含まれる",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/../Admin/2026/01/18",
+				Body: Body{
+					Background: "Content",
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeCategoryInvalidPath,
+		},
+		{
+			name: "categoryに空セグメントが含まれる",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM//Tasks/2026/01/18",
+				Body: Body{
+					Background: "Content",
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeCategoryInvalidPath,
+		},
+		{
+			name: "categoryに先頭スラッシュが含まれる",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "/LLM/Tasks/2026/01/18",
+				Body: Body{
+					Background: "Content",
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeCategoryInvalidPath,
+		},
+		{
+			name: "categoryに末尾スラッシュが含まれる",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2026/01/18/",
+				Body: Body{
+					Background: "Content",
+				},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeCategoryInvalidPath,
+		},
 	}
 
 	for _, tt := range tests {
