@@ -26,7 +26,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -42,7 +42,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -58,7 +58,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -75,7 +75,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -90,7 +90,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -106,7 +106,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -123,7 +123,7 @@ func TestValidatePostInput_CreateNewAndPostNumber(t *testing.T) {
 				Body: Body{
 					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -172,7 +172,7 @@ func TestValidatePostInput(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description 1",
@@ -265,7 +265,7 @@ func TestValidatePostInput_Body(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description 1",
@@ -342,7 +342,7 @@ func TestValidatePostInputSchema(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description 1",
@@ -407,7 +407,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusInProgress,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -429,7 +429,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusInProgress,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -454,7 +454,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -475,7 +475,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -497,7 +497,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -520,7 +520,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -543,7 +543,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -566,7 +566,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -588,7 +588,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -610,7 +610,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "# This is h1",
@@ -632,7 +632,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "## This is h2",
@@ -654,7 +654,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "### This is h3",
@@ -676,7 +676,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -697,7 +697,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "#### This is h4 heading",
@@ -718,7 +718,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "##### This is h5 heading",
@@ -739,7 +739,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -762,7 +762,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusInProgress,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -784,7 +784,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusInReview,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -806,7 +806,7 @@ func TestValidatePostInput_GitHubURLs(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusCompleted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -935,7 +935,7 @@ func TestValidatePostInput_Summary(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"タスクの要約"},
 							Description: "Description",
@@ -956,7 +956,7 @@ func TestValidatePostInput_Summary(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約1", "要約2", "要約3"},
 							Description: "Description",
@@ -977,7 +977,7 @@ func TestValidatePostInput_Summary(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{},
 							Description: "Description",
@@ -999,7 +999,7 @@ func TestValidatePostInput_Summary(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約1", "要約2", "要約3", "要約4"},
 							Description: "Description",
@@ -1021,7 +1021,7 @@ func TestValidatePostInput_Summary(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{strings.Repeat("あ", 141)},
 							Description: "Description",
@@ -1072,8 +1072,8 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
 					},
 				},
 			},
@@ -1088,9 +1088,9 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1", "task-2"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1", "task-2"}},
 					},
 				},
 			},
@@ -1105,7 +1105,7 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -1120,7 +1120,7 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{}},
 					},
 				},
 			},
@@ -1135,7 +1135,7 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-999"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-999"}},
 					},
 				},
 			},
@@ -1151,7 +1151,7 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{""}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{""}},
 					},
 				},
 			},
@@ -1167,7 +1167,7 @@ func TestValidatePostInput_DependsOn(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
 					},
 				},
 			},
@@ -1215,8 +1215,8 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
 					},
 				},
 			},
@@ -1232,9 +1232,9 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
 					},
 				},
 			},
@@ -1250,11 +1250,11 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-5"}},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
-						{ID: "task-4", Title: "Task 4", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
-						{ID: "task-5", Title: "Task 5", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-4"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-5"}},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
+						{ID: "task-4", Title: "Task 4: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
+						{ID: "task-5", Title: "Task 5: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-4"}},
 					},
 				},
 			},
@@ -1270,9 +1270,9 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
 					},
 				},
 			},
@@ -1288,9 +1288,9 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2", "task-3"}},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2", "task-3"}},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
 					},
 				},
 			},
@@ -1306,10 +1306,10 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-4"}},
-						{ID: "task-4", Title: "Task 4", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-4"}},
+						{ID: "task-4", Title: "Task 4: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
 					},
 				},
 			},
@@ -1326,9 +1326,9 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-3"}},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -1343,9 +1343,9 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
 					},
 				},
 			},
@@ -1360,9 +1360,9 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1", "task-2"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1", "task-2"}},
 					},
 				},
 			},
@@ -1377,10 +1377,10 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
-						{ID: "task-4", Title: "Task 4", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2", "task-3"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-4", Title: "Task 4: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2", "task-3"}},
 					},
 				},
 			},
@@ -1395,11 +1395,11 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-4", Title: "Task 4", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-5"}},
-						{ID: "task-5", Title: "Task 5", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-4", Title: "Task 4: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-5"}},
+						{ID: "task-5", Title: "Task 5: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -1414,9 +1414,9 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -1431,7 +1431,7 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
@@ -1446,10 +1446,10 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
-						{ID: "task-4", Title: "Task 4", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-4", Title: "Task 4: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
 					},
 				},
 			},
@@ -1464,12 +1464,12 @@ func TestValidatePostInput_CyclicDependency(t *testing.T) {
 				Body: Body{
 					Background: "Background",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
-						{ID: "task-2", Title: "Task 2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
-						{ID: "task-3", Title: "Task 3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
-						{ID: "task-4", Title: "Task 4", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2", "task-3"}},
-						{ID: "task-5", Title: "Task 5", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
-						{ID: "task-6", Title: "Task 6", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-4", "task-5"}},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-3", Title: "Task 3: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1"}},
+						{ID: "task-4", Title: "Task 4: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2", "task-3"}},
+						{ID: "task-5", Title: "Task 5: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-2"}},
+						{ID: "task-6", Title: "Task 6: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-4", "task-5"}},
 					},
 				},
 			},
@@ -1650,7 +1650,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1672,7 +1672,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1694,7 +1694,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1719,7 +1719,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1744,7 +1744,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1767,7 +1767,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1790,7 +1790,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1813,7 +1813,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1836,7 +1836,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1859,7 +1859,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1882,7 +1882,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1905,7 +1905,7 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 					Tasks: []Task{
 						{
 							ID:          "task-1",
-							Title:       "Task 1",
+							Title:       "Task 1: タスク",
 							Status:      TaskStatusNotStarted,
 							Summary:     []string{"要約"},
 							Description: "Description",
@@ -1934,6 +1934,386 @@ func TestValidatePostInput_Instructions(t *testing.T) {
 				}
 				if ve.Code() != tt.wantErrCode {
 					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
+			}
+		})
+	}
+}
+
+func TestValidateTaskTitleFormat(t *testing.T) {
+	tests := []struct {
+		name        string
+		title       string
+		index       int
+		wantNumber  int
+		wantName    string
+		wantErr     bool
+		wantErrCode ValidationErrorCode
+	}{
+		// 正常系
+		{"有効な形式（Task 1: タスク名）", "Task 1: タスク名", 0, 1, "タスク名", false, ""},
+		{"有効な形式（番号2）", "Task 2: Second task", 1, 2, "Second task", false, ""},
+		{"有効な形式（長いタスク名）", "Task 10: Very long task name with spaces", 9, 10, "Very long task name with spaces", false, ""},
+		{"有効な形式（番号99）", "Task 99: タスク", 98, 99, "タスク", false, ""},
+
+		// 異常系: プレフィックスなし
+		{"プレフィックスなし", "タスク名のみ", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"タスクIDっぽいが違う", "task-1: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+
+		// 異常系: 大文字小文字エラー
+		{"全大文字TASK", "TASK 1: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"全小文字task", "task 1: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+
+		// 異常系: スペース不正
+		{"Taskと番号の間にスペースなし", "Task1: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"番号の後にスペースなし", "Task 1:タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"スペース2個", "Task  1: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+
+		// 異常系: 番号形式エラー
+		{"小数番号", "Task 2.1: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"範囲番号", "Task 6-7: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"アルファベット付き番号", "Task 2A: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"アルファベット付き番号2", "Task A2: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"番号なし", "Task : タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"先頭ゼロ1桁", "Task 01: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"先頭ゼロ2桁", "Task 001: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"先頭ゼロ（10）", "Task 010: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"番号0", "Task 0: タスク名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+
+		// 異常系: タスク名が空
+		{"タスク名が空", "Task 1: ", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"タスク名がスペースのみ", "Task 1:    ", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+
+		// 異常系: タスク名に改行
+		{"タスク名に改行（\\n）", "Task 1: タスク\n名", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+		{"タスク名に改行（末尾）", "Task 1: タスク名\n", 0, 0, "", true, ErrCodeTaskTitleInvalidPrefix},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			num, name, err := ValidateTaskTitleFormat(tt.title, tt.index)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidateTaskTitleFormat() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
+				// エラーメッセージを確認（デバッグ用）
+				t.Logf("Error message: %s", ve.Message())
+			} else {
+				if num != tt.wantNumber {
+					t.Errorf("task number = %d, want %d", num, tt.wantNumber)
+				}
+				if name != tt.wantName {
+					t.Errorf("task name = %s, want %s", name, tt.wantName)
+				}
+			}
+		})
+	}
+}
+
+func TestValidateTaskNumberSequence(t *testing.T) {
+	tests := []struct {
+		name        string
+		tasks       []Task
+		wantErr     bool
+		wantErrCode ValidationErrorCode
+	}{
+		// 正常系
+		{
+			name: "1タスクで番号1",
+			tasks: []Task{
+				{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "3タスクで連続番号（1,2,3）",
+			tasks: []Task{
+				{ID: "task-1", Title: "Task 1: 最初", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+				{ID: "task-2", Title: "Task 2: 次", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+				{ID: "task-3", Title: "Task 3: 最後", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+			},
+			wantErr: false,
+		},
+		{
+			name: "順番が不正（3,1,2）",
+			tasks: []Task{
+				{ID: "task-3", Title: "Task 3: 3番目", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+				{ID: "task-1", Title: "Task 1: 1番目", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+				{ID: "task-2", Title: "Task 2: 2番目", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeTaskNumberNotSequential,
+		},
+
+		// 異常系: タイトル形式エラー（ValidateTaskTitleFormatで検出されるべきエラー）
+		{
+			name: "形式不正なタイトル",
+			tasks: []Task{
+				{ID: "task-1", Title: "タスク名のみ", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeTaskTitleInvalidPrefix,
+		},
+
+		// 異常系: 番号0から始まる（形式エラーとして検出される）
+		{
+			name: "0から始まる",
+			tasks: []Task{
+				{ID: "task-0", Title: "Task 0: ゼロ", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeTaskTitleInvalidPrefix,
+		},
+
+		// 異常系: 2から始まる（1が欠落）
+		{
+			name: "2から始まる（1が欠落）",
+			tasks: []Task{
+				{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeTaskNumberNotSequential,
+		},
+
+		// 異常系: 番号が飛ぶ（1,3）
+		{
+			name: "番号が飛ぶ（1,3）",
+			tasks: []Task{
+				{ID: "task-1", Title: "Task 1: 最初", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+				{ID: "task-3", Title: "Task 3: 次？", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeTaskNumberNotSequential,
+		},
+
+		// 異常系: 番号が重複（1,1）
+		{
+			name: "番号が重複（1,1）",
+			tasks: []Task{
+				{ID: "task-1", Title: "Task 1: 最初", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+				{ID: "task-1-dup", Title: "Task 1: 重複", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeTaskNumberDuplicate,
+		},
+
+		// 異常系: 番号が範囲外（1,2,10 だが3タスクしかない）
+		{
+			name: "番号が範囲外（1,2,10）",
+			tasks: []Task{
+				{ID: "task-1", Title: "Task 1: 最初", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+				{ID: "task-2", Title: "Task 2: 次", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+				{ID: "task-10", Title: "Task 10: 飛んでる", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+			},
+			wantErr:     true,
+			wantErrCode: ErrCodeTaskNumberNotSequential,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidateTaskNumberSequence(tt.tasks)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidateTaskNumberSequence() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				var ve *ValidationError
+				if !errors.As(err, &ve) {
+					t.Errorf("Expected ValidationError, got %T", err)
+					return
+				}
+				if ve.Code() != tt.wantErrCode {
+					t.Errorf("ValidationError.Code() = %v, want %v", ve.Code(), tt.wantErrCode)
+				}
+				t.Logf("Error message: %s", ve.Message())
+			}
+		})
+	}
+}
+
+// TestValidatePostInput_TaskTitlePrefix はValidatePostInputを通してタスクタイトル形式のバリデーションをテストする統合テスト
+func TestValidatePostInput_TaskTitlePrefix(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   PostInput
+		wantErr bool
+		errCode ValidationErrorCode
+	}{
+		{
+			name: "正常: Task 1: タスク名",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク名", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "正常: 複数タスク（連続番号）",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-3", Title: "Task 3: タスク3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "異常: プレフィックスなし",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "タスク名のみ", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskTitleInvalidPrefix,
+		},
+		{
+			name: "異常: 大文字不正（TASK）",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "TASK 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskTitleInvalidPrefix,
+		},
+		{
+			name: "異常: 先頭ゼロ",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 001: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskTitleInvalidPrefix,
+		},
+		{
+			name: "異常: 番号0",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 0: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskTitleInvalidPrefix,
+		},
+		{
+			name: "異常: 番号飛び（1,3）",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-3", Title: "Task 3: タスク3", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskNumberNotSequential,
+		},
+		{
+			name: "異常: 番号重複",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 1: タスク2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskNumberDuplicate,
+		},
+		{
+			name: "異常: 2から始まる",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-2", Title: "Task 2: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+			errCode: ErrCodeTaskNumberNotSequential,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// 実運用と同じ経路でトリム処理を適用
+			TrimPostInput(&tt.input)
+			err := ValidatePostInput(&tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr && err != nil {
+				var verr *ValidationError
+				if errors.As(err, &verr) {
+					if verr.Code() != tt.errCode {
+						t.Errorf("ValidationError.Code() = %v, want %v", verr.Code(), tt.errCode)
+					}
+				} else {
+					t.Errorf("Expected ValidationError, got %T", err)
 				}
 			}
 		})
