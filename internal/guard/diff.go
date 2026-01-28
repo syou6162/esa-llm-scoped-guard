@@ -60,6 +60,9 @@ func generateUnifiedDiff(oldText, newText string) string {
 	}
 
 	var buf bytes.Buffer
-	difflib.WriteUnifiedDiff(&buf, diff)
+	if err := difflib.WriteUnifiedDiff(&buf, diff); err != nil {
+		// エラー時は空文字列を返すが、実際にはWriteUnifiedDiffはほぼ失敗しない
+		return ""
+	}
 	return buf.String()
 }
