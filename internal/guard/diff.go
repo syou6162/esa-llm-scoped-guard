@@ -68,7 +68,6 @@ func generateUnifiedDiff(oldText, newText string) string {
 	a, b, lineArray := dmp.DiffLinesToChars(oldText, newText)
 	diffs := dmp.DiffMain(a, b, false)
 	diffs = dmp.DiffCharsToLines(diffs, lineArray)
-	diffs = dmp.DiffCleanupSemantic(diffs)
 
 	// 差分がない場合は空文字列を返す
 	hasChanges := false
