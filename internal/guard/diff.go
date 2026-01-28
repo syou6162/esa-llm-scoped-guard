@@ -128,6 +128,12 @@ func generateUnifiedDiff(oldText, newText string) string {
 						newLineNum++
 						continue
 					}
+					// 最後のdiffで、これ以降に変更がない場合はハンク開始しない
+					if i == len(diffs)-1 {
+						oldLineNum++
+						newLineNum++
+						continue
+					}
 					hunkOldStart = oldLineNum
 					hunkNewStart = newLineNum
 				} else if contextAfter >= contextLines {
