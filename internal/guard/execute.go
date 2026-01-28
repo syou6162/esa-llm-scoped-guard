@@ -1,7 +1,9 @@
 package guard
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -10,6 +12,12 @@ import (
 
 // ExecutePost はesa.io記事の作成/更新を実行します
 func ExecutePost(jsonPath string, teamName string, allowedCategories []string, accessToken string) error {
+	client := esa.NewEsaClient(teamName, accessToken)
+	return executePostWithClient(jsonPath, allowedCategories, client)
+}
+
+// executePostWithClient はesa.io記事の作成/更新を実行します（テスト可能なバージョン）
+func executePostWithClient(jsonPath string, allowedCategories []string, client esa.EsaClientInterface) error {
 	// 1. JSONファイルの読み込みとバリデーション
 	input, err := ReadPostInputFromFile(jsonPath)
 	if err != nil {
@@ -45,12 +53,25 @@ func ExecutePost(jsonPath string, teamName string, allowedCategories []string, a
 	}
 
 	// 4. esa.io APIクライアントで投稿
-	client := esa.NewEsaClient(teamName, accessToken)
-
+	var postNumber int
 	if input.CreateNew {
-		return createPost(client, input, repoName)
+		postNumber, err = createPost(client, input, repoName)
+		if err != nil {
+			return err
+		}
+
+		// 新規作成成功時にJSONファイルを自動更新
+		if err := updateJSONAfterCreate(jsonPath, postNumber); err != nil {
+			// 警告を出すが、投稿自体は成功しているのでエラーにしない
+			fmt.Fprintf(os.Stderr, "Warning: failed to update JSON file: %v\n", err)
+			fmt.Fprintf(os.Stderr, "You may need to manually update the JSON file to use diff/update commands.\n")
+		} else {
+			fmt.Printf("JSON file updated: create_new removed, post_number set to %d\n", postNumber)
+		}
+	} else {
+		err = updatePost(client, input, allowedCategories, repoName)
 	}
-	return updatePost(client, input, allowedCategories, repoName)
+	return err
 }
 
 // updatePost は既存記事を更新します
@@ -89,7 +110,7 @@ func updatePost(client esa.EsaClientInterface, input *PostInput, allowedCategori
 }
 
 // createPost は新規記事を作成します
-func createPost(client esa.EsaClientInterface, input *PostInput, repoName string) error {
+func createPost(client esa.EsaClientInterface, input *PostInput, repoName string) (int, error) {
 	// 現在のリポジトリ名のみをタグに設定
 	var tags []string
 	if repoName != "" {
@@ -109,9 +130,35 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 
 	post, err := client.CreatePost(esaInput)
 	if err != nil {
-		return fmt.Errorf("failed to create post: %w", err)
+		return 0, fmt.Errorf("failed to create post: %w", err)
 	}
 	fmt.Printf("Created post: %s (Number: %d)\n", post.URL, post.Number)
+	return post.Number, nil
+}
+
+// updateJSONAfterCreate は新規作成成功後にJSONファイルを更新します
+func updateJSONAfterCreate(jsonPath string, postNumber int) error {
+	// JSONファイルを読み込み
+	input, err := ReadPostInputFromFile(jsonPath)
+	if err != nil {
+		return err
+	}
+
+	// create_newをfalseに、post_numberを設定
+	input.CreateNew = false
+	input.PostNumber = &postNumber
+
+	// JSONに変換
+	data, err := json.MarshalIndent(input, "", "  ")
+	if err != nil {
+		return fmt.Errorf("failed to marshal JSON: %w", err)
+	}
+
+	// ファイルに書き込み
+	if err := os.WriteFile(jsonPath, data, 0644); err != nil {
+		return fmt.Errorf("failed to write JSON file: %w", err)
+	}
+
 	return nil
 }
 
