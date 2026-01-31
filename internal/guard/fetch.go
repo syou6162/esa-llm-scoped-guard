@@ -30,7 +30,7 @@ func executeFetchWithClient(postNumber int, client esa.EsaClientInterface) (stri
 
 	// 2. Check body size (10MB max)
 	if len(post.BodyMD) > MaxInputSize {
-		return "", fmt.Errorf("post body exceeds 10MB limit")
+		return "", fmt.Errorf("post body exceeds %d bytes limit", MaxInputSize)
 	}
 
 	// 3. Check if body is empty
