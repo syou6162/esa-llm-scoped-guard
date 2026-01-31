@@ -130,3 +130,78 @@ func TestGenerateMarkdownWithYAML_ExceedsMaxSize(t *testing.T) {
 		t.Errorf("Expected error message about embedded markdown size, got: %v", err)
 	}
 }
+
+// TestGenerateMarkdownWithYAML_Roundtrip tests that yaml.Marshal output can be re-parsed
+func TestGenerateMarkdownWithYAML_Roundtrip(t *testing.T) {
+	postNum := 456
+	input := &PostInput{
+		PostNumber: &postNum,
+		Name:       "Roundtrip Test",
+		Category:   "LLM/Tasks/2026/01/30",
+		Body: Body{
+			Background:   "Background with multiple lines\nand special chars: コロン：括弧（）",
+			RelatedLinks: []string{"https://example.com/link1", "https://example.com/link2"},
+			Instructions: []string{"Instruction 1", "Instruction 2 with コロン："},
+			Tasks: []Task{
+				{
+					ID:          "task-1",
+					Title:       "Task 1: First task",
+					Status:      TaskStatusInProgress,
+					Summary:     []string{"Summary line 1", "Summary line 2"},
+					Description: "Task description\nwith newlines",
+					GitHubURLs:  []string{"https://github.com/owner/repo/pull/1"},
+					DependsOn:   []string{},
+				},
+				{
+					ID:          "task-2",
+					Title:       "Task 2: Second task",
+					Status:      TaskStatusNotStarted,
+					Summary:     []string{"Summary for task 2"},
+					Description: "Another description",
+					DependsOn:   []string{"task-1"},
+				},
+			},
+		},
+	}
+
+	// Generate markdown with embedded YAML
+	markdown, err := GenerateMarkdownWithYAML(input)
+	if err != nil {
+		t.Fatalf("GenerateMarkdownWithYAML() error = %v", err)
+	}
+
+	// Re-parse the embedded YAML
+	reparsed, err := ExtractEmbeddedYAML(markdown)
+	if err != nil {
+		t.Fatalf("Failed to re-parse embedded YAML: %v", err)
+	}
+
+	// Verify structure is preserved
+	if reparsed.PostNumber == nil || *reparsed.PostNumber != 456 {
+		t.Errorf("Expected post_number 456, got: %v", reparsed.PostNumber)
+	}
+	if reparsed.Name != "Roundtrip Test" {
+		t.Errorf("Expected name 'Roundtrip Test', got: %s", reparsed.Name)
+	}
+	if reparsed.Category != "LLM/Tasks/2026/01/30" {
+		t.Errorf("Expected category 'LLM/Tasks/2026/01/30', got: %s", reparsed.Category)
+	}
+	if reparsed.Body.Background != input.Body.Background {
+		t.Errorf("Background mismatch: expected %q, got %q", input.Body.Background, reparsed.Body.Background)
+	}
+	if len(reparsed.Body.RelatedLinks) != 2 {
+		t.Errorf("Expected 2 related links, got: %d", len(reparsed.Body.RelatedLinks))
+	}
+	if len(reparsed.Body.Instructions) != 2 {
+		t.Errorf("Expected 2 instructions, got: %d", len(reparsed.Body.Instructions))
+	}
+	if len(reparsed.Body.Tasks) != 2 {
+		t.Errorf("Expected 2 tasks, got: %d", len(reparsed.Body.Tasks))
+	}
+	if len(reparsed.Body.Tasks[0].DependsOn) != 0 {
+		t.Errorf("Expected task-1 depends_on to be empty, got: %v", reparsed.Body.Tasks[0].DependsOn)
+	}
+	if len(reparsed.Body.Tasks[1].DependsOn) != 1 || reparsed.Body.Tasks[1].DependsOn[0] != "task-1" {
+		t.Errorf("Expected task-2 depends_on ['task-1'], got: %v", reparsed.Body.Tasks[1].DependsOn)
+	}
+}

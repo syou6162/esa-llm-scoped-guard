@@ -320,3 +320,61 @@ body:
 		t.Errorf("body_md seems too short, expected markdown sections")
 	}
 }
+
+// TestUpdateYAMLAfterCreate_Roundtrip tests that yaml.Marshal output can be re-parsed
+func TestUpdateYAMLAfterCreate_Roundtrip(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
+
+	// Create initial YAML with create_new: true
+	initialYAML := `create_new: true
+name: Initial Post
+category: LLM/Tasks/2026/01/30
+body:
+  background: Initial background
+  tasks:
+    - id: task-1
+      title: "Task 1: Initial task"
+      status: not_started
+      summary:
+        - Initial summary
+      description: Initial description
+`
+
+	if err := os.WriteFile(tmpFile, []byte(initialYAML), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Simulate post creation by updating the YAML file
+	postNumber := 789
+	err := updateYAMLAfterCreate(tmpFile, postNumber)
+	if err != nil {
+		t.Fatalf("updateYAMLAfterCreate() error = %v", err)
+	}
+
+	// Re-read the updated YAML file
+	updated, err := ReadPostInputFromFile(tmpFile)
+	if err != nil {
+		t.Fatalf("Failed to re-read updated YAML: %v", err)
+	}
+
+	// Verify the updates were applied
+	if updated.CreateNew {
+		t.Error("Expected create_new to be false after update")
+	}
+	if updated.PostNumber == nil || *updated.PostNumber != postNumber {
+		t.Errorf("Expected post_number %d, got: %v", postNumber, updated.PostNumber)
+	}
+	if updated.Name != "Initial Post" {
+		t.Errorf("Expected name preserved, got: %s", updated.Name)
+	}
+	if updated.Category != "LLM/Tasks/2026/01/30" {
+		t.Errorf("Expected category preserved, got: %s", updated.Category)
+	}
+	if updated.Body.Background != "Initial background" {
+		t.Errorf("Expected background preserved, got: %s", updated.Body.Background)
+	}
+	if len(updated.Body.Tasks) != 1 {
+		t.Errorf("Expected 1 task preserved, got: %d", len(updated.Body.Tasks))
+	}
+}
