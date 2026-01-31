@@ -167,10 +167,25 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 
 // updateYAMLAfterCreate は新規作成成功後にYAMLファイルを更新します
 func updateYAMLAfterCreate(yamlPath string, postNumber int) error {
-	// 元のファイルのパーミッションを取得
-	fileInfo, err := os.Stat(yamlPath)
+	// シンボリックリンクを解決（ReadPostInputFromFileと同じ処理）
+	absPath, err := filepath.Abs(yamlPath)
+	if err != nil {
+		return fmt.Errorf("failed to resolve path: %w", err)
+	}
+	realPath, err := filepath.EvalSymlinks(absPath)
+	if err != nil {
+		return fmt.Errorf("failed to resolve symlink: %w", err)
+	}
+
+	// 元のファイルのパーミッションとタイプを取得
+	fileInfo, err := os.Stat(realPath)
 	if err != nil {
 		return fmt.Errorf("failed to stat YAML file: %w", err)
+	}
+
+	// レギュラーファイルかどうかを確認（セキュリティ強化）
+	if !fileInfo.Mode().IsRegular() {
+		return fmt.Errorf("YAML file is not a regular file: %s", realPath)
 	}
 
 	// YAMLファイルを読み込み
@@ -189,9 +204,14 @@ func updateYAMLAfterCreate(yamlPath string, postNumber int) error {
 		return fmt.Errorf("failed to marshal YAML: %w", err)
 	}
 
+	// サイズチェック（10MB上限）
+	if len(data) > MaxInputSize {
+		return fmt.Errorf("updated YAML size exceeds %d bytes (got %d bytes)", MaxInputSize, len(data))
+	}
+
 	// 一時ファイルに書き込み（原子的更新のため）
-	// 同一ディレクトリにユニークな一時ファイルを作成
-	dir := filepath.Dir(yamlPath)
+	// 実体パスと同一ディレクトリにユニークな一時ファイルを作成
+	dir := filepath.Dir(realPath)
 	tmpFile, err := os.CreateTemp(dir, ".esa-guard-*.tmp")
 	if err != nil {
 		return fmt.Errorf("failed to create temp file: %w", err)
@@ -219,8 +239,8 @@ func updateYAMLAfterCreate(yamlPath string, postNumber int) error {
 		return fmt.Errorf("failed to close temp file: %w", err)
 	}
 
-	// 原子的にリネーム
-	if err := os.Rename(tmpPath, yamlPath); err != nil {
+	// 原子的にリネーム（実体パスに書き込む）
+	if err := os.Rename(tmpPath, realPath); err != nil {
 		return fmt.Errorf("failed to rename temp file: %w", err)
 	}
 
