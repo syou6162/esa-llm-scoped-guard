@@ -44,8 +44,12 @@ func executeFetchWithClient(postNumber int, client esa.EsaClientInterface) (stri
 	}
 
 	// 5. Check post_number consistency (fail closed security check)
-	// If embedded JSON has post_number set, it must match the requested post
-	if input.PostNumber != nil && *input.PostNumber != postNumber {
+	// fetch command only targets existing posts (post_number required).
+	// nil post_number is rejected because fetch is for retrieving existing posts from esa.io.
+	if input.PostNumber == nil {
+		return "", fmt.Errorf("post_number is required in embedded JSON (fetch targets existing posts only)")
+	}
+	if *input.PostNumber != postNumber {
 		return "", fmt.Errorf("post_number mismatch: embedded JSON has %d, but requested %d", *input.PostNumber, postNumber)
 	}
 

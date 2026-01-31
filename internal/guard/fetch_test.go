@@ -153,7 +153,7 @@ func TestExecuteFetch_PostNumberMismatch(t *testing.T) {
 }
 
 func TestExecuteFetch_PostNumberNil(t *testing.T) {
-	// Embedded JSON has no post_number (nil) - should be allowed
+	// Embedded JSON has no post_number (nil) - should be rejected (fail closed)
 	bodyMD := `<!-- esa-guard-json
 {"name":"Test","category":"LLM/Test/2026/01/31","body":{"background":"test","tasks":[{"id":"task-1","title":"Task 1: Test","status":"not_started","summary":["test"],"description":"test"}]}}
 -->
@@ -163,13 +163,12 @@ func TestExecuteFetch_PostNumberNil(t *testing.T) {
 
 	client := &mockFetchClient{bodyMD: bodyMD}
 
-	output, err := executeFetchWithClient(123, client)
-	if err != nil {
-		t.Fatalf("executeFetchWithClient() with nil post_number should succeed, got error: %v", err)
+	_, err := executeFetchWithClient(123, client)
+	if err == nil {
+		t.Fatal("Expected error for nil post_number (fetch targets existing posts only)")
 	}
 
-	// Check output is pretty-printed JSON
-	if !strings.Contains(output, "{\n") {
-		t.Error("Expected pretty-printed JSON (with newlines)")
+	if !strings.Contains(err.Error(), "post_number is required") {
+		t.Errorf("Expected 'post_number is required' error, got: %v", err)
 	}
 }
