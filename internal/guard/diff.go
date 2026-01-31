@@ -17,18 +17,15 @@ func ExecuteDiff(jsonPath string, teamName string, allowedCategories []string, a
 func executeDiffWithClient(jsonPath string, allowedCategories []string, client esa.EsaClientInterface) error {
 	input, err := ReadPostInputFromFile(jsonPath)
 	if err != nil {
-		return fmt.Errorf("failed to read JSON file: %w", err)
+		return fmt.Errorf("failed to read YAML file: %w", err)
 	}
 
 	TrimPostInput(input)
-	if err := ValidatePostInputSchema(input); err != nil {
-		return fmt.Errorf("schema validation failed: %w", err)
-	}
 	if err := ValidatePostInput(input); err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
-	// Generate markdown with embedded JSON (same format as post)
+	// Generate markdown with embedded YAML (same format as post)
 	newMarkdown, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
 		return fmt.Errorf("failed to generate markdown: %w", err)

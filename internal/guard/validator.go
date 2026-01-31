@@ -1,27 +1,13 @@
 package guard
 
 import (
-	_ "embed"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"unicode"
-
-	"github.com/santhosh-tekuri/jsonschema/v5"
-)
-
-//go:embed schema/post.schema.json
-var schemaJSON string
-
-var (
-	compiledSchema     *jsonschema.Schema
-	schemaCompileError error
-	schemaOnce         sync.Once
 )
 
 // visitState はDFSでのノード訪問状態を表す
@@ -32,57 +18,6 @@ const (
 	stateVisiting                    // 処理中（現在のDFSパス上）
 	stateVisited                     // 処理完了
 )
-
-// compileSchema はJSONスキーマを一度だけコンパイルします
-func compileSchema() {
-	compiler := jsonschema.NewCompiler()
-	if err := compiler.AddResource("post.schema.json", strings.NewReader(schemaJSON)); err != nil {
-		schemaCompileError = fmt.Errorf("failed to add schema resource: %w", err)
-		return
-	}
-	var err error
-	compiledSchema, err = compiler.Compile("post.schema.json")
-	if err != nil {
-		schemaCompileError = fmt.Errorf("failed to compile schema: %w", err)
-		return
-	}
-}
-
-// ValidatePostInputSchema はJSONスキーマに基づいて検証します
-func ValidatePostInputSchema(input *PostInput) error {
-	// スキーマを一度だけコンパイル
-	schemaOnce.Do(compileSchema)
-	if schemaCompileError != nil {
-		return schemaCompileError
-	}
-
-	// HTMLコメント文字列チェック（マーシャル前の検証）
-	if err := checkHTMLCommentSequences(input); err != nil {
-		return err
-	}
-
-	// PostInputをJSONに変換してスキーマ検証
-	data, err := json.Marshal(input)
-	if err != nil {
-		return fmt.Errorf("failed to marshal input: %w", err)
-	}
-
-	// JSONサイズチェック（2MB上限）
-	if len(data) > MaxYAMLSize {
-		return fmt.Errorf("JSON size exceeds %d bytes (got %d bytes)", MaxYAMLSize, len(data))
-	}
-
-	var v interface{}
-	if err := json.Unmarshal(data, &v); err != nil {
-		return fmt.Errorf("failed to unmarshal input: %w", err)
-	}
-
-	if err := compiledSchema.Validate(v); err != nil {
-		return NewValidationError(ErrCodeInvalidValue, fmt.Sprintf("schema validation failed: %v", err)).Wrap(err)
-	}
-
-	return nil
-}
 
 // checkHTMLCommentSequences はPostInput内のすべてのテキストフィールドに
 // HTMLコメント開始/終了シーケンス（<!--, -->）が含まれていないかチェックします
@@ -223,6 +158,11 @@ func TrimPostInput(input *PostInput) {
 
 // ValidatePostInput は PostInput の各フィールドを検証します
 func ValidatePostInput(input *PostInput) error {
+	// HTMLコメント文字列チェック
+	if err := checkHTMLCommentSequences(input); err != nil {
+		return err
+	}
+
 	// create_newとpost_numberの検証
 	if input.CreateNew && input.PostNumber != nil {
 		return NewValidationError(ErrCodeMutuallyExclusive, "cannot specify both create_new and post_number")
