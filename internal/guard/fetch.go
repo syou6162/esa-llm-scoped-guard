@@ -60,7 +60,13 @@ func executeFetchWithClient(postNumber int, client esa.EsaClientInterface) (stri
 		return "", fmt.Errorf("post_number mismatch: embedded YAML has %d, but requested %d", *input.PostNumber, postNumber)
 	}
 
-	// 6. Pretty-print YAML for output
+	// 6. Validate extracted input (HTML comment sequences, structure, etc.)
+	TrimPostInput(input)
+	if err := ValidatePostInput(input); err != nil {
+		return "", fmt.Errorf("validation failed: %w", err)
+	}
+
+	// 7. Pretty-print YAML for output
 	prettyYAML, err := yaml.Marshal(input)
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal YAML: %w", err)
