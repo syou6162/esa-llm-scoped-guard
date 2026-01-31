@@ -3,7 +3,6 @@ package guard
 import (
 	"bytes"
 	"fmt"
-	"strings"
 )
 
 // ExtractEmbeddedYAML extracts YAML from Markdown (parse only, no schema validation)
@@ -37,7 +36,7 @@ func ExtractEmbeddedYAML(markdown string) (*PostInput, error) {
 
 	// 5. Parse YAML using DecodeYAMLSecure (includes validation)
 	var input PostInput
-	if err := DecodeYAMLSecure(strings.NewReader(string(yamlBlock)), &input, MaxYAMLSize); err != nil {
+	if err := DecodeYAMLSecure(bytes.NewReader(yamlBlock), &input, MaxYAMLSize); err != nil {
 		return nil, fmt.Errorf("failed to parse YAML: %w", err)
 	}
 
