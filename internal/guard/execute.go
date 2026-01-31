@@ -117,6 +117,7 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 	}
 
 	// BodyからマークダウンGenerate（YAML埋め込み）
+	// 注: この時点ではpost_numberは未設定
 	bodyMD, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
 		return 0, fmt.Errorf("failed to generate markdown with YAML: %w", err)
@@ -135,6 +136,32 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 		return 0, fmt.Errorf("failed to create post: %w", err)
 	}
 	fmt.Printf("Created post: %s (Number: %d)\n", post.URL, post.Number)
+
+	// 新規作成後、post_numberを含むYAMLを埋め込むために記事を自動更新
+	// これによりfetchコマンドが即座に使用可能になる
+	input.PostNumber = &post.Number
+	input.CreateNew = false
+
+	bodyMDWithPostNumber, err := GenerateMarkdownWithYAML(input)
+	if err != nil {
+		// Fail-closed: post_number埋め込み失敗はエラーとして扱う
+		return 0, fmt.Errorf("post created at %s (Number: %d) but failed to embed post_number: %w", post.URL, post.Number, err)
+	}
+
+	updateInput := &esa.PostInput{
+		Name:     input.Name,
+		Category: input.Category,
+		Tags:     tags,
+		BodyMD:   bodyMDWithPostNumber,
+		WIP:      false,
+	}
+
+	_, err = client.UpdatePost(post.Number, updateInput)
+	if err != nil {
+		// Fail-closed: post_number埋め込み失敗はエラーとして扱う
+		return 0, fmt.Errorf("post created at %s (Number: %d) but failed to update with post_number: %w", post.URL, post.Number, err)
+	}
+
 	return post.Number, nil
 }
 
