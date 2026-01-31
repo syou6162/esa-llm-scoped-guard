@@ -28,39 +28,40 @@ Options:
         Show help message for the command
 
 YAML Schema:
-  {
-    "create_new": true,            // Optional: set true for new post (cannot use with post_number)
-    "post_number": 123,            // Optional: existing post number for update (cannot use with create_new)
-    "name": "Post Title",          // Required: max 255 bytes, no /, （）, or ：
-    "category": "LLM/Tasks/2026/01/18", // Required: allowed category + /yyyy/mm/dd
-    "body": {                      // Required: structured format
-      "background": "Task background (plain text, no '## 背景' header, no # or ## at line start)",
-      "related_links": ["https://example.com"], // Optional: related URLs
-      "instructions": ["Use t_wada-style TDD", "Commit frequently"], // Optional: development instructions (max 10 items, each max 500 chars, no # or ## or list markers at line start)
-      "tasks": [                   // Required: task array
-        {
-          "id": "task-1",          // Required: unique identifier
-          "title": "Task 1: Task title",   // Required: format "Task N: name" where N is sequential integer from 1 (auto-generated: "### {title}")
-          "status": "not_started", // Required: not_started/in_progress/in_review/completed (auto-generated: "Status: {status}")
-          "summary": ["Task summary line 1", "Task summary line 2"], // Required: 1-3 items, each max 140 chars
-          "description": "Task description", // Required (wrapped in <details>, no #/##/### at line start)
-          "github_urls": ["https://github.com/owner/repo/pull/123"], // Optional: GitHub PR/Issue URLs
-          "depends_on": ["task-0"]    // Optional: dependent task IDs (no self-ref, no cycles)
-        }
-      ]
-    }
-  }
+  create_new: true               # Optional: set true for new post (cannot use with post_number)
+  post_number: 123               # Optional: existing post number for update (cannot use with create_new)
+  name: Post Title               # Required: max 255 bytes, no /, （）, or ：
+  category: LLM/Tasks/2026/01/18 # Required: allowed category + /yyyy/mm/dd
+  body:                          # Required: structured format
+    background: Task background (plain text, no '## 背景' header, no # or ## at line start)
+    related_links:               # Optional: related URLs
+      - https://example.com
+    instructions:                # Optional: development instructions (max 10 items, each max 500 chars, no # or ## or list markers at line start)
+      - Use t_wada-style TDD
+      - Commit frequently
+    tasks:                       # Required: task array
+      - id: task-1               # Required: unique identifier
+        title: "Task 1: Task title"   # Required: format "Task N: name" where N is sequential integer from 1 (auto-generated: "### {title}")
+        status: not_started      # Required: not_started/in_progress/in_review/completed (auto-generated: "Status: {status}")
+        summary:                 # Required: 1-3 items, each max 140 chars
+          - Task summary line 1
+          - Task summary line 2
+        description: Task description  # Required (wrapped in <details>, no #/##/### at line start)
+        github_urls:             # Optional: GitHub PR/Issue URLs
+          - https://github.com/owner/repo/pull/123
+        depends_on:              # Optional: dependent task IDs (no self-ref, no cycles)
+          - task-0
 
 Markdown Output Example:
   Input YAML with github_urls and summary:
-    {
-      "id": "task-1",
-      "title": "Task 1: Fix bug",
-      "status": "in_progress",
-      "summary": ["Fix authentication issue"],
-      "description": "Fix the authentication bug",
-      "github_urls": ["https://github.com/owner/repo/pull/123"]
-    }
+    id: task-1
+    title: "Task 1: Fix bug"
+    status: in_progress
+    summary:
+      - Fix authentication issue
+    description: Fix the authentication bug
+    github_urls:
+      - https://github.com/owner/repo/pull/123
 
   Output:
     ### Task 1: Fix bug

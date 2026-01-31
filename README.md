@@ -200,13 +200,27 @@ graph TD
 | `github_urls` | No | GitHub PR/IssueのURL配列 | `https://github.com/...`形式のURL。単数の場合「Pull Request: URL」、複数の場合「Pull Requests:」+リスト形式で出力 |
 | `depends_on` | No | 依存する他タスクのID配列 | 自己参照不可、循環依存不可 |
 
+### YAML形式の制限事項
+
+**セキュリティとパフォーマンスのため、以下の制限があります:**
+
+- **サイズ制限**: 入力ファイルおよび埋め込みYAMLは最大10MB
+- **深さ制限**: YAMLのネスト深さは最大50レベル
+- **ノード数制限**: YAMLのノード総数は最大10,000ノード
+- **フォーマット制限**: YAMLブロックスタイルのみ使用可能（`{key: value}`や`[item]`のようなフロースタイルは不可）
+  - 例外: 空のコレクション（`[]`, `{}`）のみフロースタイルを許可
+
+**重要な変更:**
+
+このツールはバージョン2.0以降、JSON形式の入力をサポートしていません。以前のJSON形式のファイルや埋め込みデータは使用できなくなりました。YAML形式に移行してください。
+
 ### コマンド実行
 
 #### validate: YAMLバリデーションのみ
 
 ```bash
 # YAMLの妥当性を検証（設定不要）
-esa-llm-scoped-guard validate -yaml ./tasks/new-task.json
+esa-llm-scoped-guard validate -yaml ./tasks/new-task.yaml
 ```
 
 正常時は何も出力せず終了コード0を返します。
@@ -215,27 +229,27 @@ esa-llm-scoped-guard validate -yaml ./tasks/new-task.json
 
 ```bash
 # 生成されるMarkdownを標準出力に表示（設定不要）
-esa-llm-scoped-guard preview -yaml ./tasks/new-task.json
+esa-llm-scoped-guard preview -yaml ./tasks/new-task.yaml
 ```
 
 #### diff: 記事の差分表示
 
 ```bash
 # 新規作成前に全体を確認（設定・トークン必要、create_new: true の場合は全行が + で表示）
-esa-llm-scoped-guard diff -yaml ./tasks/new-task.json
+esa-llm-scoped-guard diff -yaml ./tasks/new-task.yaml
 
 # 既存記事との差分を表示（設定・トークン必要、post_number 指定時）
-esa-llm-scoped-guard diff -yaml ./tasks/update-task.json
+esa-llm-scoped-guard diff -yaml ./tasks/update-task.yaml
 ```
 
 #### post: esa.ioへ投稿
 
 ```bash
 # 新規作成
-esa-llm-scoped-guard post -yaml ./tasks/new-task.json
+esa-llm-scoped-guard post -yaml ./tasks/new-task.yaml
 
 # 更新（post_numberを指定）
-esa-llm-scoped-guard post -yaml ./tasks/update-task.json
+esa-llm-scoped-guard post -yaml ./tasks/update-task.yaml
 ```
 
 ### ヘルプ表示
