@@ -50,7 +50,9 @@ create_new: true
 name: "タスク: データ分析の実装"
 category: LLM/Tasks/2025/01/18
 body:
-  background: このタスクではデータ分析機能を実装します。
+  background: |
+    このタスクではデータ分析機能を実装します。
+    複数行の背景説明を記述できます。
   related_links:
     - https://github.com/owner/repo/issues/123
   instructions:
@@ -63,7 +65,11 @@ body:
       summary:
         - データ分析の要件を整理
         - 必要なデータソースを特定
-      description: データ分析の要件を定義する
+      description: |
+        データ分析の要件を定義する。
+        以下の項目を含める:
+        - データソースの特定
+        - データ形式の仕様
     - id: task-2
       title: 実装
       status: in_progress

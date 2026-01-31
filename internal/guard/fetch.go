@@ -29,6 +29,8 @@ func executeFetchWithClient(postNumber int, client esa.EsaClientInterface) (stri
 	}
 
 	// 2. Check body size (10MB max)
+	// Note: HTTP response size is already limited by io.LimitReader in internal/esa/client.go
+	// This check is a secondary validation after the response is received
 	if len(post.BodyMD) > MaxInputSize {
 		return "", fmt.Errorf("post body exceeds %d bytes limit", MaxInputSize)
 	}

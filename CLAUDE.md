@@ -120,6 +120,43 @@ esa.ioへ投稿する前に、以下のワークフローを推奨します：
    esa-llm-scoped-guard post -yaml ./tasks/123.yaml
    ```
 
+### YAML入力形式の注意事項
+
+**フォーマット制限**:
+- YAMLブロックスタイルのみ使用可能
+- `{key: value}` や `[item1, item2]` のようなフロースタイルは使用不可
+- 例外: 空のコレクション（`[]`, `{}`）のみフロースタイルを許可
+
+**YAML入力例**（複数行文字列を含む）:
+```yaml
+create_new: true
+name: "タスク: データ分析の実装"
+category: LLM/Tasks/2026/01/28
+body:
+  background: |
+    このタスクではデータ分析機能を実装します。
+    複数行の背景説明を記述できます。
+  related_links:
+    - https://github.com/owner/repo/issues/123
+  instructions:
+    - t_wada式のTDDを実践する
+    - 小まめにコミットする
+  tasks:
+    - id: task-1
+      title: "Task 1: 設計書作成"
+      status: not_started
+      summary:
+        - 設計書のドラフトを作成
+        - レビューを依頼
+      description: |
+        設計書を作成する。
+        以下の項目を含める:
+        - 概要
+        - アーキテクチャ
+        - API仕様
+      depends_on: []
+```
+
 ## トラブルシューティング
 
 ### テスト失敗時
