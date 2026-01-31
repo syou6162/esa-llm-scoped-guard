@@ -54,10 +54,10 @@ func executeFetchWithClient(postNumber int, client esa.EsaClientInterface) (stri
 	// fetch command only targets existing posts (post_number required).
 	// nil post_number is rejected because fetch is for retrieving existing posts from esa.io.
 	if input.PostNumber == nil {
-		return "", fmt.Errorf("post_number is required in embedded JSON (fetch targets existing posts only)")
+		return "", fmt.Errorf("post_number is required in embedded YAML (fetch targets existing posts only)")
 	}
 	if *input.PostNumber != postNumber {
-		return "", fmt.Errorf("post_number mismatch: embedded JSON has %d, but requested %d", *input.PostNumber, postNumber)
+		return "", fmt.Errorf("post_number mismatch: embedded YAML has %d, but requested %d", *input.PostNumber, postNumber)
 	}
 
 	// 6. Pretty-print YAML for output
