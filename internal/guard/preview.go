@@ -21,7 +21,11 @@ func ExecutePreview(jsonPath string) error {
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
-	markdown := GenerateMarkdown(&input.Body)
+	// Generate markdown with embedded JSON (same format as post)
+	markdown, err := GenerateMarkdownWithJSON(input)
+	if err != nil {
+		return fmt.Errorf("failed to generate markdown: %w", err)
+	}
 	fmt.Print(markdown)
 
 	return nil

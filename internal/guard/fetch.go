@@ -40,7 +40,8 @@ func executeFetchWithClient(postNumber int, client esa.EsaClientInterface) (stri
 	// 4. Extract embedded JSON (parse-only, no schema validation)
 	input, err := ExtractEmbeddedJSON(post.BodyMD)
 	if err != nil {
-		return "", err
+		// Add post number to error message for better context
+		return "", fmt.Errorf("failed to extract JSON from post %d: %w", postNumber, err)
 	}
 
 	// 5. Check post_number consistency (fail closed security check)
