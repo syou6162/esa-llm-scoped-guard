@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestGenerateMarkdownWithJSON(t *testing.T) {
+func TestGenerateMarkdownWithYAML(t *testing.T) {
 	postNum := 123
 	input := &PostInput{
 		PostNumber: &postNum,
@@ -25,13 +25,13 @@ func TestGenerateMarkdownWithJSON(t *testing.T) {
 		},
 	}
 
-	markdown, err := GenerateMarkdownWithJSON(input)
+	markdown, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
-		t.Fatalf("GenerateMarkdownWithJSON() error = %v", err)
+		t.Fatalf("GenerateMarkdownWithYAML() error = %v", err)
 	}
 
 	// Check sentinel at start
-	if !strings.HasPrefix(markdown, "<!-- esa-guard-json\n") {
+	if !strings.HasPrefix(markdown, "<!-- esa-guard-yaml\n") {
 		t.Errorf("Markdown should start with sentinel, got: %s", markdown[:50])
 	}
 
@@ -40,25 +40,19 @@ func TestGenerateMarkdownWithJSON(t *testing.T) {
 		t.Error("Markdown should contain closing tag")
 	}
 
-	// Check JSON is compact (no pretty print)
+	// Check YAML block exists (multiple lines)
 	lines := strings.Split(markdown, "\n")
 	if len(lines) < 3 {
-		t.Fatal("Expected at least 3 lines (sentinel, JSON, closing)")
-	}
-
-	// Line 2 should be compact JSON (single line)
-	jsonLine := lines[1]
-	if !strings.HasPrefix(jsonLine, "{") {
-		t.Errorf("Expected JSON line to start with {, got: %s", jsonLine[:10])
+		t.Fatal("Expected at least 3 lines (sentinel, YAML, closing)")
 	}
 
 	// Check Markdown content follows after closing tag
 	if !strings.Contains(markdown, "## サマリー") {
-		t.Error("Expected Markdown content after JSON")
+		t.Error("Expected Markdown content after YAML")
 	}
 }
 
-func TestGenerateMarkdownWithJSON_NoLeadingNewline(t *testing.T) {
+func TestGenerateMarkdownWithYAML_NoLeadingNewline(t *testing.T) {
 	postNum := 123
 	input := &PostInput{
 		PostNumber: &postNum,
@@ -72,9 +66,9 @@ func TestGenerateMarkdownWithJSON_NoLeadingNewline(t *testing.T) {
 		},
 	}
 
-	markdown, err := GenerateMarkdownWithJSON(input)
+	markdown, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
-		t.Fatalf("GenerateMarkdownWithJSON() error = %v", err)
+		t.Fatalf("GenerateMarkdownWithYAML() error = %v", err)
 	}
 
 	// Ensure no leading newline before sentinel
@@ -110,7 +104,7 @@ func TestGenerateMarkdown_NoLeadingWhitespace(t *testing.T) {
 	}
 }
 
-func TestGenerateMarkdownWithJSON_ExceedsMaxSize(t *testing.T) {
+func TestGenerateMarkdownWithYAML_ExceedsMaxSize(t *testing.T) {
 	// Create input that will exceed 10MB when embedded
 	largeBackground := strings.Repeat("a", MaxInputSize)
 
@@ -127,7 +121,7 @@ func TestGenerateMarkdownWithJSON_ExceedsMaxSize(t *testing.T) {
 		},
 	}
 
-	_, err := GenerateMarkdownWithJSON(input)
+	_, err := GenerateMarkdownWithYAML(input)
 	if err == nil {
 		t.Fatal("Expected error for embedded markdown exceeding 10MB, got nil")
 	}

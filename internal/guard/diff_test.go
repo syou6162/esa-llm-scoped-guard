@@ -291,12 +291,12 @@ func TestExecuteDiff_IdenticalContent(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedMarkdown, err := GenerateMarkdownWithJSON(input)
+	expectedMarkdown, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// 同一内容を返すモック（GenerateMarkdownWithJSONの出力をそのまま使用）
+	// 同一内容を返すモック（GenerateMarkdownWithYAMLの出力をそのまま使用）
 	mockClient := &mockEsaClient{
 		getPostFunc: func(number int) (*esa.Post, error) {
 			return &esa.Post{

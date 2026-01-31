@@ -41,13 +41,13 @@ func (m *mockEsaClientForExecute) GetPost(number int) (*esa.Post, error) {
 	}, nil
 }
 
-// TestExecutePost_CreateNewUpdatesJSON tests that JSON file is automatically updated after successful post with create_new
-func TestExecutePost_CreateNewUpdatesJSON(t *testing.T) {
+// TestExecutePost_CreateNewUpdatesYAML tests that YAML file is automatically updated after successful post with create_new
+func TestExecutePost_CreateNewUpdatesYAML(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.json")
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
-	// 新規作成用のJSONファイルを作成（create_new: true）
-	inputJSON := `{
+	// 新規作成用のYAMLファイルを作成（create_new: true）
+	inputYAML := `{
 		"create_new": true,
 		"name": "Test Post",
 		"category": "Claude Code/開発日誌/2026/01/28",
@@ -65,7 +65,7 @@ func TestExecutePost_CreateNewUpdatesJSON(t *testing.T) {
 		}
 	}`
 
-	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -84,7 +84,7 @@ func TestExecutePost_CreateNewUpdatesJSON(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	// JSONファイルが自動更新されているか確認
+	// YAMLファイルが自動更新されているか確認
 	updatedInput, err := ReadPostInputFromFile(tmpFile)
 	if err != nil {
 		t.Fatalf("failed to read updated JSON: %v", err)
@@ -103,13 +103,13 @@ func TestExecutePost_CreateNewUpdatesJSON(t *testing.T) {
 	}
 }
 
-// TestExecutePost_UpdateDoesNotChangeJSON tests that JSON file is not modified when updating existing post
+// TestExecutePost_UpdateDoesNotChangeJSON tests that YAML file is not modified when updating existing post
 func TestExecutePost_UpdateDoesNotChangeJSON(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.json")
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
-	// 更新用のJSONファイルを作成（post_number: 123）
-	inputJSON := `{
+	// 更新用のYAMLファイルを作成（post_number: 123）
+	inputYAML := `{
 		"post_number": 123,
 		"name": "Test Post",
 		"category": "Claude Code/開発日誌/2026/01/28",
@@ -127,7 +127,7 @@ func TestExecutePost_UpdateDoesNotChangeJSON(t *testing.T) {
 		}
 	}`
 
-	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -153,7 +153,7 @@ func TestExecutePost_UpdateDoesNotChangeJSON(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	// JSONファイルが変更されていないことを確認
+	// YAMLファイルが変更されていないことを確認
 	updatedInput, err := ReadPostInputFromFile(tmpFile)
 	if err != nil {
 		t.Fatalf("failed to read JSON: %v", err)
@@ -172,13 +172,13 @@ func TestExecutePost_UpdateDoesNotChangeJSON(t *testing.T) {
 	}
 }
 
-// TestExecutePost_CreateFailureDoesNotChangeJSON tests that JSON file is not modified when post creation fails
+// TestExecutePost_CreateFailureDoesNotChangeJSON tests that YAML file is not modified when post creation fails
 func TestExecutePost_CreateFailureDoesNotChangeJSON(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.json")
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
-	// 新規作成用のJSONファイルを作成（create_new: true）
-	inputJSON := `{
+	// 新規作成用のYAMLファイルを作成（create_new: true）
+	inputYAML := `{
 		"create_new": true,
 		"name": "Test Post",
 		"category": "Claude Code/開発日誌/2026/01/28",
@@ -196,7 +196,7 @@ func TestExecutePost_CreateFailureDoesNotChangeJSON(t *testing.T) {
 		}
 	}`
 
-	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -215,7 +215,7 @@ func TestExecutePost_CreateFailureDoesNotChangeJSON(t *testing.T) {
 		t.Fatal("expected error, got nil")
 	}
 
-	// JSONファイルが変更されていないことを確認
+	// YAMLファイルが変更されていないことを確認
 	updatedInput, err := ReadPostInputFromFile(tmpFile)
 	if err != nil {
 		t.Fatalf("failed to read JSON: %v", err)
@@ -235,11 +235,11 @@ func TestExecutePost_CreateFailureDoesNotChangeJSON(t *testing.T) {
 // TestExecutePost_EmbeddsJSONInMarkdown tests that GenerateMarkdownWithJSON correctly embeds JSON
 func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.json")
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
 	postNumber := 123
-	// 更新用のJSONファイルを作成（post_number: 123）
-	inputJSON := `{
+	// 更新用のYAMLファイルを作成（post_number: 123）
+	inputYAML := `{
 		"post_number": 123,
 		"name": "Test Post",
 		"category": "Claude Code/開発日誌/2026/01/28",
@@ -259,7 +259,7 @@ func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
 		}
 	}`
 
-	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -302,7 +302,7 @@ func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
 	}
 
 	// 2. 埋め込まれたJSONを抽出してパース可能なこと
-	extracted, err := ExtractEmbeddedJSON(capturedBodyMD)
+	extracted, err := ExtractEmbeddedYAML(capturedBodyMD)
 	if err != nil {
 		t.Fatalf("failed to extract embedded JSON: %v", err)
 	}
@@ -328,7 +328,7 @@ func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
 	}
 
 	// 4. Markdownセクションが含まれていること
-	// ExtractEmbeddedJSONが成功している時点でフォーマットは正しいので、
+	// ExtractEmbeddedYAMLが成功している時点でフォーマットは正しいので、
 	// 十分な長さがあることだけ確認
 	if len(capturedBodyMD) < 100 {
 		t.Errorf("body_md seems too short, expected markdown sections")
