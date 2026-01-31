@@ -306,6 +306,16 @@ func TestDecodeYAMLSecure_DepthLimit(t *testing.T) {
 			wantErr: false,
 		},
 		{
+			name:    "depth 46 (boundary: allowed)",
+			depth:   46,
+			wantErr: false,
+		},
+		{
+			name:    "depth 47 (boundary: rejected)",
+			depth:   47,
+			wantErr: true,
+		},
+		{
 			name:    "depth 52 (exceeds limit)",
 			depth:   52,
 			wantErr: true,

@@ -94,7 +94,7 @@ func validateYAMLNode(node *yaml.Node) error {
 
 func validateYAMLNodeRecursive(node *yaml.Node, depth int, nodeCount *int) error {
 	// 深さ制限
-	if depth > MaxYAMLDepth {
+	if depth >= MaxYAMLDepth {
 		return errors.New("YAML nesting too deep")
 	}
 
