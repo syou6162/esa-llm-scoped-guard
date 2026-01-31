@@ -231,3 +231,106 @@ func TestExecutePost_CreateFailureDoesNotChangeJSON(t *testing.T) {
 		t.Errorf("expected PostNumber to remain nil, got %d", *updatedInput.PostNumber)
 	}
 }
+
+// TestExecutePost_EmbeddsJSONInMarkdown tests that GenerateMarkdownWithJSON correctly embeds JSON
+func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.json")
+
+	postNumber := 123
+	// 更新用のJSONファイルを作成（post_number: 123）
+	inputJSON := `{
+		"post_number": 123,
+		"name": "Test Post",
+		"category": "Claude Code/開発日誌/2026/01/28",
+		"body": {
+			"background": "Test background",
+			"related_links": ["https://example.com"],
+			"instructions": ["Instruction 1"],
+			"tasks": [
+				{
+					"id": "task-1",
+					"title": "Task 1: Test task",
+					"status": "not_started",
+					"summary": ["Task summary"],
+					"description": "Task description"
+				}
+			]
+		}
+	}`
+
+	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	var capturedBodyMD string
+
+	// モッククライアント（UpdatePostで送信されるbody_mdをキャプチャ）
+	mockClient := &mockEsaClientForExecute{
+		getPostFunc: func(number int) (*esa.Post, error) {
+			return &esa.Post{
+				Number:   123,
+				Category: "Claude Code/開発日誌/2026/01/28",
+				Tags:     []string{},
+			}, nil
+		},
+		updatePostFunc: func(number int, input *esa.PostInput) (*esa.Post, error) {
+			capturedBodyMD = input.BodyMD
+			return &esa.Post{Number: 123}, nil
+		},
+	}
+
+	allowedCategories := []string{"Claude Code/開発日誌"}
+
+	// ExecutePost実行
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	// 送信されたbody_mdを検証
+	if capturedBodyMD == "" {
+		t.Fatal("body_md was not captured")
+	}
+
+	// 1. 先頭が<!-- esa-guard-jsonで始まっていること
+	if len(capturedBodyMD) < len(Sentinel) {
+		t.Fatalf("body_md too short: %d bytes", len(capturedBodyMD))
+	}
+	if capturedBodyMD[:len(Sentinel)] != Sentinel {
+		t.Errorf("body_md does not start with sentinel, got: %s", capturedBodyMD[:50])
+	}
+
+	// 2. 埋め込まれたJSONを抽出してパース可能なこと
+	extracted, err := ExtractEmbeddedJSON(capturedBodyMD)
+	if err != nil {
+		t.Fatalf("failed to extract embedded JSON: %v", err)
+	}
+
+	// 3. 抽出したJSONが元のPostInputと一致すること
+	if extracted.PostNumber == nil || *extracted.PostNumber != postNumber {
+		t.Errorf("expected post_number %d, got %v", postNumber, extracted.PostNumber)
+	}
+	if extracted.Name != "Test Post" {
+		t.Errorf("expected name 'Test Post', got '%s'", extracted.Name)
+	}
+	if extracted.Category != "Claude Code/開発日誌/2026/01/28" {
+		t.Errorf("expected category 'Claude Code/開発日誌/2026/01/28', got '%s'", extracted.Category)
+	}
+	if extracted.Body.Background != "Test background" {
+		t.Errorf("expected background 'Test background', got '%s'", extracted.Body.Background)
+	}
+	if len(extracted.Body.Tasks) != 1 {
+		t.Fatalf("expected 1 task, got %d", len(extracted.Body.Tasks))
+	}
+	if extracted.Body.Tasks[0].Title != "Task 1: Test task" {
+		t.Errorf("expected task title 'Task 1: Test task', got '%s'", extracted.Body.Tasks[0].Title)
+	}
+
+	// 4. Markdownセクションが含まれていること
+	// ExtractEmbeddedJSONが成功している時点でフォーマットは正しいので、
+	// 十分な長さがあることだけ確認
+	if len(capturedBodyMD) < 100 {
+		t.Errorf("body_md seems too short, expected markdown sections")
+	}
+}

@@ -115,11 +115,17 @@ func (c *EsaClient) doRequest(method, url string, payload interface{}) (*Post, e
 	}
 	defer resp.Body.Close()
 
-	// レスポンスボディを制限付きで読み込み（10MB上限）
-	limitedReader := io.LimitReader(resp.Body, 10*1024*1024)
+	// レスポンスボディを制限付きで読み込み（10MB上限+1バイトで超過検知）
+	const maxResponseSize = 10 * 1024 * 1024
+	limitedReader := io.LimitReader(resp.Body, maxResponseSize+1)
 	respBody, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	// レスポンスサイズが上限を超えている場合はエラー（fail closed）
+	if len(respBody) > maxResponseSize {
+		return nil, fmt.Errorf("response body exceeds %d bytes (got at least %d bytes)", maxResponseSize, len(respBody))
 	}
 
 	// ステータスコードチェック
