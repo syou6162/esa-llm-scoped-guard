@@ -42,15 +42,14 @@ func ReadPostInputFromFile(path string) (*PostInput, error) {
 	}
 
 	// サイズ制限付きで読み込み（10MB+1バイト読んで超過を検出）
-	const maxSize = 10 * 1024 * 1024
-	limitedReader := io.LimitReader(file, maxSize+1)
+	limitedReader := io.LimitReader(file, MaxInputSize+1)
 	data, err := io.ReadAll(limitedReader)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
 	// サイズ超過チェック
-	if len(data) > maxSize {
+	if len(data) > MaxInputSize {
 		return nil, NewValidationError(ErrCodeFileSizeExceeded, "file size exceeds 10MB")
 	}
 

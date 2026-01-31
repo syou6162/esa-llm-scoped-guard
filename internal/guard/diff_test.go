@@ -286,14 +286,17 @@ func TestExecuteDiff_IdenticalContent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// JSONファイルから入力を読み込んでMarkdownを生成
+	// JSONファイルから入力を読み込んでMarkdownを生成（JSON埋め込みあり）
 	input, err := ReadPostInputFromFile(tmpFile)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedMarkdown := GenerateMarkdown(&input.Body)
+	expectedMarkdown, err := GenerateMarkdownWithJSON(input)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	// 同一内容を返すモック（GenerateMarkdownの出力をそのまま使用）
+	// 同一内容を返すモック（GenerateMarkdownWithJSONの出力をそのまま使用）
 	mockClient := &mockEsaClient{
 		getPostFunc: func(number int) (*esa.Post, error) {
 			return &esa.Post{

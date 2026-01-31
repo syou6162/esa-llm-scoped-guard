@@ -2371,3 +2371,173 @@ func TestValidatePostInput_TaskTitlePrefix(t *testing.T) {
 		})
 	}
 }
+
+func TestValidatePostInputSchema_HTMLCommentCheck(t *testing.T) {
+	tests := []struct {
+		name    string
+		input   *PostInput
+		wantErr bool
+	}{
+		{
+			name: "name contains <!--",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test <!--comment",
+				Category:  "LLM/Test/2026/01/31",
+				Body: Body{
+					Background: "test",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "name contains -->",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test -->comment",
+				Category:  "LLM/Test/2026/01/31",
+				Body: Body{
+					Background: "test",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "background contains <!--",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test",
+				Category:  "LLM/Test/2026/01/31",
+				Body: Body{
+					Background: "test <!--comment",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "task description contains -->",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test",
+				Category:  "LLM/Test/2026/01/31",
+				Body: Body{
+					Background: "test",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test -->comment"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "related_links contains <!--",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test",
+				Category:  "LLM/Test/2026/01/31",
+				Body: Body{
+					Background:   "test",
+					RelatedLinks: []string{"https://example.com/<!--comment"},
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "github_urls contains -->",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test",
+				Category:  "LLM/Test/2026/01/31",
+				Body: Body{
+					Background: "test",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test", GitHubURLs: []string{"https://github.com/owner/repo/pull/123-->"}},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "depends_on contains <!--",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test",
+				Category:  "LLM/Test/2026/01/31",
+				Body: Body{
+					Background: "test",
+					Tasks: []Task{
+						{ID: "task-0", Title: "Task 0: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
+						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test", DependsOn: []string{"task-0<!--"}},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "no HTML comments",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test",
+				Category:  "LLM/Test/2026/01/31",
+				Body: Body{
+					Background: "test",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
+					},
+				},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := ValidatePostInputSchema(tt.input)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ValidatePostInputSchema() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.wantErr && err != nil {
+				if !strings.Contains(err.Error(), "<!--") && !strings.Contains(err.Error(), "-->") {
+					t.Errorf("Expected error message to mention HTML comments, got: %v", err)
+				}
+			}
+		})
+	}
+}
+
+func TestValidatePostInputSchema_JSONSize(t *testing.T) {
+	// Create a large task description to exceed 2MB when marshaled
+	largeString := strings.Repeat("a", MaxJSONSize+1000)
+
+	input := &PostInput{
+		CreateNew: true,
+		Name:      "Test",
+		Category:  "LLM/Test/2026/01/31",
+		Body: Body{
+			Background: largeString,
+			Tasks: []Task{
+				{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
+			},
+		},
+	}
+
+	err := ValidatePostInputSchema(input)
+	if err == nil {
+		t.Fatal("Expected error for JSON size exceeding 2MB, got nil")
+	}
+	if !strings.Contains(err.Error(), "JSON size exceeds") {
+		t.Errorf("Expected error message about JSON size, got: %v", err)
+	}
+}

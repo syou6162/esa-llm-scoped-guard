@@ -56,10 +56,20 @@ func ValidatePostInputSchema(input *PostInput) error {
 		return schemaCompileError
 	}
 
+	// HTMLコメント文字列チェック（マーシャル前の検証）
+	if err := checkHTMLCommentSequences(input); err != nil {
+		return err
+	}
+
 	// PostInputをJSONに変換してスキーマ検証
 	data, err := json.Marshal(input)
 	if err != nil {
 		return fmt.Errorf("failed to marshal input: %w", err)
+	}
+
+	// JSONサイズチェック（2MB上限）
+	if len(data) > MaxJSONSize {
+		return fmt.Errorf("JSON size exceeds %d bytes (got %d bytes)", MaxJSONSize, len(data))
 	}
 
 	var v interface{}
@@ -69,6 +79,71 @@ func ValidatePostInputSchema(input *PostInput) error {
 
 	if err := compiledSchema.Validate(v); err != nil {
 		return NewValidationError(ErrCodeInvalidValue, fmt.Sprintf("schema validation failed: %v", err)).Wrap(err)
+	}
+
+	return nil
+}
+
+// checkHTMLCommentSequences はPostInput内のすべてのテキストフィールドに
+// HTMLコメント開始/終了シーケンス（<!--, -->）が含まれていないかチェックします
+func checkHTMLCommentSequences(input *PostInput) error {
+	// name
+	if strings.Contains(input.Name, "<!--") || strings.Contains(input.Name, "-->") {
+		return fmt.Errorf("name contains forbidden HTML comment sequence (<!-- or -->)")
+	}
+
+	// category
+	if strings.Contains(input.Category, "<!--") || strings.Contains(input.Category, "-->") {
+		return fmt.Errorf("category contains forbidden HTML comment sequence (<!-- or -->)")
+	}
+
+	// body.background
+	if strings.Contains(input.Body.Background, "<!--") || strings.Contains(input.Body.Background, "-->") {
+		return fmt.Errorf("background contains forbidden HTML comment sequence (<!-- or -->)")
+	}
+
+	// body.related_links
+	for i, link := range input.Body.RelatedLinks {
+		if strings.Contains(link, "<!--") || strings.Contains(link, "-->") {
+			return fmt.Errorf("related_links[%d] contains forbidden HTML comment sequence (<!-- or -->)", i)
+		}
+	}
+
+	// body.instructions
+	for i, inst := range input.Body.Instructions {
+		if strings.Contains(inst, "<!--") || strings.Contains(inst, "-->") {
+			return fmt.Errorf("instructions[%d] contains forbidden HTML comment sequence (<!-- or -->)", i)
+		}
+	}
+
+	// body.tasks
+	for i, task := range input.Body.Tasks {
+		if strings.Contains(task.ID, "<!--") || strings.Contains(task.ID, "-->") {
+			return fmt.Errorf("task[%d].id contains forbidden HTML comment sequence (<!-- or -->)", i)
+		}
+		if strings.Contains(task.Title, "<!--") || strings.Contains(task.Title, "-->") {
+			return fmt.Errorf("task[%d].title contains forbidden HTML comment sequence (<!-- or -->)", i)
+		}
+		if strings.Contains(task.Description, "<!--") || strings.Contains(task.Description, "-->") {
+			return fmt.Errorf("task[%d].description contains forbidden HTML comment sequence (<!-- or -->)", i)
+		}
+		for j, summary := range task.Summary {
+			if strings.Contains(summary, "<!--") || strings.Contains(summary, "-->") {
+				return fmt.Errorf("task[%d].summary[%d] contains forbidden HTML comment sequence (<!-- or -->)", i, j)
+			}
+		}
+		// task.github_urls
+		for j, url := range task.GitHubURLs {
+			if strings.Contains(url, "<!--") || strings.Contains(url, "-->") {
+				return fmt.Errorf("task[%d].github_urls[%d] contains forbidden HTML comment sequence (<!-- or -->)", i, j)
+			}
+		}
+		// task.depends_on
+		for j, dep := range task.DependsOn {
+			if strings.Contains(dep, "<!--") || strings.Contains(dep, "-->") {
+				return fmt.Errorf("task[%d].depends_on[%d] contains forbidden HTML comment sequence (<!-- or -->)", i, j)
+			}
+		}
 	}
 
 	return nil

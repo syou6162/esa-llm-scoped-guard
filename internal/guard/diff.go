@@ -28,12 +28,15 @@ func executeDiffWithClient(jsonPath string, allowedCategories []string, client e
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
-	newMarkdown := GenerateMarkdown(&input.Body)
+	// Generate markdown with embedded JSON (same format as post)
+	newMarkdown, err := GenerateMarkdownWithJSON(input)
+	if err != nil {
+		return fmt.Errorf("failed to generate markdown: %w", err)
+	}
 
 	// サイズチェック: 新しいMarkdownが大きすぎる場合は拒否（DoS対策）
-	const maxBodySize = 10 * 1024 * 1024 // 10MB
-	if len(newMarkdown) > maxBodySize {
-		return fmt.Errorf("new markdown too large (%d bytes, max %d bytes)", len(newMarkdown), maxBodySize)
+	if len(newMarkdown) > MaxInputSize {
+		return fmt.Errorf("new markdown too large (%d bytes, max %d bytes)", len(newMarkdown), MaxInputSize)
 	}
 
 	var oldMarkdown string
@@ -62,8 +65,8 @@ func executeDiffWithClient(jsonPath string, allowedCategories []string, client e
 		}
 
 		// サイズチェック: 既存記事の本文が大きすぎる場合は拒否（DoS対策）
-		if len(existingPost.BodyMD) > maxBodySize {
-			return fmt.Errorf("existing post body too large (%d bytes, max %d bytes)", len(existingPost.BodyMD), maxBodySize)
+		if len(existingPost.BodyMD) > MaxInputSize {
+			return fmt.Errorf("existing post body too large (%d bytes, max %d bytes)", len(existingPost.BodyMD), MaxInputSize)
 		}
 
 		// セキュリティチェック: 既存記事のカテゴリが許可範囲内か検証

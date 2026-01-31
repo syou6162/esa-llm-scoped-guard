@@ -91,8 +91,11 @@ func updatePost(client esa.EsaClientInterface, input *PostInput, allowedCategori
 	// 既存のタグを保持し、現在のリポジトリ名がなければ追加
 	tags := MergeTags(existingPost.Tags, repoName)
 
-	// BodyからマークダウンGenerate
-	bodyMD := GenerateMarkdown(&input.Body)
+	// BodyからマークダウンGenerate（JSON埋め込み）
+	bodyMD, err := GenerateMarkdownWithJSON(input)
+	if err != nil {
+		return fmt.Errorf("failed to generate markdown with JSON: %w", err)
+	}
 
 	esaInput := &esa.PostInput{
 		Name:     input.Name,
@@ -118,8 +121,11 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 		tags = []string{repoName}
 	}
 
-	// BodyからマークダウンGenerate
-	bodyMD := GenerateMarkdown(&input.Body)
+	// BodyからマークダウンGenerate（JSON埋め込み）
+	bodyMD, err := GenerateMarkdownWithJSON(input)
+	if err != nil {
+		return 0, fmt.Errorf("failed to generate markdown with JSON: %w", err)
+	}
 
 	esaInput := &esa.PostInput{
 		Name:     input.Name,
