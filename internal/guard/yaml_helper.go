@@ -178,21 +178,23 @@ func validateYAMLNodeRecursive(node *yaml.Node, depth int, nodeCount *int) error
 var standardYAMLTags = map[string]bool{
 	"": true, // 暗黙的タグ
 	// 短縮表記
-	"!!str":   true,
-	"!!int":   true,
-	"!!float": true,
-	"!!bool":  true,
-	"!!null":  true,
-	"!!map":   true,
-	"!!seq":   true,
+	"!!str":       true,
+	"!!int":       true,
+	"!!float":     true,
+	"!!bool":      true,
+	"!!null":      true,
+	"!!map":       true,
+	"!!seq":       true,
+	"!!timestamp": true,
 	// ロング形式
-	"tag:yaml.org,2002:str":   true,
-	"tag:yaml.org,2002:int":   true,
-	"tag:yaml.org,2002:float": true,
-	"tag:yaml.org,2002:bool":  true,
-	"tag:yaml.org,2002:null":  true,
-	"tag:yaml.org,2002:map":   true,
-	"tag:yaml.org,2002:seq":   true,
+	"tag:yaml.org,2002:str":       true,
+	"tag:yaml.org,2002:int":       true,
+	"tag:yaml.org,2002:float":     true,
+	"tag:yaml.org,2002:bool":      true,
+	"tag:yaml.org,2002:null":      true,
+	"tag:yaml.org,2002:map":       true,
+	"tag:yaml.org,2002:seq":       true,
+	"tag:yaml.org,2002:timestamp": true,
 }
 
 func isStandardYAMLTag(tag string) bool {

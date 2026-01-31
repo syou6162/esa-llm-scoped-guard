@@ -224,15 +224,13 @@ task:
 	}
 }
 
+// TestDecodeYAMLSecure_CustomTags はカスタムタグを拒否することをテスト
+// 注: !!timestampは標準タグなので許可される（ISO8601日付文字列のサポートに必要）
 func TestDecodeYAMLSecure_CustomTags(t *testing.T) {
 	tests := []struct {
 		name  string
 		input string
 	}{
-		{
-			name:  "timestamp tag",
-			input: `date: !!timestamp 2026-01-31`,
-		},
 		{
 			name:  "binary tag",
 			input: `data: !!binary SGVsbG8=`,
@@ -446,6 +444,71 @@ func TestDecodeYAMLSecure_NonScalarMapKeys(t *testing.T) {
 			}
 			if !strings.Contains(err.Error(), "non-scalar") {
 				t.Errorf("expected 'non-scalar' in error message, got: %v", err)
+			}
+		})
+	}
+}
+
+// TestDecodeYAMLSecure_ISO8601Dates はISO8601形式の日付文字列が受け入れられることをテスト
+// yaml.v3はISO8601形式の文字列に!!timestampタグを付けることがあるため、
+// standardYAMLTagsに!!timestampが含まれている必要がある
+func TestDecodeYAMLSecure_ISO8601Dates(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name: "date only",
+			input: `name: Test Post
+category: LLM/Test/2026/01/31
+body:
+  background: 2026-01-31
+  tasks:
+    - id: task-1
+      title: test
+      status: not_started
+      summary:
+        - test
+      description: test`,
+		},
+		{
+			name: "datetime with timezone",
+			input: `name: Test Post
+category: LLM/Test/2026/01/31
+body:
+  background: 2026-01-31T12:00:00Z
+  tasks:
+    - id: task-1
+      title: test
+      status: not_started
+      summary:
+        - test
+      description: test`,
+		},
+		{
+			name: "datetime without timezone",
+			input: `name: Test Post
+category: LLM/Test/2026/01/31
+body:
+  background: 2026-01-31T12:00:00
+  tasks:
+    - id: task-1
+      title: test
+      status: not_started
+      summary:
+        - test
+      description: test`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var result PostInput
+			err := DecodeYAMLSecure(strings.NewReader(tt.input), &result, 0)
+			// ISO8601形式の文字列は通常の文字列として扱われるべき
+			// yaml.v3が!!timestampタグを付けても、それは標準タグとして許可される
+			if err != nil {
+				t.Fatalf("expected no error for ISO8601 date string, got: %v", err)
 			}
 		})
 	}
