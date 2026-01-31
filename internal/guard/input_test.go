@@ -58,7 +58,7 @@ func TestReadPostInputFromFile(t *testing.T) {
 			name:        "不正なJSON",
 			jsonContent: `{"name": "Test"`,
 			wantErr:     true,
-			wantErrCode: ErrCodeJSONInvalid,
+			wantErrCode: ErrCodeYAMLInvalid,
 		},
 		{
 			name: "未知のフィールド",
@@ -71,7 +71,7 @@ func TestReadPostInputFromFile(t *testing.T) {
 				"unknown_field": "value"
 			}`,
 			wantErr:     true,
-			wantErrCode: ErrCodeJSONInvalid,
+			wantErrCode: ErrCodeYAMLInvalid,
 		},
 		{
 			name: "複数のJSONオブジェクト",
@@ -90,7 +90,7 @@ func TestReadPostInputFromFile(t *testing.T) {
 				}
 			}`,
 			wantErr:     true,
-			wantErrCode: ErrCodeJSONInvalid,
+			wantErrCode: ErrCodeYAMLInvalid,
 		},
 		{
 			name: "trailing data",
@@ -102,7 +102,7 @@ func TestReadPostInputFromFile(t *testing.T) {
 				}
 			} extra data`,
 			wantErr:     true,
-			wantErrCode: ErrCodeJSONInvalid,
+			wantErrCode: ErrCodeYAMLInvalid,
 		},
 	}
 

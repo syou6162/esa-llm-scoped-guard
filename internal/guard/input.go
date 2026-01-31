@@ -59,18 +59,18 @@ func ReadPostInputFromFile(path string) (*PostInput, error) {
 	decoder.DisallowUnknownFields()
 
 	if err := decoder.Decode(&input); err != nil {
-		return nil, NewValidationError(ErrCodeJSONInvalid, fmt.Sprintf("failed to parse JSON: %v", err)).Wrap(err)
+		return nil, NewValidationError(ErrCodeYAMLInvalid, fmt.Sprintf("failed to parse JSON: %v", err)).Wrap(err)
 	}
 
 	// JSON EOF確認（追加データがないことを確認）
 	if decoder.More() {
-		return nil, NewValidationError(ErrCodeJSONInvalid, "JSON file contains multiple values")
+		return nil, NewValidationError(ErrCodeYAMLInvalid, "JSON file contains multiple values")
 	}
 
 	// 2回目のDecodeでEOFを確認
 	var dummy interface{}
 	if err := decoder.Decode(&dummy); err != io.EOF {
-		return nil, NewValidationError(ErrCodeJSONInvalid, "JSON file contains trailing data")
+		return nil, NewValidationError(ErrCodeYAMLInvalid, "JSON file contains trailing data")
 	}
 
 	return &input, nil
