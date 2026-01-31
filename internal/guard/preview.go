@@ -5,8 +5,8 @@ import (
 )
 
 // ExecutePreview は生成されるMarkdownを標準出力に出力する。
-func ExecutePreview(jsonPath string) error {
-	input, err := ReadPostInputFromFile(jsonPath)
+func ExecutePreview(yamlPath string) error {
+	input, err := ReadPostInputFromFile(yamlPath)
 	if err != nil {
 		return fmt.Errorf("failed to read YAML file: %w", err)
 	}

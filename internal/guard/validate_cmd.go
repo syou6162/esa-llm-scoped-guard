@@ -6,8 +6,8 @@ import (
 
 // ExecuteValidate はYAMLの妥当性を検証する。
 // 正常時は何も出力せず終了コード0を返す。
-func ExecuteValidate(jsonPath string) error {
-	input, err := ReadPostInputFromFile(jsonPath)
+func ExecuteValidate(yamlPath string) error {
+	input, err := ReadPostInputFromFile(yamlPath)
 	if err != nil {
 		return fmt.Errorf("failed to read YAML file: %w", err)
 	}

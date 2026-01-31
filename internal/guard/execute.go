@@ -12,15 +12,15 @@ import (
 )
 
 // ExecutePost はesa.io記事の作成/更新を実行します
-func ExecutePost(jsonPath string, teamName string, allowedCategories []string, accessToken string) error {
+func ExecutePost(yamlPath string, teamName string, allowedCategories []string, accessToken string) error {
 	client := esa.NewEsaClient(teamName, accessToken)
-	return executePostWithClient(jsonPath, allowedCategories, client)
+	return executePostWithClient(yamlPath, allowedCategories, client)
 }
 
 // executePostWithClient はesa.io記事の作成/更新を実行します（テスト可能なバージョン）
-func executePostWithClient(jsonPath string, allowedCategories []string, client esa.EsaClientInterface) error {
+func executePostWithClient(yamlPath string, allowedCategories []string, client esa.EsaClientInterface) error {
 	// 1. YAMLファイルの読み込みとバリデーション
-	input, err := ReadPostInputFromFile(jsonPath)
+	input, err := ReadPostInputFromFile(yamlPath)
 	if err != nil {
 		return fmt.Errorf("failed to read YAML file: %w", err)
 	}
@@ -57,7 +57,7 @@ func executePostWithClient(jsonPath string, allowedCategories []string, client e
 		}
 
 		// 新規作成成功時にYAMLファイルを自動更新
-		if err := updateYAMLAfterCreate(jsonPath, postNumber); err != nil {
+		if err := updateYAMLAfterCreate(yamlPath, postNumber); err != nil {
 			// 警告を出すが、投稿自体は成功しているのでエラーにしない
 			fmt.Fprintf(os.Stderr, "Warning: failed to update YAML file: %v\n", err)
 			fmt.Fprintf(os.Stderr, "You may need to manually update the YAML file to use diff/update commands.\n")
@@ -139,15 +139,15 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 }
 
 // updateYAMLAfterCreate は新規作成成功後にYAMLファイルを更新します
-func updateYAMLAfterCreate(jsonPath string, postNumber int) error {
+func updateYAMLAfterCreate(yamlPath string, postNumber int) error {
 	// 元のファイルのパーミッションを取得
-	fileInfo, err := os.Stat(jsonPath)
+	fileInfo, err := os.Stat(yamlPath)
 	if err != nil {
 		return fmt.Errorf("failed to stat YAML file: %w", err)
 	}
 
 	// YAMLファイルを読み込み
-	input, err := ReadPostInputFromFile(jsonPath)
+	input, err := ReadPostInputFromFile(yamlPath)
 	if err != nil {
 		return err
 	}
@@ -164,7 +164,7 @@ func updateYAMLAfterCreate(jsonPath string, postNumber int) error {
 
 	// 一時ファイルに書き込み（原子的更新のため）
 	// 同一ディレクトリにユニークな一時ファイルを作成
-	dir := filepath.Dir(jsonPath)
+	dir := filepath.Dir(yamlPath)
 	tmpFile, err := os.CreateTemp(dir, ".esa-guard-*.tmp")
 	if err != nil {
 		return fmt.Errorf("failed to create temp file: %w", err)
@@ -193,7 +193,7 @@ func updateYAMLAfterCreate(jsonPath string, postNumber int) error {
 	}
 
 	// 原子的にリネーム
-	if err := os.Rename(tmpPath, jsonPath); err != nil {
+	if err := os.Rename(tmpPath, yamlPath); err != nil {
 		return fmt.Errorf("failed to rename temp file: %w", err)
 	}
 

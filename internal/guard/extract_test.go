@@ -142,13 +142,13 @@ name: "-->test"
 }
 
 func TestExtractEmbeddedYAML_LargeYAMLBlock(t *testing.T) {
-	// Create YAML just over 2MB
+	// Create YAML just over 10MB
 	largeString := strings.Repeat("a", MaxYAMLSize+1)
 	markdown := "<!-- esa-guard-yaml\ndata: \"" + largeString + "\"\n-->"
 
 	_, err := ExtractEmbeddedYAML(markdown)
 	if err == nil {
-		t.Fatal("Expected error for YAML block exceeding 2MB, got nil")
+		t.Fatal("Expected error for YAML block exceeding 10MB, got nil")
 	}
 	if !strings.Contains(err.Error(), "input size exceeds") {
 		t.Errorf("Expected 'input size exceeds' error, got: %v", err)
