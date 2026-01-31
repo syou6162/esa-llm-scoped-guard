@@ -285,8 +285,8 @@ func runFetch(args []string) {
 		os.Exit(0)
 	}
 
-	if postNumber == 0 {
-		fmt.Fprint(os.Stderr, usage)
+	if postNumber <= 0 {
+		fmt.Fprintf(os.Stderr, "Error: post number must be a positive integer (got %d)\n", postNumber)
 		os.Exit(1)
 	}
 
