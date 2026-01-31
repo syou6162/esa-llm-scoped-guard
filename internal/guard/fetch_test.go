@@ -234,3 +234,75 @@ body:
 		t.Errorf("Expected 'post_number is required' error, got: %v", err)
 	}
 }
+
+// TestExecuteFetch_OutputRoundtrip tests that fetch output can be re-parsed
+func TestExecuteFetch_OutputRoundtrip(t *testing.T) {
+	bodyMD := `<!-- esa-guard-yaml
+post_number: 123
+name: Test Post
+category: LLM/Tasks/2026/01/28
+body:
+  background: Background text
+  related_links:
+    - https://example.com
+  instructions:
+    - Instruction 1
+    - Instruction 2
+  tasks:
+    - id: task-1
+      title: "Task 1: First task"
+      status: in_progress
+      summary:
+        - Summary line 1
+        - Summary line 2
+      description: Task description
+      github_urls:
+        - https://github.com/owner/repo/pull/123
+      depends_on: []
+    - id: task-2
+      title: "Task 2: Second task"
+      status: not_started
+      summary:
+        - Summary for task 2
+      description: Another description
+      depends_on:
+        - task-1
+-->
+
+## サマリー
+- [x] Task 1: First task
+- [ ] Task 2: Second task`
+
+	client := &mockFetchClient{bodyMD: bodyMD}
+
+	output, err := executeFetchWithClient(123, client)
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	// Re-parse the output YAML
+	input, err := ExtractEmbeddedYAML("<!-- esa-guard-yaml\n" + output + "\n-->")
+	if err != nil {
+		t.Fatalf("Failed to re-parse fetch output: %v", err)
+	}
+
+	// Verify structure is preserved
+	if input.PostNumber == nil || *input.PostNumber != 123 {
+		t.Errorf("Expected post_number 123, got: %v", input.PostNumber)
+	}
+	if input.Name != "Test Post" {
+		t.Errorf("Expected name 'Test Post', got: %s", input.Name)
+	}
+	if input.Category != "LLM/Tasks/2026/01/28" {
+		t.Errorf("Expected category 'LLM/Tasks/2026/01/28', got: %s", input.Category)
+	}
+	if len(input.Body.Tasks) != 2 {
+		t.Errorf("Expected 2 tasks, got: %d", len(input.Body.Tasks))
+	}
+	if len(input.Body.Tasks[0].DependsOn) != 0 {
+		t.Errorf("Expected task-1 depends_on to be empty, got: %v", input.Body.Tasks[0].DependsOn)
+	}
+	if len(input.Body.Tasks[1].DependsOn) != 1 || input.Body.Tasks[1].DependsOn[0] != "task-1" {
+		t.Errorf("Expected task-2 depends_on ['task-1'], got: %v", input.Body.Tasks[1].DependsOn)
+	}
+}

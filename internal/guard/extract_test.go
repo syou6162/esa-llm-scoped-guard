@@ -287,3 +287,78 @@ func TestExtractEmbeddedYAML_InputSizeExceeds10MB(t *testing.T) {
 		t.Errorf("Expected 'input size exceeds' error, got: %v", err)
 	}
 }
+
+// TestExtractEmbeddedYAML_UnknownFields tests that unknown fields are rejected
+func TestExtractEmbeddedYAML_UnknownFields(t *testing.T) {
+	tests := []struct {
+		name     string
+		markdown string
+	}{
+		{
+			name: "unknown top-level field",
+			markdown: `<!-- esa-guard-yaml
+create_new: true
+name: Test
+category: LLM/Test/2026/01/31
+unknown_field: value
+body:
+  background: test
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
+-->`,
+		},
+		{
+			name: "unknown field in body",
+			markdown: `<!-- esa-guard-yaml
+create_new: true
+name: Test
+category: LLM/Test/2026/01/31
+body:
+  background: test
+  unknown_body_field: value
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
+-->`,
+		},
+		{
+			name: "unknown field in task",
+			markdown: `<!-- esa-guard-yaml
+create_new: true
+name: Test
+category: LLM/Test/2026/01/31
+body:
+  background: test
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
+      unknown_task_field: value
+-->`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ExtractEmbeddedYAML(tt.markdown)
+			if err == nil {
+				t.Fatal("expected error for unknown field, got nil")
+			}
+			if !strings.Contains(err.Error(), "field") {
+				t.Errorf("expected 'field' in error message, got: %v", err)
+			}
+		})
+	}
+}

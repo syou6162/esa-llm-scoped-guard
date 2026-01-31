@@ -418,3 +418,35 @@ body:
 		t.Fatalf("unexpected error: %v", err)
 	}
 }
+
+// TestDecodeYAMLSecure_NonScalarMapKeys は非スカラーマップキーを拒否することをテスト
+func TestDecodeYAMLSecure_NonScalarMapKeys(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name: "sequence as key",
+			input: `? [a, b]
+: value`,
+		},
+		{
+			name: "mapping as key",
+			input: `? {nested: key}
+: value`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var result PostInput
+			err := DecodeYAMLSecure(strings.NewReader(tt.input), &result, 0)
+			if err == nil {
+				t.Fatal("expected error for non-scalar map key, got nil")
+			}
+			if !strings.Contains(err.Error(), "non-scalar") {
+				t.Errorf("expected 'non-scalar' in error message, got: %v", err)
+			}
+		})
+	}
+}
