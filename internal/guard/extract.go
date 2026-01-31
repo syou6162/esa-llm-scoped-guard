@@ -6,9 +6,6 @@ import (
 	"fmt"
 )
 
-const sentinel = "<!-- esa-guard-json\n"
-const closingTag = "\n-->"
-
 // ExtractEmbeddedJSON extracts JSON from Markdown (parse only, no schema validation)
 func ExtractEmbeddedJSON(markdown string) (*PostInput, error) {
 	data := []byte(markdown)
@@ -19,18 +16,18 @@ func ExtractEmbeddedJSON(markdown string) (*PostInput, error) {
 	}
 
 	// 2. Check if document starts with sentinel (exact match, no BOM/whitespace allowed)
-	if !bytes.HasPrefix(data, []byte(sentinel)) {
+	if !bytes.HasPrefix(data, []byte(Sentinel)) {
 		return nil, fmt.Errorf("sentinel not found at start of document")
 	}
 
 	// 3. Find first closing tag "\n-->"
-	closingIdx := bytes.Index(data, []byte(closingTag))
+	closingIdx := bytes.Index(data, []byte(ClosingTag))
 	if closingIdx == -1 {
 		return nil, fmt.Errorf("closing tag not found")
 	}
 
 	// 3. Extract JSON block (skip sentinel, before closing tag)
-	jsonStart := len(sentinel)
+	jsonStart := len(Sentinel)
 	jsonBlock := data[jsonStart:closingIdx]
 
 	// 4. Check JSON block size (2MB max, before parsing)

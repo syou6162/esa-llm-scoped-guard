@@ -33,7 +33,7 @@ func GenerateMarkdownWithJSON(input *PostInput) (string, error) {
 	}
 
 	// Embed JSON comment at start: sentinel + JSON + closing + 2 newlines + content
-	embedded := fmt.Sprintf("<!-- esa-guard-json\n%s\n-->\n\n%s", string(jsonBytes), markdown)
+	embedded := fmt.Sprintf("%s%s%s\n\n%s", Sentinel, string(jsonBytes), ClosingTag, markdown)
 
 	// Check total embedded markdown size (10MB limit)
 	if len(embedded) > MaxInputSize {

@@ -294,10 +294,10 @@ func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
 	}
 
 	// 1. 先頭が<!-- esa-guard-jsonで始まっていること
-	if len(capturedBodyMD) < len(sentinel) {
+	if len(capturedBodyMD) < len(Sentinel) {
 		t.Fatalf("body_md too short: %d bytes", len(capturedBodyMD))
 	}
-	if capturedBodyMD[:len(sentinel)] != sentinel {
+	if capturedBodyMD[:len(Sentinel)] != Sentinel {
 		t.Errorf("body_md does not start with sentinel, got: %s", capturedBodyMD[:50])
 	}
 
