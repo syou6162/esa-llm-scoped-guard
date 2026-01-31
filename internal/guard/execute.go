@@ -92,7 +92,7 @@ func updatePost(client esa.EsaClientInterface, input *PostInput, allowedCategori
 	tags := MergeTags(existingPost.Tags, repoName)
 
 	// BodyからマークダウンGenerate（JSON埋め込み）
-	bodyMD, err := GenerateMarkdownWithJSON(input)
+	bodyMD, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
 		return fmt.Errorf("failed to generate markdown with JSON: %w", err)
 	}
@@ -122,7 +122,7 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 	}
 
 	// BodyからマークダウンGenerate（JSON埋め込み）
-	bodyMD, err := GenerateMarkdownWithJSON(input)
+	bodyMD, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
 		return 0, fmt.Errorf("failed to generate markdown with JSON: %w", err)
 	}

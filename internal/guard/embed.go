@@ -1,25 +1,27 @@
 package guard
 
 import (
-	"encoding/json"
 	"fmt"
+
+	"gopkg.in/yaml.v3"
 )
 
-// GenerateMarkdownWithJSON generates Markdown with embedded JSON comment at the start.
-// JSON is compact (single line) to save space and reduce risk of --> injection.
+// GenerateMarkdownWithYAML generates Markdown with embedded YAML comment at the start.
 // The generated Markdown structure is:
 //
-//	<!-- esa-guard-json
-//	{...compact JSON...}
+//	<!-- esa-guard-yaml
+//	name: ...
+//	category: ...
+//	...
 //	-->
 //
 //	## サマリー
 //	...
-func GenerateMarkdownWithJSON(input *PostInput) (string, error) {
-	// Marshal to compact JSON (no pretty print)
-	jsonBytes, err := json.Marshal(input)
+func GenerateMarkdownWithYAML(input *PostInput) (string, error) {
+	// Marshal to YAML (block style)
+	yamlBytes, err := yaml.Marshal(input)
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal JSON: %w", err) // fail closed
+		return "", fmt.Errorf("failed to marshal YAML: %w", err) // fail closed
 	}
 
 	// Generate Markdown content
@@ -32,8 +34,8 @@ func GenerateMarkdownWithJSON(input *PostInput) (string, error) {
 		markdown = trimLeadingWhitespace(markdown)
 	}
 
-	// Embed JSON comment at start: sentinel + JSON + closing + 2 newlines + content
-	embedded := fmt.Sprintf("%s%s%s\n\n%s", Sentinel, string(jsonBytes), ClosingTag, markdown)
+	// Embed YAML comment at start: sentinel + YAML + closing + 2 newlines + content
+	embedded := fmt.Sprintf("%s%s%s\n\n%s", Sentinel, string(yamlBytes), ClosingTag, markdown)
 
 	// Check total embedded markdown size (10MB limit)
 	if len(embedded) > MaxInputSize {

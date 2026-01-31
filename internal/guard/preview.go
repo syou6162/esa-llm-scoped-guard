@@ -22,7 +22,7 @@ func ExecutePreview(jsonPath string) error {
 	}
 
 	// Generate markdown with embedded JSON (same format as post)
-	markdown, err := GenerateMarkdownWithJSON(input)
+	markdown, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
 		return fmt.Errorf("failed to generate markdown: %w", err)
 	}

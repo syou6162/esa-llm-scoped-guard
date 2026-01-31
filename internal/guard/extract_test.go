@@ -131,7 +131,7 @@ func TestExtractEmbeddedJSON_JSONWithHTMLCommentEnd(t *testing.T) {
 
 func TestExtractEmbeddedJSON_LargeJSONBlock(t *testing.T) {
 	// Create JSON just over 2MB
-	largeString := strings.Repeat("a", MaxJSONSize+1)
+	largeString := strings.Repeat("a", MaxYAMLSize+1)
 	markdown := "<!-- esa-guard-json\n{\"data\":\"" + largeString + "\"}\n-->"
 
 	_, err := ExtractEmbeddedJSON(markdown)
@@ -148,7 +148,7 @@ func TestExtractEmbeddedJSON_LargeJSONBlockExactly2MB(t *testing.T) {
 	// JSON structure: {"data":"aaa..."} + newlines
 	// Overhead: {"data":""} = 10 bytes, plus \n before and after
 	overhead := len("{\"data\":\"\"}")
-	largeString := strings.Repeat("a", MaxJSONSize-overhead)
+	largeString := strings.Repeat("a", MaxYAMLSize-overhead)
 	markdown := "<!-- esa-guard-json\n{\"data\":\"" + largeString + "\"}\n-->"
 
 	_, err := ExtractEmbeddedJSON(markdown)
@@ -161,7 +161,7 @@ func TestExtractEmbeddedJSON_LargeJSONBlockExactly2MB(t *testing.T) {
 func TestExtractEmbeddedJSON_LargeJSONBlockWithinLimit(t *testing.T) {
 	// Create JSON just under 2MB (2MB - 1 byte, boundary test)
 	overhead := len("{\"data\":\"\"}")
-	largeString := strings.Repeat("a", MaxJSONSize-overhead-1)
+	largeString := strings.Repeat("a", MaxYAMLSize-overhead-1)
 	markdown := "<!-- esa-guard-json\n{\"data\":\"" + largeString + "\"}\n-->"
 
 	_, err := ExtractEmbeddedJSON(markdown)

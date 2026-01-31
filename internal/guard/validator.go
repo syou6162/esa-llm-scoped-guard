@@ -68,8 +68,8 @@ func ValidatePostInputSchema(input *PostInput) error {
 	}
 
 	// JSONサイズチェック（2MB上限）
-	if len(data) > MaxJSONSize {
-		return fmt.Errorf("JSON size exceeds %d bytes (got %d bytes)", MaxJSONSize, len(data))
+	if len(data) > MaxYAMLSize {
+		return fmt.Errorf("JSON size exceeds %d bytes (got %d bytes)", MaxYAMLSize, len(data))
 	}
 
 	var v interface{}

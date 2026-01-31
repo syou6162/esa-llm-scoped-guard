@@ -39,7 +39,7 @@ func executeFetchWithClient(postNumber int, client esa.EsaClientInterface) (stri
 	}
 
 	// 4. Extract embedded JSON (parse-only, no schema validation)
-	input, err := ExtractEmbeddedJSON(post.BodyMD)
+	input, err := ExtractEmbeddedYAML(post.BodyMD)
 	if err != nil {
 		// Convert extraction errors to plan-specified error messages
 		errMsg := err.Error()

@@ -2,12 +2,12 @@ package guard
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"strings"
 )
 
-// ExtractEmbeddedJSON extracts JSON from Markdown (parse only, no schema validation)
-func ExtractEmbeddedJSON(markdown string) (*PostInput, error) {
+// ExtractEmbeddedYAML extracts YAML from Markdown (parse only, no schema validation)
+func ExtractEmbeddedYAML(markdown string) (*PostInput, error) {
 	data := []byte(markdown)
 
 	// 1. Check input size (10MB max for scan limit)
@@ -26,19 +26,19 @@ func ExtractEmbeddedJSON(markdown string) (*PostInput, error) {
 		return nil, fmt.Errorf("closing tag not found")
 	}
 
-	// 3. Extract JSON block (skip sentinel, before closing tag)
-	jsonStart := len(Sentinel)
-	jsonBlock := data[jsonStart:closingIdx]
+	// 3. Extract YAML block (skip sentinel, before closing tag)
+	yamlStart := len(Sentinel)
+	yamlBlock := data[yamlStart:closingIdx]
 
-	// 4. Check JSON block size (2MB max, before parsing)
-	if len(jsonBlock) > MaxJSONSize {
-		return nil, fmt.Errorf("JSON block size exceeds %d bytes (got %d bytes)", MaxJSONSize, len(jsonBlock))
+	// 4. Check YAML block size (10MB max, before parsing)
+	if len(yamlBlock) > MaxYAMLSize {
+		return nil, fmt.Errorf("YAML block size exceeds %d bytes (got %d bytes)", MaxYAMLSize, len(yamlBlock))
 	}
 
-	// 5. Parse JSON (no schema validation)
+	// 5. Parse YAML using DecodeYAMLSecure (includes validation)
 	var input PostInput
-	if err := json.Unmarshal(jsonBlock, &input); err != nil {
-		return nil, fmt.Errorf("failed to parse JSON: %w", err)
+	if err := DecodeYAMLSecure(strings.NewReader(string(yamlBlock)), &input, MaxYAMLSize); err != nil {
+		return nil, fmt.Errorf("failed to parse YAML: %w", err)
 	}
 
 	// 6. Return parsed input

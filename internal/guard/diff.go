@@ -29,7 +29,7 @@ func executeDiffWithClient(jsonPath string, allowedCategories []string, client e
 	}
 
 	// Generate markdown with embedded JSON (same format as post)
-	newMarkdown, err := GenerateMarkdownWithJSON(input)
+	newMarkdown, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
 		return fmt.Errorf("failed to generate markdown: %w", err)
 	}

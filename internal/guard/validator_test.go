@@ -2519,7 +2519,7 @@ func TestValidatePostInputSchema_HTMLCommentCheck(t *testing.T) {
 
 func TestValidatePostInputSchema_JSONSize(t *testing.T) {
 	// Create a large task description to exceed 2MB when marshaled
-	largeString := strings.Repeat("a", MaxJSONSize+1000)
+	largeString := strings.Repeat("a", MaxYAMLSize+1000)
 
 	input := &PostInput{
 		CreateNew: true,
