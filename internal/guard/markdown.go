@@ -5,6 +5,7 @@ import (
 )
 
 // GenerateMarkdown はBody構造体からマークダウンを生成します
+// 不変条件: 出力の先頭に空白や改行を含まないこと（JSON埋め込み時の先頭一致チェックを保証）
 func GenerateMarkdown(body *Body) string {
 	var sb strings.Builder
 
@@ -22,7 +23,8 @@ func GenerateMarkdown(body *Body) string {
 		sb.WriteString(tasks)
 	}
 
-	return sb.String()
+	// 先頭の空白/改行を除去（不変条件の保証）
+	return strings.TrimLeft(sb.String(), " \t\n\r")
 }
 
 // generateSummarySection はサマリーセクションを生成します（依存関係グラフを含む）

@@ -13,12 +13,17 @@ const closingTag = "\n-->"
 func ExtractEmbeddedJSON(markdown string) (*PostInput, error) {
 	data := []byte(markdown)
 
-	// 1. Check if document starts with sentinel (exact match, no BOM/whitespace allowed)
+	// 1. Check input size (10MB max for scan limit)
+	if len(data) > MaxInputSize {
+		return nil, fmt.Errorf("input size exceeds %d bytes (got %d bytes)", MaxInputSize, len(data))
+	}
+
+	// 2. Check if document starts with sentinel (exact match, no BOM/whitespace allowed)
 	if !bytes.HasPrefix(data, []byte(sentinel)) {
 		return nil, fmt.Errorf("sentinel not found at start of document")
 	}
 
-	// 2. Find first closing tag "\n-->"
+	// 3. Find first closing tag "\n-->"
 	closingIdx := bytes.Index(data, []byte(closingTag))
 	if closingIdx == -1 {
 		return nil, fmt.Errorf("closing tag not found")
