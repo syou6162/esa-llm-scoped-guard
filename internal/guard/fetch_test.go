@@ -205,9 +205,19 @@ body:
 }
 
 func TestExecuteFetch_PostNumberNil(t *testing.T) {
-	// Embedded JSON has no post_number (nil) - should be rejected (fail closed)
+	// Embedded YAML has no post_number (nil) - should be rejected (fail closed)
 	bodyMD := `<!-- esa-guard-yaml
-{"name":"Test","category":"LLM/Test/2026/01/31","body":{"background":"test","tasks":[{"id":"task-1","title":"Task 1: Test","status":"not_started","summary":["test"],"description":"test"}]}}
+name: Test
+category: LLM/Test/2026/01/31
+body:
+  background: test
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
 -->
 
 ## サマリー

@@ -47,23 +47,19 @@ func TestExecutePost_CreateNewUpdatesYAML(t *testing.T) {
 	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
 	// 新規作成用のYAMLファイルを作成（create_new: true）
-	inputYAML := `{
-		"create_new": true,
-		"name": "Test Post",
-		"category": "Claude Code/開発日誌/2026/01/28",
-		"body": {
-			"background": "Test background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test task",
-					"status": "not_started",
-					"summary": ["Task summary"],
-					"description": "Task description"
-				}
-			]
-		}
-	}`
+	inputYAML := `create_new: true
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
 
 	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
@@ -109,23 +105,19 @@ func TestExecutePost_UpdateDoesNotChangeJSON(t *testing.T) {
 	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
 	// 更新用のYAMLファイルを作成（post_number: 123）
-	inputYAML := `{
-		"post_number": 123,
-		"name": "Test Post",
-		"category": "Claude Code/開発日誌/2026/01/28",
-		"body": {
-			"background": "Test background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test task",
-					"status": "not_started",
-					"summary": ["Task summary"],
-					"description": "Task description"
-				}
-			]
-		}
-	}`
+	inputYAML := `post_number: 123
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
 
 	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
@@ -178,23 +170,19 @@ func TestExecutePost_CreateFailureDoesNotChangeJSON(t *testing.T) {
 	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
 	// 新規作成用のYAMLファイルを作成（create_new: true）
-	inputYAML := `{
-		"create_new": true,
-		"name": "Test Post",
-		"category": "Claude Code/開発日誌/2026/01/28",
-		"body": {
-			"background": "Test background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test task",
-					"status": "not_started",
-					"summary": ["Task summary"],
-					"description": "Task description"
-				}
-			]
-		}
-	}`
+	inputYAML := `create_new: true
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
 
 	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
@@ -239,25 +227,23 @@ func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
 
 	postNumber := 123
 	// 更新用のYAMLファイルを作成（post_number: 123）
-	inputYAML := `{
-		"post_number": 123,
-		"name": "Test Post",
-		"category": "Claude Code/開発日誌/2026/01/28",
-		"body": {
-			"background": "Test background",
-			"related_links": ["https://example.com"],
-			"instructions": ["Instruction 1"],
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test task",
-					"status": "not_started",
-					"summary": ["Task summary"],
-					"description": "Task description"
-				}
-			]
-		}
-	}`
+	inputYAML := `post_number: 123
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  related_links:
+    - https://example.com
+  instructions:
+    - Instruction 1
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
 
 	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)

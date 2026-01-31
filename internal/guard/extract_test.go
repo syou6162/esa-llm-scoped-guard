@@ -144,41 +144,44 @@ name: "-->test"
 func TestExtractEmbeddedYAML_LargeYAMLBlock(t *testing.T) {
 	// Create YAML just over 2MB
 	largeString := strings.Repeat("a", MaxYAMLSize+1)
-	markdown := "<!-- esa-guard-yaml\n{\"data\":\"" + largeString + "\"}\n-->"
+	markdown := "<!-- esa-guard-yaml\ndata: \"" + largeString + "\"\n-->"
 
 	_, err := ExtractEmbeddedYAML(markdown)
 	if err == nil {
 		t.Fatal("Expected error for YAML block exceeding 2MB, got nil")
 	}
-	if !strings.Contains(err.Error(), "YAML block size exceeds") {
-		t.Errorf("Expected 'YAML block size exceeds' error, got: %v", err)
+	if !strings.Contains(err.Error(), "input size exceeds") {
+		t.Errorf("Expected 'input size exceeds' error, got: %v", err)
 	}
 }
 
 func TestExtractEmbeddedYAML_LargeYAMLBlockExactly2MB(t *testing.T) {
-	// Create YAML block exactly 2MB (boundary test)
-	// YAML structure: {"data":"aaa..."} + newlines
-	// Overhead: {"data":""} = 10 bytes, plus \n before and after
-	overhead := len("{\"data\":\"\"}")
-	largeString := strings.Repeat("a", MaxYAMLSize-overhead)
-	markdown := "<!-- esa-guard-yaml\n{\"data\":\"" + largeString + "\"}\n-->"
+	// Create YAML block that results in markdown exactly at MaxInputSize
+	// markdown = Sentinel + YAML + ClosingTag
+	// MaxInputSize = 10MB, so YAML block size = MaxInputSize - len(Sentinel) - len(ClosingTag)
+	yamlContentOverhead := len("data: \"\"")
+	maxYAMLBlockSize := MaxInputSize - len(Sentinel) - len(ClosingTag)
+	largeString := strings.Repeat("a", maxYAMLBlockSize-yamlContentOverhead)
+	markdown := "<!-- esa-guard-yaml\ndata: \"" + largeString + "\"\n-->"
 
 	_, err := ExtractEmbeddedYAML(markdown)
-	// Exactly 2MB should succeed
-	if err != nil && strings.Contains(err.Error(), "YAML block size exceeds") {
-		t.Fatalf("Expected no size error for exactly 2MB, got: %v", err)
+	// Exactly at MaxInputSize should succeed (may fail validation but not size check)
+	if err != nil && strings.Contains(err.Error(), "input size exceeds") {
+		t.Fatalf("Expected no size error for exactly MaxInputSize, got: %v", err)
 	}
 }
 
 func TestExtractEmbeddedYAML_LargeYAMLBlockWithinLimit(t *testing.T) {
-	// Create YAML just under 2MB (2MB - 1 byte, boundary test)
-	overhead := len("{\"data\":\"\"}")
-	largeString := strings.Repeat("a", MaxYAMLSize-overhead-1)
-	markdown := "<!-- esa-guard-yaml\n{\"data\":\"" + largeString + "\"}\n-->"
+	// Create YAML just under MaxInputSize (MaxInputSize - 1 byte for content, boundary test)
+	yamlContentOverhead := len("data: \"\"")
+	maxYAMLBlockSize := MaxInputSize - len(Sentinel) - len(ClosingTag)
+	largeString := strings.Repeat("a", maxYAMLBlockSize-yamlContentOverhead-1)
+	markdown := "<!-- esa-guard-yaml\ndata: \"" + largeString + "\"\n-->"
 
 	_, err := ExtractEmbeddedYAML(markdown)
-	// This should succeed (parse the JSON structure)
-	if err != nil && !strings.Contains(err.Error(), "validation") && !strings.Contains(err.Error(), "required") {
+	// This should succeed (parse the YAML structure, may fail validation but not size check)
+	// Validation errors like "required", "field not found" are acceptable - we only care about size errors
+	if err != nil && !strings.Contains(err.Error(), "validation") && !strings.Contains(err.Error(), "required") && !strings.Contains(err.Error(), "field") {
 		t.Fatalf("Expected no size error, got: %v", err)
 	}
 }

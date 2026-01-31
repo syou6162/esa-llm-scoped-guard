@@ -28,25 +28,21 @@ func (m *mockEsaClient) GetPost(number int) (*esa.Post, error) {
 
 func TestExecuteDiff_WithPostNumber(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "update.json")
+	tmpFile := filepath.Join(tmpDir, "update.yaml")
 
-	updateJSON := `{
-		"post_number": 123,
-		"name": "Test Post",
-		"category": "LLM/Tasks/2026/01/28",
-		"body": {
-			"background": "New background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: New task",
-					"status": "in_progress",
-					"summary": ["New summary"],
-					"description": "New description"
-				}
-			]
-		}
-	}`
+	updateJSON := `post_number: 123
+name: Test Post
+category: LLM/Tasks/2026/01/28
+body:
+  background: New background
+  tasks:
+    - id: task-1
+      title: "Task 1: New task"
+      status: in_progress
+      summary:
+        - New summary
+      description: New description
+`
 
 	if err := os.WriteFile(tmpFile, []byte(updateJSON), 0600); err != nil {
 		t.Fatal(err)
@@ -87,25 +83,21 @@ func TestExecuteDiff_WithPostNumber(t *testing.T) {
 
 func TestExecuteDiff_CreateNew(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "new.json")
+	tmpFile := filepath.Join(tmpDir, "new.yaml")
 
-	newJSON := `{
-		"create_new": true,
-		"name": "Test Post",
-		"category": "LLM/Tasks/2026/01/28",
-		"body": {
-			"background": "Test background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test",
-					"status": "not_started",
-					"summary": ["Test summary"],
-					"description": "Test description"
-				}
-			]
-		}
-	}`
+	newJSON := `create_new: true
+name: Test Post
+category: LLM/Tasks/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - Test summary
+      description: Test description
+`
 
 	if err := os.WriteFile(tmpFile, []byte(newJSON), 0600); err != nil {
 		t.Fatal(err)
@@ -143,13 +135,12 @@ func TestExecuteDiff_CreateNew(t *testing.T) {
 
 func TestExecuteDiff_InvalidJSON(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "invalid.json")
+	tmpFile := filepath.Join(tmpDir, "invalid.yaml")
 
-	invalidJSON := `{
-		"post_number": 123,
-		"name": "Test Post",
-		"category": "Invalid/Category"
-	}`
+	invalidJSON := `post_number: 123
+name: Test Post
+category: Invalid/Category
+`
 
 	if err := os.WriteFile(tmpFile, []byte(invalidJSON), 0600); err != nil {
 		t.Fatal(err)
@@ -165,25 +156,21 @@ func TestExecuteDiff_InvalidJSON(t *testing.T) {
 
 func TestExecuteDiff_CategoryNotAllowed(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "update.json")
+	tmpFile := filepath.Join(tmpDir, "update.yaml")
 
-	updateJSON := `{
-		"post_number": 123,
-		"name": "Test Post",
-		"category": "LLM/Tasks/2026/01/28",
-		"body": {
-			"background": "New background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: New task",
-					"status": "in_progress",
-					"summary": ["New summary"],
-					"description": "New description"
-				}
-			]
-		}
-	}`
+	updateJSON := `post_number: 123
+name: Test Post
+category: LLM/Tasks/2026/01/28
+body:
+  background: New background
+  tasks:
+    - id: task-1
+      title: "Task 1: New task"
+      status: in_progress
+      summary:
+        - New summary
+      description: New description
+`
 
 	if err := os.WriteFile(tmpFile, []byte(updateJSON), 0600); err != nil {
 		t.Fatal(err)
@@ -213,25 +200,21 @@ func TestExecuteDiff_CategoryNotAllowed(t *testing.T) {
 
 func TestExecuteDiff_CategoryChangeAttempt(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "update.json")
+	tmpFile := filepath.Join(tmpDir, "update.yaml")
 
-	updateJSON := `{
-		"post_number": 123,
-		"name": "Test Post",
-		"category": "LLM/Tasks/2026/01/29",
-		"body": {
-			"background": "New background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: New task",
-					"status": "in_progress",
-					"summary": ["New summary"],
-					"description": "New description"
-				}
-			]
-		}
-	}`
+	updateJSON := `post_number: 123
+name: Test Post
+category: LLM/Tasks/2026/01/29
+body:
+  background: New background
+  tasks:
+    - id: task-1
+      title: "Task 1: New task"
+      status: in_progress
+      summary:
+        - New summary
+      description: New description
+`
 
 	if err := os.WriteFile(tmpFile, []byte(updateJSON), 0600); err != nil {
 		t.Fatal(err)
@@ -261,26 +244,22 @@ func TestExecuteDiff_CategoryChangeAttempt(t *testing.T) {
 
 func TestExecuteDiff_IdenticalContent(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.json")
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
-	// 既存記事と同じ内容のJSON
-	inputJSON := `{
-		"post_number": 123,
-		"name": "Test Post",
-		"category": "LLM/Tasks/2026/01/28",
-		"body": {
-			"background": "Test background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test task",
-					"status": "not_started",
-					"summary": ["Task summary"],
-					"description": "Task description"
-				}
-			]
-		}
-	}`
+	// 既存記事と同じ内容のYAML
+	inputJSON := `post_number: 123
+name: Test Post
+category: LLM/Tasks/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
 
 	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
 		t.Fatal(err)
@@ -334,25 +313,21 @@ func TestExecuteDiff_IdenticalContent(t *testing.T) {
 
 func TestExecuteDiff_InlineChange(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.json")
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
-	inputJSON := `{
-		"post_number": 123,
-		"name": "Test Post",
-		"category": "LLM/Tasks/2026/01/28",
-		"body": {
-			"background": "Updated background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test task",
-					"status": "not_started",
-					"summary": ["Task summary"],
-					"description": "Task description"
-				}
-			]
-		}
-	}`
+	inputJSON := `post_number: 123
+name: Test Post
+category: LLM/Tasks/2026/01/28
+body:
+  background: Updated background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
 
 	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
 		t.Fatal(err)
@@ -446,26 +421,22 @@ Task description
 
 func TestExecuteDiff_MultipleHunks(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.json")
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
 	// 複数の離れた場所に変更があるケース
-	inputJSON := `{
-		"post_number": 123,
-		"name": "Test Post",
-		"category": "LLM/Tasks/2026/01/28",
-		"body": {
-			"background": "Updated background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Updated task",
-					"status": "not_started",
-					"summary": ["Updated summary"],
-					"description": "Task description"
-				}
-			]
-		}
-	}`
+	inputJSON := `post_number: 123
+name: Test Post
+category: LLM/Tasks/2026/01/28
+body:
+  background: Updated background
+  tasks:
+    - id: task-1
+      title: "Task 1: Updated task"
+      status: not_started
+      summary:
+        - Updated summary
+      description: Task description
+`
 
 	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
 		t.Fatal(err)
