@@ -43,54 +43,50 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 
 ## 使い方
 
-### JSONファイルの作成
+### YAMLファイルの作成
 
-```json
-{
-  "create_new": true,
-  "name": "タスク: データ分析の実装",
-  "category": "LLM/Tasks/2025/01/18",
-  "body": {
-    "background": "このタスクではデータ分析機能を実装します。",
-    "related_links": ["https://github.com/owner/repo/issues/123"],
-    "instructions": [
-      "t_wada式のTDDの形式で開発を進める",
-      "各フェーズ完了時に小まめにコミットする"
-    ],
-    "tasks": [
-      {
-        "id": "task-1",
-        "title": "要件定義",
-        "status": "completed",
-        "summary": ["データ分析の要件を整理", "必要なデータソースを特定"],
-        "description": "データ分析の要件を定義する"
-      },
-      {
-        "id": "task-2",
-        "title": "実装",
-        "status": "in_progress",
-        "summary": ["データ収集APIを実装中"],
-        "description": "データ分析機能を実装する",
-        "depends_on": ["task-1"]
-      },
-      {
-        "id": "task-3",
-        "title": "テスト",
-        "status": "not_started",
-        "summary": ["単体テストと統合テストを実施"],
-        "description": "実装した機能をテストする",
-        "depends_on": ["task-2"]
-      }
-    ]
-  }
-}
+```yaml
+create_new: true
+name: "タスク: データ分析の実装"
+category: LLM/Tasks/2025/01/18
+body:
+  background: このタスクではデータ分析機能を実装します。
+  related_links:
+    - https://github.com/owner/repo/issues/123
+  instructions:
+    - t_wada式のTDDの形式で開発を進める
+    - 各フェーズ完了時に小まめにコミットする
+  tasks:
+    - id: task-1
+      title: 要件定義
+      status: completed
+      summary:
+        - データ分析の要件を整理
+        - 必要なデータソースを特定
+      description: データ分析の要件を定義する
+    - id: task-2
+      title: 実装
+      status: in_progress
+      summary:
+        - データ収集APIを実装中
+      description: データ分析機能を実装する
+      depends_on:
+        - task-1
+    - id: task-3
+      title: テスト
+      status: not_started
+      summary:
+        - 単体テストと統合テストを実施
+      description: 実装した機能をテストする
+      depends_on:
+        - task-2
 ```
 
 **注意**: タグは自動的にGitリポジトリ名が設定されます（gitリポジトリでない場合はタグなし）。
 
 ### 生成されるマークダウン
 
-上記のJSONから以下のマークダウンが生成されます：
+上記のYAMLから以下のマークダウンが生成されます：
 
 ```markdown
 ## サマリー
@@ -210,7 +206,7 @@ graph TD
 
 ```bash
 # JSONの妥当性を検証（設定不要）
-esa-llm-scoped-guard validate -json ./tasks/new-task.json
+esa-llm-scoped-guard validate -yaml ./tasks/new-task.json
 ```
 
 正常時は何も出力せず終了コード0を返します。
@@ -219,27 +215,27 @@ esa-llm-scoped-guard validate -json ./tasks/new-task.json
 
 ```bash
 # 生成されるMarkdownを標準出力に表示（設定不要）
-esa-llm-scoped-guard preview -json ./tasks/new-task.json
+esa-llm-scoped-guard preview -yaml ./tasks/new-task.json
 ```
 
 #### diff: 記事の差分表示
 
 ```bash
 # 新規作成前に全体を確認（設定・トークン必要、create_new: true の場合は全行が + で表示）
-esa-llm-scoped-guard diff -json ./tasks/new-task.json
+esa-llm-scoped-guard diff -yaml ./tasks/new-task.json
 
 # 既存記事との差分を表示（設定・トークン必要、post_number 指定時）
-esa-llm-scoped-guard diff -json ./tasks/update-task.json
+esa-llm-scoped-guard diff -yaml ./tasks/update-task.json
 ```
 
 #### post: esa.ioへ投稿
 
 ```bash
 # 新規作成
-esa-llm-scoped-guard post -json ./tasks/new-task.json
+esa-llm-scoped-guard post -yaml ./tasks/new-task.json
 
 # 更新（post_numberを指定）
-esa-llm-scoped-guard post -json ./tasks/update-task.json
+esa-llm-scoped-guard post -yaml ./tasks/update-task.json
 ```
 
 ### ヘルプ表示
