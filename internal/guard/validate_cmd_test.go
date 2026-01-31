@@ -6,11 +6,11 @@ import (
 	"testing"
 )
 
-func TestExecuteValidate_ValidJSON(t *testing.T) {
+func TestExecuteValidate_ValidYAML(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "valid.yaml")
 
-	validJSON := `create_new: true
+	validYAML := `create_new: true
 name: Test Post
 category: LLM/Tasks/2026/01/28
 body:
@@ -24,13 +24,13 @@ body:
       description: Test description
 `
 
-	if err := os.WriteFile(tmpFile, []byte(validJSON), 0600); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(validYAML), 0600); err != nil {
 		t.Fatal(err)
 	}
 
 	err := ExecuteValidate(tmpFile)
 	if err != nil {
-		t.Errorf("expected no error for valid JSON, got %v", err)
+		t.Errorf("expected no error for valid YAML, got %v", err)
 	}
 }
 

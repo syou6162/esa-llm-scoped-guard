@@ -133,16 +133,16 @@ body:
 	}
 }
 
-func TestExecuteDiff_InvalidJSON(t *testing.T) {
+func TestExecuteDiff_InvalidYAML(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "invalid.yaml")
 
-	invalidJSON := `post_number: 123
+	invalidYAML := `post_number: 123
 name: Test Post
 category: Invalid/Category
 `
 
-	if err := os.WriteFile(tmpFile, []byte(invalidJSON), 0600); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(invalidYAML), 0600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -150,7 +150,7 @@ category: Invalid/Category
 	mockClient := &mockEsaClient{}
 	err := executeDiffWithClient(tmpFile, allowedCategories, mockClient)
 	if err == nil {
-		t.Error("expected error for invalid JSON")
+		t.Error("expected error for invalid YAML")
 	}
 }
 
@@ -265,7 +265,7 @@ body:
 		t.Fatal(err)
 	}
 
-	// JSONファイルから入力を読み込んでMarkdownを生成（JSON埋め込みあり）
+	// YAMLファイルから入力を読み込んでMarkdownを生成（YAML埋め込みあり）
 	input, err := ReadPostInputFromFile(tmpFile)
 	if err != nil {
 		t.Fatal(err)

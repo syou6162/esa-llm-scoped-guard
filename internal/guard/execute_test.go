@@ -74,7 +74,7 @@ body:
 
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
-	// ExecutePost実行（内部でJSON更新が行われるはず）
+	// ExecutePost実行（内部でYAML更新が行われるはず）
 	err := executePostWithClient(tmpFile, allowedCategories, mockClient)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -83,7 +83,7 @@ body:
 	// YAMLファイルが自動更新されているか確認
 	updatedInput, err := ReadPostInputFromFile(tmpFile)
 	if err != nil {
-		t.Fatalf("failed to read updated JSON: %v", err)
+		t.Fatalf("failed to read updated YAML: %v", err)
 	}
 
 	// create_newがfalseになっている
@@ -99,8 +99,8 @@ body:
 	}
 }
 
-// TestExecutePost_UpdateDoesNotChangeJSON tests that YAML file is not modified when updating existing post
-func TestExecutePost_UpdateDoesNotChangeJSON(t *testing.T) {
+// TestExecutePost_UpdateDoesNotChangeYAML tests that YAML file is not modified when updating existing post
+func TestExecutePost_UpdateDoesNotChangeYAML(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
@@ -139,7 +139,7 @@ body:
 
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
-	// ExecutePost実行（更新なのでJSONは変更されないはず）
+	// ExecutePost実行（更新なのでYAMLは変更されないはず）
 	err := executePostWithClient(tmpFile, allowedCategories, mockClient)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
@@ -148,7 +148,7 @@ body:
 	// YAMLファイルが変更されていないことを確認
 	updatedInput, err := ReadPostInputFromFile(tmpFile)
 	if err != nil {
-		t.Fatalf("failed to read JSON: %v", err)
+		t.Fatalf("failed to read YAML: %v", err)
 	}
 
 	// create_newはfalseのまま
@@ -164,8 +164,8 @@ body:
 	}
 }
 
-// TestExecutePost_CreateFailureDoesNotChangeJSON tests that YAML file is not modified when post creation fails
-func TestExecutePost_CreateFailureDoesNotChangeJSON(t *testing.T) {
+// TestExecutePost_CreateFailureDoesNotChangeYAML tests that YAML file is not modified when post creation fails
+func TestExecutePost_CreateFailureDoesNotChangeYAML(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
@@ -197,7 +197,7 @@ body:
 
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
-	// ExecutePost実行（失敗するのでJSONは変更されないはず）
+	// ExecutePost実行（失敗するのでYAMLは変更されないはず）
 	err := executePostWithClient(tmpFile, allowedCategories, mockClient)
 	if err == nil {
 		t.Fatal("expected error, got nil")
@@ -206,7 +206,7 @@ body:
 	// YAMLファイルが変更されていないことを確認
 	updatedInput, err := ReadPostInputFromFile(tmpFile)
 	if err != nil {
-		t.Fatalf("failed to read JSON: %v", err)
+		t.Fatalf("failed to read YAML: %v", err)
 	}
 
 	// create_newはtrueのまま
@@ -220,8 +220,8 @@ body:
 	}
 }
 
-// TestExecutePost_EmbeddsJSONInMarkdown tests that GenerateMarkdownWithJSON correctly embeds JSON
-func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
+// TestExecutePost_EmbeddsYAMLInMarkdown tests that GenerateMarkdownWithYAML correctly embeds YAML
+func TestExecutePost_EmbeddsYAMLInMarkdown(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
@@ -279,7 +279,7 @@ body:
 		t.Fatal("body_md was not captured")
 	}
 
-	// 1. 先頭が<!-- esa-guard-jsonで始まっていること
+	// 1. 先頭が<!-- esa-guard-yamlで始まっていること
 	if len(capturedBodyMD) < len(Sentinel) {
 		t.Fatalf("body_md too short: %d bytes", len(capturedBodyMD))
 	}
@@ -287,13 +287,13 @@ body:
 		t.Errorf("body_md does not start with sentinel, got: %s", capturedBodyMD[:50])
 	}
 
-	// 2. 埋め込まれたJSONを抽出してパース可能なこと
+	// 2. 埋め込まれたYAMLを抽出してパース可能なこと
 	extracted, err := ExtractEmbeddedYAML(capturedBodyMD)
 	if err != nil {
-		t.Fatalf("failed to extract embedded JSON: %v", err)
+		t.Fatalf("failed to extract embedded YAML: %v", err)
 	}
 
-	// 3. 抽出したJSONが元のPostInputと一致すること
+	// 3. 抽出したYAMLが元のPostInputと一致すること
 	if extracted.PostNumber == nil || *extracted.PostNumber != postNumber {
 		t.Errorf("expected post_number %d, got %v", postNumber, extracted.PostNumber)
 	}

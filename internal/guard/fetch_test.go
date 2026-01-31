@@ -124,7 +124,7 @@ func TestExecuteFetch_BodyExactly10MB(t *testing.T) {
 
 	// Exactly 10MB should succeed (no size error)
 	_, err := executeFetchWithClient(123, client)
-	// May fail on JSON extraction but not on size check
+	// May fail on YAML extraction but not on size check
 	if err != nil && strings.Contains(err.Error(), "exceeds") {
 		t.Fatalf("Expected no size error for exactly 10MB, got: %v", err)
 	}
