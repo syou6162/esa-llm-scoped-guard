@@ -102,6 +102,13 @@ func checkHTMLCommentSequences(input *PostInput) error {
 		return fmt.Errorf("background contains forbidden HTML comment sequence (<!-- or -->)")
 	}
 
+	// body.related_links
+	for i, link := range input.Body.RelatedLinks {
+		if strings.Contains(link, "<!--") || strings.Contains(link, "-->") {
+			return fmt.Errorf("related_links[%d] contains forbidden HTML comment sequence (<!-- or -->)", i)
+		}
+	}
+
 	// body.instructions
 	for i, inst := range input.Body.Instructions {
 		if strings.Contains(inst, "<!--") || strings.Contains(inst, "-->") {
@@ -123,6 +130,18 @@ func checkHTMLCommentSequences(input *PostInput) error {
 		for j, summary := range task.Summary {
 			if strings.Contains(summary, "<!--") || strings.Contains(summary, "-->") {
 				return fmt.Errorf("task[%d].summary[%d] contains forbidden HTML comment sequence (<!-- or -->)", i, j)
+			}
+		}
+		// task.github_urls
+		for j, url := range task.GitHubURLs {
+			if strings.Contains(url, "<!--") || strings.Contains(url, "-->") {
+				return fmt.Errorf("task[%d].github_urls[%d] contains forbidden HTML comment sequence (<!-- or -->)", i, j)
+			}
+		}
+		// task.depends_on
+		for j, dep := range task.DependsOn {
+			if strings.Contains(dep, "<!--") || strings.Contains(dep, "-->") {
+				return fmt.Errorf("task[%d].depends_on[%d] contains forbidden HTML comment sequence (<!-- or -->)", i, j)
 			}
 		}
 	}

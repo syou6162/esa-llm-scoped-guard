@@ -122,3 +122,54 @@ Content`
 		t.Errorf("Expected JSON parse error, got: %v", err)
 	}
 }
+
+func TestExecuteFetch_PostNumberMismatch(t *testing.T) {
+	// Embedded JSON has post_number 999, but we request 123
+	bodyMD := `<!-- esa-guard-json
+{"post_number":999,"name":"Test","category":"LLM/Test/2026/01/31","body":{"background":"test","tasks":[{"id":"task-1","title":"Task 1: Test","status":"not_started","summary":["test"],"description":"test"}]}}
+-->
+
+## サマリー
+- [ ] Task 1: Test`
+
+	client := &mockFetchClient{bodyMD: bodyMD}
+
+	_, err := executeFetchWithClient(123, client)
+	if err == nil {
+		t.Fatal("Expected error for post_number mismatch")
+	}
+
+	if !strings.Contains(err.Error(), "post_number mismatch") {
+		t.Errorf("Expected 'post_number mismatch' error, got: %v", err)
+	}
+
+	if !strings.Contains(err.Error(), "embedded JSON has 999") {
+		t.Errorf("Expected error to mention embedded post_number 999, got: %v", err)
+	}
+
+	if !strings.Contains(err.Error(), "requested 123") {
+		t.Errorf("Expected error to mention requested post_number 123, got: %v", err)
+	}
+}
+
+func TestExecuteFetch_PostNumberNil(t *testing.T) {
+	// Embedded JSON has no post_number (nil) - should be allowed
+	bodyMD := `<!-- esa-guard-json
+{"name":"Test","category":"LLM/Test/2026/01/31","body":{"background":"test","tasks":[{"id":"task-1","title":"Task 1: Test","status":"not_started","summary":["test"],"description":"test"}]}}
+-->
+
+## サマリー
+- [ ] Task 1: Test`
+
+	client := &mockFetchClient{bodyMD: bodyMD}
+
+	output, err := executeFetchWithClient(123, client)
+	if err != nil {
+		t.Fatalf("executeFetchWithClient() with nil post_number should succeed, got error: %v", err)
+	}
+
+	// Check output is pretty-printed JSON
+	if !strings.Contains(output, "{\n") {
+		t.Error("Expected pretty-printed JSON (with newlines)")
+	}
+}

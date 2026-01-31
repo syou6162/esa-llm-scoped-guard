@@ -43,7 +43,13 @@ func executeFetchWithClient(postNumber int, client esa.EsaClientInterface) (stri
 		return "", err
 	}
 
-	// 5. Pretty-print JSON for output
+	// 5. Check post_number consistency (fail closed security check)
+	// If embedded JSON has post_number set, it must match the requested post
+	if input.PostNumber != nil && *input.PostNumber != postNumber {
+		return "", fmt.Errorf("post_number mismatch: embedded JSON has %d, but requested %d", *input.PostNumber, postNumber)
+	}
+
+	// 6. Pretty-print JSON for output
 	prettyJSON, err := json.MarshalIndent(input, "", "  ")
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal JSON: %w", err)

@@ -109,3 +109,30 @@ func TestGenerateMarkdown_NoLeadingWhitespace(t *testing.T) {
 		t.Errorf("Expected GenerateMarkdown to start with '##', got: %s", markdown[:10])
 	}
 }
+
+func TestGenerateMarkdownWithJSON_ExceedsMaxSize(t *testing.T) {
+	// Create input that will exceed 10MB when embedded
+	largeBackground := strings.Repeat("a", MaxInputSize)
+
+	postNum := 123
+	input := &PostInput{
+		PostNumber: &postNum,
+		Name:       "Test",
+		Category:   "LLM/Test/2026/01/31",
+		Body: Body{
+			Background: largeBackground,
+			Tasks: []Task{
+				{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
+			},
+		},
+	}
+
+	_, err := GenerateMarkdownWithJSON(input)
+	if err == nil {
+		t.Fatal("Expected error for embedded markdown exceeding 10MB, got nil")
+	}
+
+	if !strings.Contains(err.Error(), "embedded markdown exceeds") {
+		t.Errorf("Expected error message about embedded markdown size, got: %v", err)
+	}
+}

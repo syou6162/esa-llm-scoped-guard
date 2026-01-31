@@ -2439,6 +2439,53 @@ func TestValidatePostInputSchema_HTMLCommentCheck(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name: "related_links contains <!--",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test",
+				Category:  "LLM/Test/2026/01/31",
+				Body: Body{
+					Background:   "test",
+					RelatedLinks: []string{"https://example.com/<!--comment"},
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "github_urls contains -->",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test",
+				Category:  "LLM/Test/2026/01/31",
+				Body: Body{
+					Background: "test",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test", GitHubURLs: []string{"https://github.com/owner/repo/pull/123-->"}},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "depends_on contains <!--",
+			input: &PostInput{
+				CreateNew: true,
+				Name:      "Test",
+				Category:  "LLM/Test/2026/01/31",
+				Body: Body{
+					Background: "test",
+					Tasks: []Task{
+						{ID: "task-0", Title: "Task 0: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
+						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test", DependsOn: []string{"task-0<!--"}},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
 			name: "no HTML comments",
 			input: &PostInput{
 				CreateNew: true,
