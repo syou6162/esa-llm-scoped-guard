@@ -11,7 +11,7 @@ func ExtractEmbeddedYAML(markdown string) (*PostInput, error) {
 
 	// 1. Check input size (10MB max for scan limit)
 	if len(data) > MaxInputSize {
-		return nil, fmt.Errorf("input size exceeds %d bytes (got %d bytes)", MaxInputSize, len(data))
+		return nil, NewValidationError(ErrCodeFileSizeExceeded, fmt.Sprintf("input size exceeds %d bytes (got %d bytes)", MaxInputSize, len(data)))
 	}
 
 	// 2. Check if document starts with sentinel (exact match, no BOM/whitespace allowed)
@@ -31,7 +31,7 @@ func ExtractEmbeddedYAML(markdown string) (*PostInput, error) {
 
 	// 4. Check YAML block size (10MB max, before parsing)
 	if len(yamlBlock) > MaxYAMLSize {
-		return nil, fmt.Errorf("YAML block size exceeds %d bytes (got %d bytes)", MaxYAMLSize, len(yamlBlock))
+		return nil, NewValidationError(ErrCodeFileSizeExceeded, fmt.Sprintf("YAML block size exceeds %d bytes (got %d bytes)", MaxYAMLSize, len(yamlBlock)))
 	}
 
 	// 5. Parse YAML using DecodeYAMLSecure (includes validation)
