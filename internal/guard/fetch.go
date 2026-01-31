@@ -62,7 +62,11 @@ func executeFetchWithClient(postNumber int, client esa.EsaClientInterface) (stri
 		return "", fmt.Errorf("post_number mismatch: embedded YAML has %d, but requested %d", *input.PostNumber, postNumber)
 	}
 
-	// 6. Validate extracted input (HTML comment sequences, structure, etc.)
+	// 6. Validate extracted input (fail-closed security policy)
+	// This applies full validation (category format, name restrictions, HTML comment sequences, etc.)
+	// to ensure fetched data meets current security standards.
+	// Trade-off: Legacy posts that don't meet current validation rules cannot be fetched,
+	// but this prevents exposure of potentially malformed or unsafe data.
 	TrimPostInput(input)
 	if err := ValidatePostInput(input); err != nil {
 		return "", fmt.Errorf("validation failed: %w", err)
