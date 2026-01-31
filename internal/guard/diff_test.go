@@ -247,7 +247,7 @@ func TestExecuteDiff_IdenticalContent(t *testing.T) {
 	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
 	// 既存記事と同じ内容のYAML
-	inputJSON := `post_number: 123
+	inputYAML := `post_number: 123
 name: Test Post
 category: LLM/Tasks/2026/01/28
 body:
@@ -261,7 +261,7 @@ body:
       description: Task description
 `
 
-	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -315,7 +315,7 @@ func TestExecuteDiff_InlineChange(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
-	inputJSON := `post_number: 123
+	inputYAML := `post_number: 123
 name: Test Post
 category: LLM/Tasks/2026/01/28
 body:
@@ -329,7 +329,7 @@ body:
       description: Task description
 `
 
-	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -424,7 +424,7 @@ func TestExecuteDiff_MultipleHunks(t *testing.T) {
 	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
 	// 複数の離れた場所に変更があるケース
-	inputJSON := `post_number: 123
+	inputYAML := `post_number: 123
 name: Test Post
 category: LLM/Tasks/2026/01/28
 body:
@@ -438,7 +438,7 @@ body:
       description: Task description
 `
 
-	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
