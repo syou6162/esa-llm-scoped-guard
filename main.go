@@ -15,19 +15,19 @@ Usage:
   esa-llm-scoped-guard <command> [options]
 
 Commands:
-  validate  Validate JSON file only (no config required)
+  validate  Validate YAML file only (no config required)
   preview   Preview the generated Markdown without posting (no config required)
   diff      Show diff between existing post and new content (requires config)
-  fetch     Fetch embedded JSON from an existing post (requires config)
+  fetch     Fetch embedded YAML from an existing post (requires config)
   post      Create or update a post on esa.io (requires config)
 
 Options:
-  -json string
-        Path to JSON file containing post data
+  -yaml string
+        Path to YAML file containing post data
   -help
         Show help message for the command
 
-JSON Schema:
+YAML Schema:
   {
     "create_new": true,            // Optional: set true for new post (cannot use with post_number)
     "post_number": 123,            // Optional: existing post number for update (cannot use with create_new)
@@ -52,7 +52,7 @@ JSON Schema:
   }
 
 Markdown Output Example:
-  Input JSON with github_urls and summary:
+  Input YAML with github_urls and summary:
     {
       "id": "task-1",
       "title": "Task 1: Fix bug",
@@ -119,11 +119,11 @@ Configuration:
   ~/.config/esa-llm-scoped-guard/config.yaml
 
 Examples:
-  esa-llm-scoped-guard validate -json ./tasks/123.json # Validate JSON
-  esa-llm-scoped-guard preview -json ./tasks/123.json  # Preview markdown
-  esa-llm-scoped-guard diff -json ./tasks/123.json     # Show diff with existing
-  esa-llm-scoped-guard fetch -post 3221                # Fetch embedded JSON from post
-  esa-llm-scoped-guard post -json ./tasks/123.json     # Post to esa.io
+  esa-llm-scoped-guard validate -yaml ./tasks/123.json # Validate YAML
+  esa-llm-scoped-guard preview -yaml ./tasks/123.json  # Preview markdown
+  esa-llm-scoped-guard diff -yaml ./tasks/123.json     # Show diff with existing
+  esa-llm-scoped-guard fetch -post 3221                # Fetch embedded YAML from post
+  esa-llm-scoped-guard post -yaml ./tasks/123.json     # Post to esa.io
 `
 
 func main() {
@@ -158,7 +158,7 @@ func runPost(args []string) {
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.StringVar(&jsonPath, "json", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -183,7 +183,7 @@ func runValidate(args []string) {
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.StringVar(&jsonPath, "json", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -208,7 +208,7 @@ func runPreview(args []string) {
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.StringVar(&jsonPath, "json", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -233,7 +233,7 @@ func runDiff(args []string) {
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var jsonPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.StringVar(&jsonPath, "json", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
