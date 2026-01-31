@@ -70,8 +70,8 @@ No JSON here.`
 		t.Fatal("Expected error for missing embedded JSON")
 	}
 
-	if !strings.Contains(err.Error(), "sentinel not found") {
-		t.Errorf("Expected 'sentinel not found' error, got: %v", err)
+	if !strings.Contains(err.Error(), "no embedded JSON found in post") {
+		t.Errorf("Expected 'no embedded JSON found in post' error, got: %v", err)
 	}
 }
 
@@ -148,8 +148,8 @@ Content`
 		t.Fatal("Expected error for invalid JSON")
 	}
 
-	if !strings.Contains(err.Error(), "failed to parse JSON") {
-		t.Errorf("Expected JSON parse error, got: %v", err)
+	if !strings.Contains(err.Error(), "invalid JSON in post") {
+		t.Errorf("Expected 'invalid JSON in post' error, got: %v", err)
 	}
 }
 

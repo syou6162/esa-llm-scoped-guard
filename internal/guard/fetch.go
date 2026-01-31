@@ -3,6 +3,7 @@ package guard
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
 )
@@ -29,7 +30,7 @@ func executeFetchWithClient(postNumber int, client esa.EsaClientInterface) (stri
 
 	// 2. Check body size (10MB max)
 	if len(post.BodyMD) > MaxInputSize {
-		return "", fmt.Errorf("post body exceeds %d bytes (got %d bytes)", MaxInputSize, len(post.BodyMD))
+		return "", fmt.Errorf("post body exceeds 10MB limit")
 	}
 
 	// 3. Check if body is empty
@@ -40,8 +41,13 @@ func executeFetchWithClient(postNumber int, client esa.EsaClientInterface) (stri
 	// 4. Extract embedded JSON (parse-only, no schema validation)
 	input, err := ExtractEmbeddedJSON(post.BodyMD)
 	if err != nil {
-		// Add post number to error message for better context
-		return "", fmt.Errorf("failed to extract JSON from post %d: %w", postNumber, err)
+		// Convert extraction errors to plan-specified error messages
+		errMsg := err.Error()
+		if strings.Contains(errMsg, "sentinel not found") {
+			return "", fmt.Errorf("no embedded JSON found in post %d", postNumber)
+		}
+		// For other errors (closing tag not found, parse errors, size errors, etc.)
+		return "", fmt.Errorf("invalid JSON in post %d: %s", postNumber, errMsg)
 	}
 
 	// 5. Check post_number consistency (fail closed security check)
