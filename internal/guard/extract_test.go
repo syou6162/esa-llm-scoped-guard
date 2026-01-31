@@ -212,3 +212,40 @@ This should be ignored
 		t.Errorf("Expected PostNumber 123, got: %v", input.PostNumber)
 	}
 }
+
+// TestExtractEmbeddedJSON_InputSizeExactly10MB tests extraction with exactly 10MB input
+func TestExtractEmbeddedJSON_InputSizeExactly10MB(t *testing.T) {
+	// Create a markdown with exactly 10MB total size
+	baseContent := "<!-- esa-guard-json\n{}\n-->\n"
+	padding := strings.Repeat("a", MaxInputSize-len(baseContent))
+	markdown := baseContent + padding
+
+	if len(markdown) != MaxInputSize {
+		t.Fatalf("Expected exactly %d bytes, got %d", MaxInputSize, len(markdown))
+	}
+
+	_, err := ExtractEmbeddedJSON(markdown)
+	if err != nil && strings.Contains(err.Error(), "input size exceeds") {
+		t.Fatalf("Expected no size error for exactly 10MB, got: %v", err)
+	}
+}
+
+// TestExtractEmbeddedJSON_InputSizeExceeds10MB tests extraction with 10MB+1 input (should fail)
+func TestExtractEmbeddedJSON_InputSizeExceeds10MB(t *testing.T) {
+	// Create a markdown with 10MB+1 bytes
+	baseContent := "<!-- esa-guard-json\n{}\n-->\n"
+	padding := strings.Repeat("a", MaxInputSize-len(baseContent)+1)
+	markdown := baseContent + padding
+
+	if len(markdown) != MaxInputSize+1 {
+		t.Fatalf("Expected exactly %d bytes, got %d", MaxInputSize+1, len(markdown))
+	}
+
+	_, err := ExtractEmbeddedJSON(markdown)
+	if err == nil {
+		t.Fatal("Expected size error for 10MB+1, got nil")
+	}
+	if !strings.Contains(err.Error(), "input size exceeds") {
+		t.Errorf("Expected 'input size exceeds' error, got: %v", err)
+	}
+}
