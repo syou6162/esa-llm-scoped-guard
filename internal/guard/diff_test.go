@@ -30,7 +30,7 @@ func TestExecuteDiff_WithPostNumber(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "update.yaml")
 
-	updateJSON := `post_number: 123
+	updateYAML := `post_number: 123
 name: Test Post
 category: LLM/Tasks/2026/01/28
 body:
@@ -44,7 +44,7 @@ body:
       description: New description
 `
 
-	if err := os.WriteFile(tmpFile, []byte(updateJSON), 0600); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(updateYAML), 0600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -85,7 +85,7 @@ func TestExecuteDiff_CreateNew(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "new.yaml")
 
-	newJSON := `create_new: true
+	newYAML := `create_new: true
 name: Test Post
 category: LLM/Tasks/2026/01/28
 body:
@@ -99,7 +99,7 @@ body:
       description: Test description
 `
 
-	if err := os.WriteFile(tmpFile, []byte(newJSON), 0600); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(newYAML), 0600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -158,7 +158,7 @@ func TestExecuteDiff_CategoryNotAllowed(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "update.yaml")
 
-	updateJSON := `post_number: 123
+	updateYAML := `post_number: 123
 name: Test Post
 category: LLM/Tasks/2026/01/28
 body:
@@ -172,7 +172,7 @@ body:
       description: New description
 `
 
-	if err := os.WriteFile(tmpFile, []byte(updateJSON), 0600); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(updateYAML), 0600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -202,7 +202,7 @@ func TestExecuteDiff_CategoryChangeAttempt(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "update.yaml")
 
-	updateJSON := `post_number: 123
+	updateYAML := `post_number: 123
 name: Test Post
 category: LLM/Tasks/2026/01/29
 body:
@@ -216,7 +216,7 @@ body:
       description: New description
 `
 
-	if err := os.WriteFile(tmpFile, []byte(updateJSON), 0600); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(updateYAML), 0600); err != nil {
 		t.Fatal(err)
 	}
 

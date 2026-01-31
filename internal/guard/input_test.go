@@ -137,7 +137,7 @@ func TestReadPostInputFromFile_FileSize(t *testing.T) {
 	// 10MB超過のファイル
 	largeContent := `{"name": "Test", "category": "LLM/Tasks", "body": {"background": "` + strings.Repeat("a", 10*1024*1024) + `"}}`
 	if err := os.WriteFile(jsonPath, []byte(largeContent), 0600); err != nil {
-		t.Fatalf("Failed to write test JSON: %v", err)
+		t.Fatalf("Failed to write test YAML: %v", err)
 	}
 
 	_, err := ReadPostInputFromFile(jsonPath)

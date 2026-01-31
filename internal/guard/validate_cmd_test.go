@@ -34,21 +34,21 @@ body:
 	}
 }
 
-func TestExecuteValidate_InvalidJSON(t *testing.T) {
+func TestExecuteValidate_InvalidYAML(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "invalid.yaml")
 
-	invalidJSON := `name: Test Post
+	invalidYAML := `name: Test Post
 category: Invalid/Category
 `
 
-	if err := os.WriteFile(tmpFile, []byte(invalidJSON), 0600); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(invalidYAML), 0600); err != nil {
 		t.Fatal(err)
 	}
 
 	err := ExecuteValidate(tmpFile)
 	if err == nil {
-		t.Error("expected error for invalid JSON")
+		t.Error("expected error for invalid YAML")
 	}
 }
 
@@ -59,18 +59,18 @@ func TestExecuteValidate_FileNotFound(t *testing.T) {
 	}
 }
 
-func TestExecuteValidate_MalformedJSON(t *testing.T) {
+func TestExecuteValidate_MalformedYAML(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "malformed.yaml")
 
-	malformedJSON := `invalid: [yaml`
+	malformedYAML := `invalid: [yaml`
 
-	if err := os.WriteFile(tmpFile, []byte(malformedJSON), 0600); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(malformedYAML), 0600); err != nil {
 		t.Fatal(err)
 	}
 
 	err := ExecuteValidate(tmpFile)
 	if err == nil {
-		t.Error("expected error for malformed JSON")
+		t.Error("expected error for malformed YAML")
 	}
 }

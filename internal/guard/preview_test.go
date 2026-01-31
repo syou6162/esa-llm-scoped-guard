@@ -53,7 +53,7 @@ body:
 	})
 
 	if execErr != nil {
-		t.Errorf("expected no error for valid JSON, got %v", execErr)
+		t.Errorf("expected no error for valid YAML, got %v", execErr)
 	}
 
 	if !strings.Contains(output, "## サマリー") {
@@ -69,21 +69,21 @@ body:
 	}
 }
 
-func TestExecutePreview_InvalidJSON(t *testing.T) {
+func TestExecutePreview_InvalidYAML(t *testing.T) {
 	tmpDir := t.TempDir()
 	tmpFile := filepath.Join(tmpDir, "invalid.yaml")
 
-	invalidJSON := `name: Test Post
+	invalidYAML := `name: Test Post
 category: Invalid/Category
 `
 
-	if err := os.WriteFile(tmpFile, []byte(invalidJSON), 0600); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(invalidYAML), 0600); err != nil {
 		t.Fatal(err)
 	}
 
 	err := ExecutePreview(tmpFile)
 	if err == nil {
-		t.Error("expected error for invalid JSON")
+		t.Error("expected error for invalid YAML")
 	}
 }
 
