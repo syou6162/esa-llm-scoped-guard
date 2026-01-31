@@ -132,15 +132,18 @@ invalid`,
 
 func TestReadPostInputFromFile_FileSize(t *testing.T) {
 	tmpDir := t.TempDir()
-	jsonPath := filepath.Join(tmpDir, "large.json")
+	yamlPath := filepath.Join(tmpDir, "large.yaml")
 
 	// 10MB超過のファイル
-	largeContent := `{"name": "Test", "category": "LLM/Tasks", "body": {"background": "` + strings.Repeat("a", 10*1024*1024) + `"}}`
-	if err := os.WriteFile(jsonPath, []byte(largeContent), 0600); err != nil {
+	largeContent := `name: Test
+category: LLM/Tasks
+body:
+  background: "` + strings.Repeat("a", 10*1024*1024) + `"`
+	if err := os.WriteFile(yamlPath, []byte(largeContent), 0600); err != nil {
 		t.Fatalf("Failed to write test YAML: %v", err)
 	}
 
-	_, err := ReadPostInputFromFile(jsonPath)
+	_, err := ReadPostInputFromFile(yamlPath)
 	if err == nil {
 		t.Error("Expected error for file size exceeding 10MB, got nil")
 		return
