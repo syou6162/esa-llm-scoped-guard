@@ -89,8 +89,8 @@ func TestExecuteFetch_EmptyBody(t *testing.T) {
 }
 
 func TestExecuteFetch_BodyTooLarge(t *testing.T) {
-	// Create body larger than 10MB
-	largeBody := "<!-- esa-guard-json\n{}\n-->\n" + strings.Repeat("a", MaxInputSize+1000)
+	// Create body larger than 10MB (MaxInputSize + 1, boundary test)
+	largeBody := "<!-- esa-guard-json\n{}\n-->\n" + strings.Repeat("a", MaxInputSize+1)
 
 	client := &mockFetchClient{bodyMD: largeBody}
 
@@ -101,6 +101,36 @@ func TestExecuteFetch_BodyTooLarge(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "exceeds") {
 		t.Errorf("Expected size exceed error, got: %v", err)
+	}
+}
+
+func TestExecuteFetch_BodyExactly10MB(t *testing.T) {
+	// Create body exactly 10MB (boundary test)
+	baseContent := "<!-- esa-guard-json\n{}\n-->\n"
+	largeBody := baseContent + strings.Repeat("a", MaxInputSize-len(baseContent))
+
+	client := &mockFetchClient{bodyMD: largeBody}
+
+	// Exactly 10MB should succeed (no size error)
+	_, err := executeFetchWithClient(123, client)
+	// May fail on JSON extraction but not on size check
+	if err != nil && strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("Expected no size error for exactly 10MB, got: %v", err)
+	}
+}
+
+func TestExecuteFetch_BodyJustUnder10MB(t *testing.T) {
+	// Create body just under 10MB (MaxInputSize - 1, boundary test)
+	baseContent := "<!-- esa-guard-json\n{}\n-->\n"
+	largeBody := baseContent + strings.Repeat("a", MaxInputSize-len(baseContent)-1)
+
+	client := &mockFetchClient{bodyMD: largeBody}
+
+	// Just under 10MB should succeed (no size error)
+	_, err := executeFetchWithClient(123, client)
+	// May fail on JSON extraction but not on size check
+	if err != nil && strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("Expected no size error for body just under 10MB, got: %v", err)
 	}
 }
 

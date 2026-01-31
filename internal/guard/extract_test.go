@@ -143,9 +143,25 @@ func TestExtractEmbeddedJSON_LargeJSONBlock(t *testing.T) {
 	}
 }
 
+func TestExtractEmbeddedJSON_LargeJSONBlockExactly2MB(t *testing.T) {
+	// Create JSON block exactly 2MB (boundary test)
+	// JSON structure: {"data":"aaa..."} + newlines
+	// Overhead: {"data":""} = 10 bytes, plus \n before and after
+	overhead := len("{\"data\":\"\"}")
+	largeString := strings.Repeat("a", MaxJSONSize-overhead)
+	markdown := "<!-- esa-guard-json\n{\"data\":\"" + largeString + "\"}\n-->"
+
+	_, err := ExtractEmbeddedJSON(markdown)
+	// Exactly 2MB should succeed
+	if err != nil && strings.Contains(err.Error(), "JSON block size exceeds") {
+		t.Fatalf("Expected no size error for exactly 2MB, got: %v", err)
+	}
+}
+
 func TestExtractEmbeddedJSON_LargeJSONBlockWithinLimit(t *testing.T) {
-	// Create JSON just under 2MB (accounting for JSON structure overhead)
-	largeString := strings.Repeat("a", MaxJSONSize-200)
+	// Create JSON just under 2MB (2MB - 1 byte, boundary test)
+	overhead := len("{\"data\":\"\"}")
+	largeString := strings.Repeat("a", MaxJSONSize-overhead-1)
 	markdown := "<!-- esa-guard-json\n{\"data\":\"" + largeString + "\"}\n-->"
 
 	_, err := ExtractEmbeddedJSON(markdown)
