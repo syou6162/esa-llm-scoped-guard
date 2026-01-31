@@ -202,10 +202,10 @@ graph TD
 
 ### コマンド実行
 
-#### validate: JSONバリデーションのみ
+#### validate: YAMLバリデーションのみ
 
 ```bash
-# JSONの妥当性を検証（設定不要）
+# YAMLの妥当性を検証（設定不要）
 esa-llm-scoped-guard validate -yaml ./tasks/new-task.json
 ```
 

@@ -91,7 +91,7 @@ if len(data) > 10*1024*1024 {
 
 esa.ioへ投稿する前に、以下のワークフローを推奨します：
 
-1. **validate**: JSONの妥当性を検証
+1. **validate**: YAMLの妥当性を検証
    ```bash
    esa-llm-scoped-guard validate -yaml ./tasks/123.yaml
    ```
@@ -144,5 +144,5 @@ Codex MCPに相談して、セキュリティ専門家の視点でレビュー�
 - `.claude_work/plans/*.md`: 実装計画書
 - `internal/guard/guard.go`: カテゴリ権限チェックのコアロジック
 - `internal/guard/validator.go`: 入力バリデーション
-- `internal/guard/input.go`: JSON読み込みロジック
+- `internal/guard/input.go`: YAML読み込みロジック
 - `config.go`: 設定ファイル読み込み
