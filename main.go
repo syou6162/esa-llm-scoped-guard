@@ -18,6 +18,7 @@ Commands:
   validate  Validate JSON file only (no config required)
   preview   Preview the generated Markdown without posting (no config required)
   diff      Show diff between existing post and new content (requires config)
+  fetch     Fetch embedded JSON from an existing post (requires config)
   post      Create or update a post on esa.io (requires config)
 
 Options:
@@ -121,6 +122,7 @@ Examples:
   esa-llm-scoped-guard validate -json ./tasks/123.json # Validate JSON
   esa-llm-scoped-guard preview -json ./tasks/123.json  # Preview markdown
   esa-llm-scoped-guard diff -json ./tasks/123.json     # Show diff with existing
+  esa-llm-scoped-guard fetch -post 3221                # Fetch embedded JSON from post
   esa-llm-scoped-guard post -json ./tasks/123.json     # Post to esa.io
 `
 
@@ -139,6 +141,8 @@ func main() {
 		runPreview(os.Args[2:])
 	case "diff":
 		runDiff(os.Args[2:])
+	case "fetch":
+		runFetch(os.Args[2:])
 	case "-help", "--help", "help":
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(0)
@@ -262,6 +266,49 @@ func runDiff(args []string) {
 	}
 
 	if err := guard.ExecuteDiff(jsonPath, config.Esa.TeamName, config.AllowedCategories, accessToken); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func runFetch(args []string) {
+	fs := flag.NewFlagSet("fetch", flag.ExitOnError)
+	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
+	var postNumber int
+	var showHelp bool
+	fs.IntVar(&postNumber, "post", 0, "Post number to fetch")
+	fs.BoolVar(&showHelp, "help", false, "Show help message")
+	fs.Parse(args)
+
+	if showHelp {
+		fs.Usage()
+		os.Exit(0)
+	}
+
+	if postNumber == 0 {
+		fmt.Fprint(os.Stderr, usage)
+		os.Exit(1)
+	}
+
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: failed to get home directory: %v\n", err)
+		os.Exit(1)
+	}
+	configPath := filepath.Join(homeDir, ".config", "esa-llm-scoped-guard", "config.yaml")
+	config, err := LoadAndValidateConfig(configPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: failed to load config: %v\n", err)
+		os.Exit(1)
+	}
+
+	accessToken := os.Getenv("ESA_ACCESS_TOKEN")
+	if accessToken == "" {
+		fmt.Fprintf(os.Stderr, "Error: ESA_ACCESS_TOKEN environment variable is not set\n")
+		os.Exit(1)
+	}
+
+	if err := guard.ExecuteFetch(postNumber, config.Esa.TeamName, accessToken); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
