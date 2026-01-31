@@ -9,13 +9,13 @@ import (
 )
 
 // ExecuteDiff は既存記事との差分を標準出力に出力する。
-func ExecuteDiff(jsonPath string, teamName string, allowedCategories []string, accessToken string) error {
+func ExecuteDiff(yamlPath string, teamName string, allowedCategories []string, accessToken string) error {
 	client := esa.NewEsaClient(teamName, accessToken)
-	return executeDiffWithClient(jsonPath, allowedCategories, client)
+	return executeDiffWithClient(yamlPath, allowedCategories, client)
 }
 
-func executeDiffWithClient(jsonPath string, allowedCategories []string, client esa.EsaClientInterface) error {
-	input, err := ReadPostInputFromFile(jsonPath)
+func executeDiffWithClient(yamlPath string, allowedCategories []string, client esa.EsaClientInterface) error {
+	input, err := ReadPostInputFromFile(yamlPath)
 	if err != nil {
 		return fmt.Errorf("failed to read YAML file: %w", err)
 	}
