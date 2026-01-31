@@ -119,11 +119,11 @@ Configuration:
   ~/.config/esa-llm-scoped-guard/config.yaml
 
 Examples:
-  esa-llm-scoped-guard validate -yaml ./tasks/123.json # Validate YAML
-  esa-llm-scoped-guard preview -yaml ./tasks/123.json  # Preview markdown
-  esa-llm-scoped-guard diff -yaml ./tasks/123.json     # Show diff with existing
+  esa-llm-scoped-guard validate -yaml ./tasks/123.yaml # Validate YAML
+  esa-llm-scoped-guard preview -yaml ./tasks/123.yaml  # Preview markdown
+  esa-llm-scoped-guard diff -yaml ./tasks/123.yaml     # Show diff with existing
   esa-llm-scoped-guard fetch -post 3221                # Fetch embedded YAML from post
-  esa-llm-scoped-guard post -yaml ./tasks/123.json     # Post to esa.io
+  esa-llm-scoped-guard post -yaml ./tasks/123.yaml     # Post to esa.io
 `
 
 func main() {
@@ -156,9 +156,9 @@ func main() {
 func runPost(args []string) {
 	fs := flag.NewFlagSet("post", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
-	var jsonPath string
+	var yamlPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to YAML file containing post data")
+	fs.StringVar(&yamlPath, "yaml", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -167,12 +167,12 @@ func runPost(args []string) {
 		os.Exit(0)
 	}
 
-	if jsonPath == "" {
+	if yamlPath == "" {
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(1)
 	}
 
-	if err := execPost(jsonPath); err != nil {
+	if err := execPost(yamlPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -181,9 +181,9 @@ func runPost(args []string) {
 func runValidate(args []string) {
 	fs := flag.NewFlagSet("validate", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
-	var jsonPath string
+	var yamlPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to YAML file containing post data")
+	fs.StringVar(&yamlPath, "yaml", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -192,12 +192,12 @@ func runValidate(args []string) {
 		os.Exit(0)
 	}
 
-	if jsonPath == "" {
+	if yamlPath == "" {
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(1)
 	}
 
-	if err := guard.ExecuteValidate(jsonPath); err != nil {
+	if err := guard.ExecuteValidate(yamlPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -206,9 +206,9 @@ func runValidate(args []string) {
 func runPreview(args []string) {
 	fs := flag.NewFlagSet("preview", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
-	var jsonPath string
+	var yamlPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to YAML file containing post data")
+	fs.StringVar(&yamlPath, "yaml", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -217,12 +217,12 @@ func runPreview(args []string) {
 		os.Exit(0)
 	}
 
-	if jsonPath == "" {
+	if yamlPath == "" {
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(1)
 	}
 
-	if err := guard.ExecutePreview(jsonPath); err != nil {
+	if err := guard.ExecutePreview(yamlPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -231,9 +231,9 @@ func runPreview(args []string) {
 func runDiff(args []string) {
 	fs := flag.NewFlagSet("diff", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
-	var jsonPath string
+	var yamlPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to YAML file containing post data")
+	fs.StringVar(&yamlPath, "yaml", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -242,7 +242,7 @@ func runDiff(args []string) {
 		os.Exit(0)
 	}
 
-	if jsonPath == "" {
+	if yamlPath == "" {
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(1)
 	}
@@ -265,7 +265,7 @@ func runDiff(args []string) {
 		os.Exit(1)
 	}
 
-	if err := guard.ExecuteDiff(jsonPath, config.Esa.TeamName, config.AllowedCategories, accessToken); err != nil {
+	if err := guard.ExecuteDiff(yamlPath, config.Esa.TeamName, config.AllowedCategories, accessToken); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
