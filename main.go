@@ -315,7 +315,7 @@ func runFetch(args []string) {
 	}
 }
 
-func execPost(jsonPath string) error {
+func execPost(yamlPath string) error {
 	// 1. 設定ファイルの読み込み
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -333,5 +333,5 @@ func execPost(jsonPath string) error {
 		return fmt.Errorf("ESA_ACCESS_TOKEN environment variable is not set")
 	}
 
-	return guard.ExecutePost(jsonPath, config.Esa.TeamName, config.AllowedCategories, accessToken)
+	return guard.ExecutePost(yamlPath, config.Esa.TeamName, config.AllowedCategories, accessToken)
 }
