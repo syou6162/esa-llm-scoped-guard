@@ -9,27 +9,24 @@ import (
 )
 
 // ExecuteDiff は既存記事との差分を標準出力に出力する。
-func ExecuteDiff(jsonPath string, teamName string, allowedCategories []string, accessToken string) error {
+func ExecuteDiff(yamlPath string, teamName string, allowedCategories []string, accessToken string) error {
 	client := esa.NewEsaClient(teamName, accessToken)
-	return executeDiffWithClient(jsonPath, allowedCategories, client)
+	return executeDiffWithClient(yamlPath, allowedCategories, client)
 }
 
-func executeDiffWithClient(jsonPath string, allowedCategories []string, client esa.EsaClientInterface) error {
-	input, err := ReadPostInputFromFile(jsonPath)
+func executeDiffWithClient(yamlPath string, allowedCategories []string, client esa.EsaClientInterface) error {
+	input, err := ReadPostInputFromFile(yamlPath)
 	if err != nil {
-		return fmt.Errorf("failed to read JSON file: %w", err)
+		return fmt.Errorf("failed to read YAML file: %w", err)
 	}
 
 	TrimPostInput(input)
-	if err := ValidatePostInputSchema(input); err != nil {
-		return fmt.Errorf("schema validation failed: %w", err)
-	}
 	if err := ValidatePostInput(input); err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}
 
-	// Generate markdown with embedded JSON (same format as post)
-	newMarkdown, err := GenerateMarkdownWithJSON(input)
+	// Generate markdown with embedded YAML (same format as post)
+	newMarkdown, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
 		return fmt.Errorf("failed to generate markdown: %w", err)
 	}

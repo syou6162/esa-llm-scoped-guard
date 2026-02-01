@@ -12,28 +12,28 @@ const (
 
 // Task はタスクの構造体
 type Task struct {
-	ID          string     `json:"id"`
-	Title       string     `json:"title"`
-	Status      TaskStatus `json:"status"`
-	Summary     []string   `json:"summary"`
-	Description string     `json:"description"`
-	GitHubURLs  []string   `json:"github_urls,omitempty"`
-	DependsOn   []string   `json:"depends_on,omitempty"`
+	ID          string     `yaml:"id"`
+	Title       string     `yaml:"title"`
+	Status      TaskStatus `yaml:"status"`
+	Summary     []string   `yaml:"summary"`
+	Description string     `yaml:"description"`
+	GitHubURLs  []string   `yaml:"github_urls,omitempty"`
+	DependsOn   []string   `yaml:"depends_on,omitempty"`
 }
 
 // Body は本文の構造体
 type Body struct {
-	Background   string   `json:"background"`
-	RelatedLinks []string `json:"related_links,omitempty"`
-	Instructions []string `json:"instructions,omitempty"`
-	Tasks        []Task   `json:"tasks"`
+	Background   string   `yaml:"background"`
+	RelatedLinks []string `yaml:"related_links,omitempty"`
+	Instructions []string `yaml:"instructions,omitempty"`
+	Tasks        []Task   `yaml:"tasks"`
 }
 
-// PostInput は入力JSONの構造体
+// PostInput は入力YAMLの構造体
 type PostInput struct {
-	CreateNew  bool   `json:"create_new,omitempty"`  // 新規作成フラグ
-	PostNumber *int   `json:"post_number,omitempty"` // 更新時に指定
-	Name       string `json:"name"`                  // 必須
-	Category   string `json:"category"`              // 必須
-	Body       Body   `json:"body"`                  // 必須
+	CreateNew  bool   `yaml:"create_new,omitempty"`  // 新規作成フラグ
+	PostNumber *int   `yaml:"post_number,omitempty"` // 更新時に指定
+	Name       string `yaml:"name"`                  // 必須
+	Category   string `yaml:"category"`              // 必須
+	Body       Body   `yaml:"body"`                  // 必須
 }

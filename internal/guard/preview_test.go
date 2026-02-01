@@ -24,29 +24,25 @@ func captureStdout(f func()) string {
 	return buf.String()
 }
 
-func TestExecutePreview_ValidJSON(t *testing.T) {
+func TestExecutePreview_ValidYAML(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "valid.json")
+	tmpFile := filepath.Join(tmpDir, "valid.yaml")
 
-	validJSON := `{
-		"create_new": true,
-		"name": "Test Post",
-		"category": "LLM/Tasks/2026/01/28",
-		"body": {
-			"background": "Test background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test",
-					"status": "not_started",
-					"summary": ["Test summary"],
-					"description": "Test description"
-				}
-			]
-		}
-	}`
+	validYAML := `create_new: true
+name: Test Post
+category: LLM/Tasks/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - Test summary
+      description: Test description
+`
 
-	if err := os.WriteFile(tmpFile, []byte(validJSON), 0600); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(validYAML), 0600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -57,7 +53,7 @@ func TestExecutePreview_ValidJSON(t *testing.T) {
 	})
 
 	if execErr != nil {
-		t.Errorf("expected no error for valid JSON, got %v", execErr)
+		t.Errorf("expected no error for valid YAML, got %v", execErr)
 	}
 
 	if !strings.Contains(output, "## サマリー") {
@@ -73,27 +69,26 @@ func TestExecutePreview_ValidJSON(t *testing.T) {
 	}
 }
 
-func TestExecutePreview_InvalidJSON(t *testing.T) {
+func TestExecutePreview_InvalidYAML(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "invalid.json")
+	tmpFile := filepath.Join(tmpDir, "invalid.yaml")
 
-	invalidJSON := `{
-		"name": "Test Post",
-		"category": "Invalid/Category"
-	}`
+	invalidYAML := `name: Test Post
+category: Invalid/Category
+`
 
-	if err := os.WriteFile(tmpFile, []byte(invalidJSON), 0600); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(invalidYAML), 0600); err != nil {
 		t.Fatal(err)
 	}
 
 	err := ExecutePreview(tmpFile)
 	if err == nil {
-		t.Error("expected error for invalid JSON")
+		t.Error("expected error for invalid YAML")
 	}
 }
 
 func TestExecutePreview_FileNotFound(t *testing.T) {
-	err := ExecutePreview("/nonexistent/path.json")
+	err := ExecutePreview("/nonexistent/path.yaml")
 	if err == nil {
 		t.Error("expected error for nonexistent file")
 	}

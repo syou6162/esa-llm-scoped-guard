@@ -5,14 +5,26 @@ import (
 	"testing"
 )
 
-func TestExtractEmbeddedJSON_Success(t *testing.T) {
-	markdown := `<!-- esa-guard-json
-{"create_new":false,"post_number":123,"name":"Test","category":"LLM/Test/2026/01/31","body":{"background":"test","tasks":[{"id":"task-1","title":"Task 1: Test","status":"not_started","summary":["test"],"description":"test"}]}}
+func TestExtractEmbeddedYAML_Success(t *testing.T) {
+	markdown := `<!-- esa-guard-yaml
+create_new: false
+post_number: 123
+name: Test
+category: LLM/Test/2026/01/31
+body:
+  background: test
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
 -->
 
 ## Test Content`
 
-	input, err := ExtractEmbeddedJSON(markdown)
+	input, err := ExtractEmbeddedYAML(markdown)
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
@@ -25,10 +37,10 @@ func TestExtractEmbeddedJSON_Success(t *testing.T) {
 	}
 }
 
-func TestExtractEmbeddedJSON_WithBOM(t *testing.T) {
-	markdown := "\xEF\xBB\xBF<!-- esa-guard-json\n{}\n-->"
+func TestExtractEmbeddedYAML_WithBOM(t *testing.T) {
+	markdown := "\xEF\xBB\xBF<!-- esa-guard-yaml\ncreate_new: true\n-->"
 
-	_, err := ExtractEmbeddedJSON(markdown)
+	_, err := ExtractEmbeddedYAML(markdown)
 	if err == nil {
 		t.Fatal("Expected error for BOM at start, got nil")
 	}
@@ -37,10 +49,10 @@ func TestExtractEmbeddedJSON_WithBOM(t *testing.T) {
 	}
 }
 
-func TestExtractEmbeddedJSON_WithLeadingWhitespace(t *testing.T) {
-	markdown := " <!-- esa-guard-json\n{}\n-->"
+func TestExtractEmbeddedYAML_WithLeadingWhitespace(t *testing.T) {
+	markdown := " <!-- esa-guard-yaml\ncreate_new: true\n-->"
 
-	_, err := ExtractEmbeddedJSON(markdown)
+	_, err := ExtractEmbeddedYAML(markdown)
 	if err == nil {
 		t.Fatal("Expected error for leading whitespace, got nil")
 	}
@@ -49,10 +61,10 @@ func TestExtractEmbeddedJSON_WithLeadingWhitespace(t *testing.T) {
 	}
 }
 
-func TestExtractEmbeddedJSON_WithLeadingNewline(t *testing.T) {
-	markdown := "\n<!-- esa-guard-json\n{}\n-->"
+func TestExtractEmbeddedYAML_WithLeadingNewline(t *testing.T) {
+	markdown := "\n<!-- esa-guard-yaml\ncreate_new: true\n-->"
 
-	_, err := ExtractEmbeddedJSON(markdown)
+	_, err := ExtractEmbeddedYAML(markdown)
 	if err == nil {
 		t.Fatal("Expected error for leading newline, got nil")
 	}
@@ -61,10 +73,10 @@ func TestExtractEmbeddedJSON_WithLeadingNewline(t *testing.T) {
 	}
 }
 
-func TestExtractEmbeddedJSON_SentinelNotAtStart(t *testing.T) {
-	markdown := "Some text\n<!-- esa-guard-json\n{}\n-->"
+func TestExtractEmbeddedYAML_SentinelNotAtStart(t *testing.T) {
+	markdown := "Some text\n<!-- esa-guard-yaml\ncreate_new: true\n-->"
 
-	_, err := ExtractEmbeddedJSON(markdown)
+	_, err := ExtractEmbeddedYAML(markdown)
 	if err == nil {
 		t.Fatal("Expected error for sentinel not at start, got nil")
 	}
@@ -73,10 +85,10 @@ func TestExtractEmbeddedJSON_SentinelNotAtStart(t *testing.T) {
 	}
 }
 
-func TestExtractEmbeddedJSON_NoClosingTag(t *testing.T) {
-	markdown := "<!-- esa-guard-json\n{}"
+func TestExtractEmbeddedYAML_NoClosingTag(t *testing.T) {
+	markdown := "<!-- esa-guard-yaml\ncreate_new: true"
 
-	_, err := ExtractEmbeddedJSON(markdown)
+	_, err := ExtractEmbeddedYAML(markdown)
 	if err == nil {
 		t.Fatal("Expected error for missing closing tag, got nil")
 	}
@@ -85,26 +97,26 @@ func TestExtractEmbeddedJSON_NoClosingTag(t *testing.T) {
 	}
 }
 
-func TestExtractEmbeddedJSON_InvalidJSON(t *testing.T) {
-	markdown := "<!-- esa-guard-json\n{invalid json}\n-->"
+func TestExtractEmbeddedYAML_InvalidYAML(t *testing.T) {
+	markdown := "<!-- esa-guard-yaml\n[unclosed\n-->"
 
-	_, err := ExtractEmbeddedJSON(markdown)
+	_, err := ExtractEmbeddedYAML(markdown)
 	if err == nil {
-		t.Fatal("Expected error for invalid JSON, got nil")
+		t.Fatal("Expected error for invalid YAML, got nil")
 	}
-	if !strings.Contains(err.Error(), "failed to parse JSON") {
-		t.Errorf("Expected 'failed to parse JSON' error, got: %v", err)
+	if !strings.Contains(err.Error(), "failed to parse YAML") {
+		t.Errorf("Expected 'failed to parse YAML' error, got: %v", err)
 	}
 }
 
-func TestExtractEmbeddedJSON_JSONWithHTMLCommentStart(t *testing.T) {
-	markdown := `<!-- esa-guard-json
-{"name":"<!--test"}
+func TestExtractEmbeddedYAML_YAMLWithHTMLCommentStart(t *testing.T) {
+	markdown := `<!-- esa-guard-yaml
+name: "<!--test"
 -->`
 
 	// Extraction should succeed (parse only, no validation)
 	// Validation of <!-- and --> happens in validator.go
-	input, err := ExtractEmbeddedJSON(markdown)
+	input, err := ExtractEmbeddedYAML(markdown)
 	if err != nil {
 		t.Fatalf("Expected no error (extraction is parse-only), got: %v", err)
 	}
@@ -113,14 +125,14 @@ func TestExtractEmbeddedJSON_JSONWithHTMLCommentStart(t *testing.T) {
 	}
 }
 
-func TestExtractEmbeddedJSON_JSONWithHTMLCommentEnd(t *testing.T) {
-	markdown := `<!-- esa-guard-json
-{"name":"-->test"}
+func TestExtractEmbeddedYAML_YAMLWithHTMLCommentEnd(t *testing.T) {
+	markdown := `<!-- esa-guard-yaml
+name: "-->test"
 -->`
 
 	// Extraction should succeed (parse only, no validation)
 	// Validation of <!-- and --> happens in validator.go
-	input, err := ExtractEmbeddedJSON(markdown)
+	input, err := ExtractEmbeddedYAML(markdown)
 	if err != nil {
 		t.Fatalf("Expected no error (extraction is parse-only), got: %v", err)
 	}
@@ -129,56 +141,70 @@ func TestExtractEmbeddedJSON_JSONWithHTMLCommentEnd(t *testing.T) {
 	}
 }
 
-func TestExtractEmbeddedJSON_LargeJSONBlock(t *testing.T) {
-	// Create JSON just over 2MB
-	largeString := strings.Repeat("a", MaxJSONSize+1)
-	markdown := "<!-- esa-guard-json\n{\"data\":\"" + largeString + "\"}\n-->"
+func TestExtractEmbeddedYAML_LargeYAMLBlock(t *testing.T) {
+	// Create YAML just over 10MB
+	largeString := strings.Repeat("a", MaxYAMLSize+1)
+	markdown := "<!-- esa-guard-yaml\ndata: \"" + largeString + "\"\n-->"
 
-	_, err := ExtractEmbeddedJSON(markdown)
+	_, err := ExtractEmbeddedYAML(markdown)
 	if err == nil {
-		t.Fatal("Expected error for JSON block exceeding 2MB, got nil")
+		t.Fatal("Expected error for YAML block exceeding 10MB, got nil")
 	}
-	if !strings.Contains(err.Error(), "JSON block size exceeds") {
-		t.Errorf("Expected 'JSON block size exceeds' error, got: %v", err)
-	}
-}
-
-func TestExtractEmbeddedJSON_LargeJSONBlockExactly2MB(t *testing.T) {
-	// Create JSON block exactly 2MB (boundary test)
-	// JSON structure: {"data":"aaa..."} + newlines
-	// Overhead: {"data":""} = 10 bytes, plus \n before and after
-	overhead := len("{\"data\":\"\"}")
-	largeString := strings.Repeat("a", MaxJSONSize-overhead)
-	markdown := "<!-- esa-guard-json\n{\"data\":\"" + largeString + "\"}\n-->"
-
-	_, err := ExtractEmbeddedJSON(markdown)
-	// Exactly 2MB should succeed
-	if err != nil && strings.Contains(err.Error(), "JSON block size exceeds") {
-		t.Fatalf("Expected no size error for exactly 2MB, got: %v", err)
+	if !strings.Contains(err.Error(), "input size exceeds") {
+		t.Errorf("Expected 'input size exceeds' error, got: %v", err)
 	}
 }
 
-func TestExtractEmbeddedJSON_LargeJSONBlockWithinLimit(t *testing.T) {
-	// Create JSON just under 2MB (2MB - 1 byte, boundary test)
-	overhead := len("{\"data\":\"\"}")
-	largeString := strings.Repeat("a", MaxJSONSize-overhead-1)
-	markdown := "<!-- esa-guard-json\n{\"data\":\"" + largeString + "\"}\n-->"
+func TestExtractEmbeddedYAML_LargeYAMLBlockExactly2MB(t *testing.T) {
+	// Create YAML block that results in markdown exactly at MaxInputSize
+	// markdown = Sentinel + YAML + ClosingTag
+	// MaxInputSize = 10MB, so YAML block size = MaxInputSize - len(Sentinel) - len(ClosingTag)
+	yamlContentOverhead := len("data: \"\"")
+	maxYAMLBlockSize := MaxInputSize - len(Sentinel) - len(ClosingTag)
+	largeString := strings.Repeat("a", maxYAMLBlockSize-yamlContentOverhead)
+	markdown := "<!-- esa-guard-yaml\ndata: \"" + largeString + "\"\n-->"
 
-	_, err := ExtractEmbeddedJSON(markdown)
-	// This should succeed (parse the JSON structure)
-	if err != nil && !strings.Contains(err.Error(), "validation") && !strings.Contains(err.Error(), "required") {
+	_, err := ExtractEmbeddedYAML(markdown)
+	// Exactly at MaxInputSize should succeed (may fail validation but not size check)
+	if err != nil && strings.Contains(err.Error(), "input size exceeds") {
+		t.Fatalf("Expected no size error for exactly MaxInputSize, got: %v", err)
+	}
+}
+
+func TestExtractEmbeddedYAML_LargeYAMLBlockWithinLimit(t *testing.T) {
+	// Create YAML just under MaxInputSize (MaxInputSize - 1 byte for content, boundary test)
+	yamlContentOverhead := len("data: \"\"")
+	maxYAMLBlockSize := MaxInputSize - len(Sentinel) - len(ClosingTag)
+	largeString := strings.Repeat("a", maxYAMLBlockSize-yamlContentOverhead-1)
+	markdown := "<!-- esa-guard-yaml\ndata: \"" + largeString + "\"\n-->"
+
+	_, err := ExtractEmbeddedYAML(markdown)
+	// This should succeed (parse the YAML structure, may fail validation but not size check)
+	// Validation errors like "required", "field not found" are acceptable - we only care about size errors
+	if err != nil && !strings.Contains(err.Error(), "validation") && !strings.Contains(err.Error(), "required") && !strings.Contains(err.Error(), "field") {
 		t.Fatalf("Expected no size error, got: %v", err)
 	}
 }
 
-func TestExtractEmbeddedJSON_NewPostWithZeroPostNumber(t *testing.T) {
-	markdown := `<!-- esa-guard-json
-{"create_new":true,"name":"Test","category":"LLM/Test/2026/01/31","body":{"background":"test","tasks":[{"id":"task-1","title":"Task 1: Test","status":"not_started","summary":["test"],"description":"test"}]}}
+func TestExtractEmbeddedYAML_NewPostWithZeroPostNumber(t *testing.T) {
+	markdown := `<!-- esa-guard-yaml
+create_new: true
+name: Test
+category: LLM/Test/2026/01/31
+body:
+  background: test
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
 -->
 
 ## Test`
 
-	input, err := ExtractEmbeddedJSON(markdown)
+	input, err := ExtractEmbeddedYAML(markdown)
 	if err != nil {
 		t.Fatalf("Expected no error for new post, got: %v", err)
 	}
@@ -188,22 +214,34 @@ func TestExtractEmbeddedJSON_NewPostWithZeroPostNumber(t *testing.T) {
 	}
 }
 
-func TestExtractEmbeddedJSON_FakeSentinelInBody(t *testing.T) {
+func TestExtractEmbeddedYAML_FakeSentinelInBody(t *testing.T) {
 	// Large markdown with fake sentinel in body
 	fakeContent := strings.Repeat("Lorem ipsum dolor sit amet. ", 10000)
-	markdown := `<!-- esa-guard-json
-{"create_new":false,"post_number":123,"name":"Test","category":"LLM/Test/2026/01/31","body":{"background":"test","tasks":[{"id":"task-1","title":"Task 1: Test","status":"not_started","summary":["test"],"description":"test"}]}}
+	markdown := `<!-- esa-guard-yaml
+create_new: false
+post_number: 123
+name: Test
+category: LLM/Test/2026/01/31
+body:
+  background: test
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
 -->
 
 ## Real Content
 
 ` + fakeContent + `
 
-<!-- esa-guard-json (fake)
+<!-- esa-guard-yaml (fake)
 This should be ignored
 -->`
 
-	input, err := ExtractEmbeddedJSON(markdown)
+	input, err := ExtractEmbeddedYAML(markdown)
 	if err != nil {
 		t.Fatalf("Expected no error, got: %v", err)
 	}
@@ -213,10 +251,10 @@ This should be ignored
 	}
 }
 
-// TestExtractEmbeddedJSON_InputSizeExactly10MB tests extraction with exactly 10MB input
-func TestExtractEmbeddedJSON_InputSizeExactly10MB(t *testing.T) {
+// TestExtractEmbeddedYAML_InputSizeExactly10MB tests extraction with exactly 10MB input
+func TestExtractEmbeddedYAML_InputSizeExactly10MB(t *testing.T) {
 	// Create a markdown with exactly 10MB total size
-	baseContent := "<!-- esa-guard-json\n{}\n-->\n"
+	baseContent := "<!-- esa-guard-yaml\ncreate_new: true\n-->\n"
 	padding := strings.Repeat("a", MaxInputSize-len(baseContent))
 	markdown := baseContent + padding
 
@@ -224,16 +262,16 @@ func TestExtractEmbeddedJSON_InputSizeExactly10MB(t *testing.T) {
 		t.Fatalf("Expected exactly %d bytes, got %d", MaxInputSize, len(markdown))
 	}
 
-	_, err := ExtractEmbeddedJSON(markdown)
+	_, err := ExtractEmbeddedYAML(markdown)
 	if err != nil && strings.Contains(err.Error(), "input size exceeds") {
 		t.Fatalf("Expected no size error for exactly 10MB, got: %v", err)
 	}
 }
 
-// TestExtractEmbeddedJSON_InputSizeExceeds10MB tests extraction with 10MB+1 input (should fail)
-func TestExtractEmbeddedJSON_InputSizeExceeds10MB(t *testing.T) {
+// TestExtractEmbeddedYAML_InputSizeExceeds10MB tests extraction with 10MB+1 input (should fail)
+func TestExtractEmbeddedYAML_InputSizeExceeds10MB(t *testing.T) {
 	// Create a markdown with 10MB+1 bytes
-	baseContent := "<!-- esa-guard-json\n{}\n-->\n"
+	baseContent := "<!-- esa-guard-yaml\ncreate_new: true\n-->\n"
 	padding := strings.Repeat("a", MaxInputSize-len(baseContent)+1)
 	markdown := baseContent + padding
 
@@ -241,11 +279,86 @@ func TestExtractEmbeddedJSON_InputSizeExceeds10MB(t *testing.T) {
 		t.Fatalf("Expected exactly %d bytes, got %d", MaxInputSize+1, len(markdown))
 	}
 
-	_, err := ExtractEmbeddedJSON(markdown)
+	_, err := ExtractEmbeddedYAML(markdown)
 	if err == nil {
 		t.Fatal("Expected size error for 10MB+1, got nil")
 	}
 	if !strings.Contains(err.Error(), "input size exceeds") {
 		t.Errorf("Expected 'input size exceeds' error, got: %v", err)
+	}
+}
+
+// TestExtractEmbeddedYAML_UnknownFields tests that unknown fields are rejected
+func TestExtractEmbeddedYAML_UnknownFields(t *testing.T) {
+	tests := []struct {
+		name     string
+		markdown string
+	}{
+		{
+			name: "unknown top-level field",
+			markdown: `<!-- esa-guard-yaml
+create_new: true
+name: Test
+category: LLM/Test/2026/01/31
+unknown_field: value
+body:
+  background: test
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
+-->`,
+		},
+		{
+			name: "unknown field in body",
+			markdown: `<!-- esa-guard-yaml
+create_new: true
+name: Test
+category: LLM/Test/2026/01/31
+body:
+  background: test
+  unknown_body_field: value
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
+-->`,
+		},
+		{
+			name: "unknown field in task",
+			markdown: `<!-- esa-guard-yaml
+create_new: true
+name: Test
+category: LLM/Test/2026/01/31
+body:
+  background: test
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
+      unknown_task_field: value
+-->`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := ExtractEmbeddedYAML(tt.markdown)
+			if err == nil {
+				t.Fatal("expected error for unknown field, got nil")
+			}
+			if !strings.Contains(err.Error(), "field") {
+				t.Errorf("expected 'field' in error message, got: %v", err)
+			}
+		})
 	}
 }

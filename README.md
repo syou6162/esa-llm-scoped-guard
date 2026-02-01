@@ -43,54 +43,56 @@ export ESA_ACCESS_TOKEN="your-esa-access-token"
 
 ## 使い方
 
-### JSONファイルの作成
+### YAMLファイルの作成
 
-```json
-{
-  "create_new": true,
-  "name": "タスク: データ分析の実装",
-  "category": "LLM/Tasks/2025/01/18",
-  "body": {
-    "background": "このタスクではデータ分析機能を実装します。",
-    "related_links": ["https://github.com/owner/repo/issues/123"],
-    "instructions": [
-      "t_wada式のTDDの形式で開発を進める",
-      "各フェーズ完了時に小まめにコミットする"
-    ],
-    "tasks": [
-      {
-        "id": "task-1",
-        "title": "要件定義",
-        "status": "completed",
-        "summary": ["データ分析の要件を整理", "必要なデータソースを特定"],
-        "description": "データ分析の要件を定義する"
-      },
-      {
-        "id": "task-2",
-        "title": "実装",
-        "status": "in_progress",
-        "summary": ["データ収集APIを実装中"],
-        "description": "データ分析機能を実装する",
-        "depends_on": ["task-1"]
-      },
-      {
-        "id": "task-3",
-        "title": "テスト",
-        "status": "not_started",
-        "summary": ["単体テストと統合テストを実施"],
-        "description": "実装した機能をテストする",
-        "depends_on": ["task-2"]
-      }
-    ]
-  }
-}
+```yaml
+create_new: true
+name: "タスク: データ分析の実装"
+category: LLM/Tasks/2025/01/18
+body:
+  background: |
+    このタスクではデータ分析機能を実装します。
+    複数行の背景説明を記述できます。
+  related_links:
+    - https://github.com/owner/repo/issues/123
+  instructions:
+    - t_wada式のTDDの形式で開発を進める
+    - 各フェーズ完了時に小まめにコミットする
+  tasks:
+    - id: task-1
+      title: 要件定義
+      status: completed
+      summary:
+        - データ分析の要件を整理
+        - 必要なデータソースを特定
+      description: |
+        データ分析の要件を定義する。
+        以下の項目を含める:
+        - データソースの特定
+        - データ形式の仕様
+    - id: task-2
+      title: 実装
+      status: in_progress
+      summary:
+        - データ収集APIを実装中
+      description: データ分析機能を実装する
+      depends_on:
+        - task-1
+    - id: task-3
+      title: テスト
+      status: not_started
+      summary:
+        - 単体テストと統合テストを実施
+      description: 実装した機能をテストする
+      depends_on:
+        - task-2
 ```
 
 **注意**: タグは自動的にGitリポジトリ名が設定されます（gitリポジトリでない場合はタグなし）。
 
 ### 生成されるマークダウン
 
-上記のJSONから以下のマークダウンが生成されます：
+上記のYAMLから以下のマークダウンが生成されます：
 
 ```markdown
 ## サマリー
@@ -204,13 +206,28 @@ graph TD
 | `github_urls` | No | GitHub PR/IssueのURL配列 | `https://github.com/...`形式のURL。単数の場合「Pull Request: URL」、複数の場合「Pull Requests:」+リスト形式で出力 |
 | `depends_on` | No | 依存する他タスクのID配列 | 自己参照不可、循環依存不可 |
 
+### YAML形式の制限事項
+
+**セキュリティとパフォーマンスのため、以下の制限があります:**
+
+- **サイズ制限**: 入力ファイルおよび埋め込みYAMLは最大10MB
+  - 注: 以前のJSON形式では埋め込みサイズが2MBでしたが、YAMLはより冗長なため10MBに統一されました
+- **深さ制限**: YAMLのネスト深さは最大約46レベル（内部ノード階層で50レベル）
+- **ノード数制限**: YAMLのノード総数は最大10,000ノード
+- **フォーマット制限**: YAMLブロックスタイルのみ使用可能（`{key: value}`や`[item]`のようなフロースタイルは不可）
+  - 例外: 空のコレクション（`[]`, `{}`）のみフロースタイルを許可
+
+**重要な変更:**
+
+このツールはバージョン2.0以降、JSON形式の入力をサポートしていません。以前のJSON形式のファイルや埋め込みデータは使用できなくなりました。YAML形式に移行してください。
+
 ### コマンド実行
 
-#### validate: JSONバリデーションのみ
+#### validate: YAMLバリデーションのみ
 
 ```bash
-# JSONの妥当性を検証（設定不要）
-esa-llm-scoped-guard validate -json ./tasks/new-task.json
+# YAMLの妥当性を検証（設定不要）
+esa-llm-scoped-guard validate -yaml ./tasks/new-task.yaml
 ```
 
 正常時は何も出力せず終了コード0を返します。
@@ -219,28 +236,37 @@ esa-llm-scoped-guard validate -json ./tasks/new-task.json
 
 ```bash
 # 生成されるMarkdownを標準出力に表示（設定不要）
-esa-llm-scoped-guard preview -json ./tasks/new-task.json
+esa-llm-scoped-guard preview -yaml ./tasks/new-task.yaml
 ```
 
 #### diff: 記事の差分表示
 
 ```bash
 # 新規作成前に全体を確認（設定・トークン必要、create_new: true の場合は全行が + で表示）
-esa-llm-scoped-guard diff -json ./tasks/new-task.json
+esa-llm-scoped-guard diff -yaml ./tasks/new-task.yaml
 
 # 既存記事との差分を表示（設定・トークン必要、post_number 指定時）
-esa-llm-scoped-guard diff -json ./tasks/update-task.json
+esa-llm-scoped-guard diff -yaml ./tasks/update-task.yaml
 ```
 
 #### post: esa.ioへ投稿
 
 ```bash
 # 新規作成
-esa-llm-scoped-guard post -json ./tasks/new-task.json
+esa-llm-scoped-guard post -yaml ./tasks/new-task.yaml
 
 # 更新（post_numberを指定）
-esa-llm-scoped-guard post -json ./tasks/update-task.json
+esa-llm-scoped-guard post -yaml ./tasks/update-task.yaml
 ```
+
+#### fetch: 記事の取得
+
+```bash
+# 既存記事の埋め込みYAMLを取得（設定・トークン必要）
+esa-llm-scoped-guard fetch -post 123
+```
+
+**重要な動作**: fetchコマンドは、fail-closedセキュリティポリシーに従い、取得した記事に対して完全なバリデーション（カテゴリ形式、名前制限、HTMLコメントシーケンス等）を適用します。これにより、現在のセキュリティ基準を満たさないレガシー記事は取得できません。この設計は、潜在的に不正または安全でないデータの露出を防ぐためです。
 
 ### ヘルプ表示
 

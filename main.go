@@ -15,52 +15,53 @@ Usage:
   esa-llm-scoped-guard <command> [options]
 
 Commands:
-  validate  Validate JSON file only (no config required)
+  validate  Validate YAML file only (no config required)
   preview   Preview the generated Markdown without posting (no config required)
   diff      Show diff between existing post and new content (requires config)
-  fetch     Fetch embedded JSON from an existing post (requires config)
+  fetch     Fetch embedded YAML from an existing post (requires config)
   post      Create or update a post on esa.io (requires config)
 
 Options:
-  -json string
-        Path to JSON file containing post data
+  -yaml string
+        Path to YAML file containing post data
   -help
         Show help message for the command
 
-JSON Schema:
-  {
-    "create_new": true,            // Optional: set true for new post (cannot use with post_number)
-    "post_number": 123,            // Optional: existing post number for update (cannot use with create_new)
-    "name": "Post Title",          // Required: max 255 bytes, no /, （）, or ：
-    "category": "LLM/Tasks/2026/01/18", // Required: allowed category + /yyyy/mm/dd
-    "body": {                      // Required: structured format
-      "background": "Task background (plain text, no '## 背景' header, no # or ## at line start)",
-      "related_links": ["https://example.com"], // Optional: related URLs
-      "instructions": ["Use t_wada-style TDD", "Commit frequently"], // Optional: development instructions (max 10 items, each max 500 chars, no # or ## or list markers at line start)
-      "tasks": [                   // Required: task array
-        {
-          "id": "task-1",          // Required: unique identifier
-          "title": "Task 1: Task title",   // Required: format "Task N: name" where N is sequential integer from 1 (auto-generated: "### {title}")
-          "status": "not_started", // Required: not_started/in_progress/in_review/completed (auto-generated: "Status: {status}")
-          "summary": ["Task summary line 1", "Task summary line 2"], // Required: 1-3 items, each max 140 chars
-          "description": "Task description", // Required (wrapped in <details>, no #/##/### at line start)
-          "github_urls": ["https://github.com/owner/repo/pull/123"], // Optional: GitHub PR/Issue URLs
-          "depends_on": ["task-0"]    // Optional: dependent task IDs (no self-ref, no cycles)
-        }
-      ]
-    }
-  }
+YAML Schema:
+  create_new: true               # Optional: set true for new post (cannot use with post_number)
+  post_number: 123               # Optional: existing post number for update (cannot use with create_new)
+  name: Post Title               # Required: max 255 bytes, no /, （）, or ：
+  category: LLM/Tasks/2026/01/18 # Required: allowed category + /yyyy/mm/dd
+  body:                          # Required: structured format
+    background: Task background (plain text, no '## 背景' header, no # or ## at line start)
+    related_links:               # Optional: related URLs
+      - https://example.com
+    instructions:                # Optional: development instructions (max 10 items, each max 500 chars, no # or ## or list markers at line start)
+      - Use t_wada-style TDD
+      - Commit frequently
+    tasks:                       # Required: task array
+      - id: task-1               # Required: unique identifier
+        title: "Task 1: Task title"   # Required: format "Task N: name" where N is sequential integer from 1 (auto-generated: "### {title}")
+        status: not_started      # Required: not_started/in_progress/in_review/completed (auto-generated: "Status: {status}")
+        summary:                 # Required: 1-3 items, each max 140 chars
+          - Task summary line 1
+          - Task summary line 2
+        description: Task description  # Required (wrapped in <details>, no #/##/### at line start)
+        github_urls:             # Optional: GitHub PR/Issue URLs
+          - https://github.com/owner/repo/pull/123
+        depends_on:              # Optional: dependent task IDs (no self-ref, no cycles)
+          - task-0
 
 Markdown Output Example:
-  Input JSON with github_urls and summary:
-    {
-      "id": "task-1",
-      "title": "Task 1: Fix bug",
-      "status": "in_progress",
-      "summary": ["Fix authentication issue"],
-      "description": "Fix the authentication bug",
-      "github_urls": ["https://github.com/owner/repo/pull/123"]
-    }
+  Input YAML with github_urls and summary:
+    id: task-1
+    title: "Task 1: Fix bug"
+    status: in_progress
+    summary:
+      - Fix authentication issue
+    description: Fix the authentication bug
+    github_urls:
+      - https://github.com/owner/repo/pull/123
 
   Output:
     ### Task 1: Fix bug
@@ -119,11 +120,11 @@ Configuration:
   ~/.config/esa-llm-scoped-guard/config.yaml
 
 Examples:
-  esa-llm-scoped-guard validate -json ./tasks/123.json # Validate JSON
-  esa-llm-scoped-guard preview -json ./tasks/123.json  # Preview markdown
-  esa-llm-scoped-guard diff -json ./tasks/123.json     # Show diff with existing
-  esa-llm-scoped-guard fetch -post 3221                # Fetch embedded JSON from post
-  esa-llm-scoped-guard post -json ./tasks/123.json     # Post to esa.io
+  esa-llm-scoped-guard validate -yaml ./tasks/123.yaml # Validate YAML
+  esa-llm-scoped-guard preview -yaml ./tasks/123.yaml  # Preview markdown
+  esa-llm-scoped-guard diff -yaml ./tasks/123.yaml     # Show diff with existing
+  esa-llm-scoped-guard fetch -post 3221                # Fetch embedded YAML from post
+  esa-llm-scoped-guard post -yaml ./tasks/123.yaml     # Post to esa.io
 `
 
 func main() {
@@ -156,9 +157,9 @@ func main() {
 func runPost(args []string) {
 	fs := flag.NewFlagSet("post", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
-	var jsonPath string
+	var yamlPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.StringVar(&yamlPath, "yaml", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -167,12 +168,12 @@ func runPost(args []string) {
 		os.Exit(0)
 	}
 
-	if jsonPath == "" {
+	if yamlPath == "" {
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(1)
 	}
 
-	if err := execPost(jsonPath); err != nil {
+	if err := execPost(yamlPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -181,9 +182,9 @@ func runPost(args []string) {
 func runValidate(args []string) {
 	fs := flag.NewFlagSet("validate", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
-	var jsonPath string
+	var yamlPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.StringVar(&yamlPath, "yaml", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -192,12 +193,12 @@ func runValidate(args []string) {
 		os.Exit(0)
 	}
 
-	if jsonPath == "" {
+	if yamlPath == "" {
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(1)
 	}
 
-	if err := guard.ExecuteValidate(jsonPath); err != nil {
+	if err := guard.ExecuteValidate(yamlPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -206,9 +207,9 @@ func runValidate(args []string) {
 func runPreview(args []string) {
 	fs := flag.NewFlagSet("preview", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
-	var jsonPath string
+	var yamlPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.StringVar(&yamlPath, "yaml", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -217,12 +218,12 @@ func runPreview(args []string) {
 		os.Exit(0)
 	}
 
-	if jsonPath == "" {
+	if yamlPath == "" {
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(1)
 	}
 
-	if err := guard.ExecutePreview(jsonPath); err != nil {
+	if err := guard.ExecutePreview(yamlPath); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -231,9 +232,9 @@ func runPreview(args []string) {
 func runDiff(args []string) {
 	fs := flag.NewFlagSet("diff", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
-	var jsonPath string
+	var yamlPath string
 	var showHelp bool
-	fs.StringVar(&jsonPath, "json", "", "Path to JSON file containing post data")
+	fs.StringVar(&yamlPath, "yaml", "", "Path to YAML file containing post data")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -242,7 +243,7 @@ func runDiff(args []string) {
 		os.Exit(0)
 	}
 
-	if jsonPath == "" {
+	if yamlPath == "" {
 		fmt.Fprint(os.Stderr, usage)
 		os.Exit(1)
 	}
@@ -265,7 +266,7 @@ func runDiff(args []string) {
 		os.Exit(1)
 	}
 
-	if err := guard.ExecuteDiff(jsonPath, config.Esa.TeamName, config.AllowedCategories, accessToken); err != nil {
+	if err := guard.ExecuteDiff(yamlPath, config.Esa.TeamName, config.AllowedCategories, accessToken); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -314,7 +315,7 @@ func runFetch(args []string) {
 	}
 }
 
-func execPost(jsonPath string) error {
+func execPost(yamlPath string) error {
 	// 1. 設定ファイルの読み込み
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -332,5 +333,5 @@ func execPost(jsonPath string) error {
 		return fmt.Errorf("ESA_ACCESS_TOKEN environment variable is not set")
 	}
 
-	return guard.ExecutePost(jsonPath, config.Esa.TeamName, config.AllowedCategories, accessToken)
+	return guard.ExecutePost(yamlPath, config.Esa.TeamName, config.AllowedCategories, accessToken)
 }
