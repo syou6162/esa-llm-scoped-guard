@@ -36,7 +36,7 @@ const (
 	// File errors
 	ErrCodeFileSizeExceeded ValidationErrorCode = "file_size_exceeded"
 	ErrCodeNotRegularFile   ValidationErrorCode = "not_regular_file"
-	ErrCodeJSONInvalid      ValidationErrorCode = "json_invalid"
+	ErrCodeYAMLInvalid      ValidationErrorCode = "yaml_invalid"
 )
 
 // ValidationError はバリデーションエラーを表す構造体
@@ -136,5 +136,5 @@ var (
 	// File errors
 	ErrFileSizeExceeded = &ValidationError{code: ErrCodeFileSizeExceeded, index: -1}
 	ErrNotRegularFile   = &ValidationError{code: ErrCodeNotRegularFile, index: -1}
-	ErrJSONInvalid      = &ValidationError{code: ErrCodeJSONInvalid, index: -1}
+	ErrYAMLInvalid      = &ValidationError{code: ErrCodeYAMLInvalid, index: -1}
 )

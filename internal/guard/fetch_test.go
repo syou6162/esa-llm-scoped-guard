@@ -34,8 +34,19 @@ func (m *mockFetchClient) GetPost(postNumber int) (*esa.Post, error) {
 }
 
 func TestExecuteFetch_Success(t *testing.T) {
-	bodyMD := `<!-- esa-guard-json
-{"post_number":123,"name":"Test","category":"LLM/Test/2026/01/31","body":{"background":"test","tasks":[{"id":"task-1","title":"Task 1: Test","status":"not_started","summary":["test"],"description":"test"}]}}
+	bodyMD := `<!-- esa-guard-yaml
+post_number: 123
+name: Test
+category: LLM/Test/2026/01/31
+body:
+  background: test
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
 -->
 
 ## サマリー
@@ -48,30 +59,30 @@ func TestExecuteFetch_Success(t *testing.T) {
 		t.Fatalf("executeFetchWithClient() error = %v", err)
 	}
 
-	// Check output is pretty-printed JSON
-	if !strings.Contains(output, "{\n") {
-		t.Error("Expected pretty-printed JSON (with newlines)")
+	// Check output is pretty-printed YAML
+	if !strings.Contains(output, "post_number: 123") {
+		t.Error("Expected post_number in output")
 	}
 
-	if !strings.Contains(output, `"post_number": 123`) {
-		t.Error("Expected post_number in output")
+	if !strings.Contains(output, "name: Test") {
+		t.Error("Expected name in output")
 	}
 }
 
-func TestExecuteFetch_NoEmbeddedJSON(t *testing.T) {
+func TestExecuteFetch_NoEmbeddedYAML(t *testing.T) {
 	bodyMD := `## Regular Markdown
 
-No JSON here.`
+No YAML here.`
 
 	client := &mockFetchClient{bodyMD: bodyMD}
 
 	_, err := executeFetchWithClient(123, client)
 	if err == nil {
-		t.Fatal("Expected error for missing embedded JSON")
+		t.Fatal("Expected error for missing embedded YAML")
 	}
 
-	if !strings.Contains(err.Error(), "no embedded JSON found in post") {
-		t.Errorf("Expected 'no embedded JSON found in post' error, got: %v", err)
+	if !strings.Contains(err.Error(), "no embedded YAML found in post") {
+		t.Errorf("Expected 'no embedded YAML found in post' error, got: %v", err)
 	}
 }
 
@@ -90,7 +101,7 @@ func TestExecuteFetch_EmptyBody(t *testing.T) {
 
 func TestExecuteFetch_BodyTooLarge(t *testing.T) {
 	// Create body larger than 10MB (MaxInputSize + 1, boundary test)
-	largeBody := "<!-- esa-guard-json\n{}\n-->\n" + strings.Repeat("a", MaxInputSize+1)
+	largeBody := "<!-- esa-guard-yaml\n{}\n-->\n" + strings.Repeat("a", MaxInputSize+1)
 
 	client := &mockFetchClient{bodyMD: largeBody}
 
@@ -106,14 +117,14 @@ func TestExecuteFetch_BodyTooLarge(t *testing.T) {
 
 func TestExecuteFetch_BodyExactly10MB(t *testing.T) {
 	// Create body exactly 10MB (boundary test)
-	baseContent := "<!-- esa-guard-json\n{}\n-->\n"
+	baseContent := "<!-- esa-guard-yaml\n{}\n-->\n"
 	largeBody := baseContent + strings.Repeat("a", MaxInputSize-len(baseContent))
 
 	client := &mockFetchClient{bodyMD: largeBody}
 
 	// Exactly 10MB should succeed (no size error)
 	_, err := executeFetchWithClient(123, client)
-	// May fail on JSON extraction but not on size check
+	// May fail on YAML extraction but not on size check
 	if err != nil && strings.Contains(err.Error(), "exceeds") {
 		t.Fatalf("Expected no size error for exactly 10MB, got: %v", err)
 	}
@@ -121,22 +132,22 @@ func TestExecuteFetch_BodyExactly10MB(t *testing.T) {
 
 func TestExecuteFetch_BodyJustUnder10MB(t *testing.T) {
 	// Create body just under 10MB (MaxInputSize - 1, boundary test)
-	baseContent := "<!-- esa-guard-json\n{}\n-->\n"
+	baseContent := "<!-- esa-guard-yaml\ncreate_new: true\n-->\n"
 	largeBody := baseContent + strings.Repeat("a", MaxInputSize-len(baseContent)-1)
 
 	client := &mockFetchClient{bodyMD: largeBody}
 
 	// Just under 10MB should succeed (no size error)
 	_, err := executeFetchWithClient(123, client)
-	// May fail on JSON extraction but not on size check
+	// May fail on YAML extraction but not on size check
 	if err != nil && strings.Contains(err.Error(), "exceeds") {
 		t.Fatalf("Expected no size error for body just under 10MB, got: %v", err)
 	}
 }
 
-func TestExecuteFetch_InvalidJSON(t *testing.T) {
-	bodyMD := `<!-- esa-guard-json
-{invalid json}
+func TestExecuteFetch_InvalidYAML(t *testing.T) {
+	bodyMD := `<!-- esa-guard-yaml
+[unclosed
 -->
 
 Content`
@@ -145,18 +156,29 @@ Content`
 
 	_, err := executeFetchWithClient(123, client)
 	if err == nil {
-		t.Fatal("Expected error for invalid JSON")
+		t.Fatal("Expected error for invalid YAML")
 	}
 
-	if !strings.Contains(err.Error(), "invalid JSON in post") {
-		t.Errorf("Expected 'invalid JSON in post' error, got: %v", err)
+	if !strings.Contains(err.Error(), "invalid YAML in post") {
+		t.Errorf("Expected 'invalid YAML in post' error, got: %v", err)
 	}
 }
 
 func TestExecuteFetch_PostNumberMismatch(t *testing.T) {
-	// Embedded JSON has post_number 999, but we request 123
-	bodyMD := `<!-- esa-guard-json
-{"post_number":999,"name":"Test","category":"LLM/Test/2026/01/31","body":{"background":"test","tasks":[{"id":"task-1","title":"Task 1: Test","status":"not_started","summary":["test"],"description":"test"}]}}
+	// Embedded YAML has post_number 999, but we request 123
+	bodyMD := `<!-- esa-guard-yaml
+post_number: 999
+name: Test
+category: LLM/Test/2026/01/31
+body:
+  background: test
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
 -->
 
 ## サマリー
@@ -173,7 +195,7 @@ func TestExecuteFetch_PostNumberMismatch(t *testing.T) {
 		t.Errorf("Expected 'post_number mismatch' error, got: %v", err)
 	}
 
-	if !strings.Contains(err.Error(), "embedded JSON has 999") {
+	if !strings.Contains(err.Error(), "embedded YAML has 999") {
 		t.Errorf("Expected error to mention embedded post_number 999, got: %v", err)
 	}
 
@@ -183,9 +205,19 @@ func TestExecuteFetch_PostNumberMismatch(t *testing.T) {
 }
 
 func TestExecuteFetch_PostNumberNil(t *testing.T) {
-	// Embedded JSON has no post_number (nil) - should be rejected (fail closed)
-	bodyMD := `<!-- esa-guard-json
-{"name":"Test","category":"LLM/Test/2026/01/31","body":{"background":"test","tasks":[{"id":"task-1","title":"Task 1: Test","status":"not_started","summary":["test"],"description":"test"}]}}
+	// Embedded YAML has no post_number (nil) - should be rejected (fail closed)
+	bodyMD := `<!-- esa-guard-yaml
+name: Test
+category: LLM/Test/2026/01/31
+body:
+  background: test
+  tasks:
+    - id: task-1
+      title: "Task 1: Test"
+      status: not_started
+      summary:
+        - test
+      description: test
 -->
 
 ## サマリー
@@ -200,5 +232,77 @@ func TestExecuteFetch_PostNumberNil(t *testing.T) {
 
 	if !strings.Contains(err.Error(), "post_number is required") {
 		t.Errorf("Expected 'post_number is required' error, got: %v", err)
+	}
+}
+
+// TestExecuteFetch_OutputRoundtrip tests that fetch output can be re-parsed
+func TestExecuteFetch_OutputRoundtrip(t *testing.T) {
+	bodyMD := `<!-- esa-guard-yaml
+post_number: 123
+name: Test Post
+category: LLM/Tasks/2026/01/28
+body:
+  background: Background text
+  related_links:
+    - https://example.com
+  instructions:
+    - Instruction 1
+    - Instruction 2
+  tasks:
+    - id: task-1
+      title: "Task 1: First task"
+      status: in_progress
+      summary:
+        - Summary line 1
+        - Summary line 2
+      description: Task description
+      github_urls:
+        - https://github.com/owner/repo/pull/123
+      depends_on: []
+    - id: task-2
+      title: "Task 2: Second task"
+      status: not_started
+      summary:
+        - Summary for task 2
+      description: Another description
+      depends_on:
+        - task-1
+-->
+
+## サマリー
+- [x] Task 1: First task
+- [ ] Task 2: Second task`
+
+	client := &mockFetchClient{bodyMD: bodyMD}
+
+	output, err := executeFetchWithClient(123, client)
+	if err != nil {
+		t.Fatalf("Expected no error, got: %v", err)
+	}
+
+	// Re-parse the output YAML
+	input, err := ExtractEmbeddedYAML("<!-- esa-guard-yaml\n" + output + "\n-->")
+	if err != nil {
+		t.Fatalf("Failed to re-parse fetch output: %v", err)
+	}
+
+	// Verify structure is preserved
+	if input.PostNumber == nil || *input.PostNumber != 123 {
+		t.Errorf("Expected post_number 123, got: %v", input.PostNumber)
+	}
+	if input.Name != "Test Post" {
+		t.Errorf("Expected name 'Test Post', got: %s", input.Name)
+	}
+	if input.Category != "LLM/Tasks/2026/01/28" {
+		t.Errorf("Expected category 'LLM/Tasks/2026/01/28', got: %s", input.Category)
+	}
+	if len(input.Body.Tasks) != 2 {
+		t.Errorf("Expected 2 tasks, got: %d", len(input.Body.Tasks))
+	}
+	if len(input.Body.Tasks[0].DependsOn) != 0 {
+		t.Errorf("Expected task-1 depends_on to be empty, got: %v", input.Body.Tasks[0].DependsOn)
+	}
+	if len(input.Body.Tasks[1].DependsOn) != 1 || input.Body.Tasks[1].DependsOn[0] != "task-1" {
+		t.Errorf("Expected task-2 depends_on ['task-1'], got: %v", input.Body.Tasks[1].DependsOn)
 	}
 }

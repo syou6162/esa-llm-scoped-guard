@@ -377,69 +377,6 @@ func TestValidatePostInput_Body(t *testing.T) {
 	}
 }
 
-func TestValidatePostInputSchema(t *testing.T) {
-	tests := []struct {
-		name    string
-		input   *PostInput
-		wantErr bool
-	}{
-		{
-			name: "有効な入力",
-			input: &PostInput{
-				CreateNew: true,
-				Name:      "Test Post",
-				Category:  "LLM/Tasks/2025/01/18",
-				Body: Body{
-					Background: "Content",
-					Tasks: []Task{
-						{
-							ID:          "task-1",
-							Title:       "Task 1: タスク",
-							Status:      TaskStatusNotStarted,
-							Summary:     []string{"要約"},
-							Description: "Description 1",
-						},
-					},
-				},
-			},
-			wantErr: false,
-		},
-		{
-			name: "nameが空",
-			input: &PostInput{
-				CreateNew: true,
-				Name:      "",
-				Category:  "LLM/Tasks/2025/01/18",
-				Body: Body{
-					Background: "Content",
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "backgroundが空",
-			input: &PostInput{
-				CreateNew: true,
-				Name:      "Test",
-				Category:  "LLM/Tasks/2025/01/18",
-				Body: Body{
-					Background: "",
-				},
-			},
-			wantErr: true,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := ValidatePostInputSchema(tt.input)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ValidatePostInputSchema() error = %v, wantErr %v", err, tt.wantErr)
-			}
-		})
-	}
-}
-
 // TestValidatePostInput_GitHubURLs はタスクのGitHub URLsのバリデーションをテストします
 func TestValidatePostInput_GitHubURLs(t *testing.T) {
 	tests := []struct {
@@ -2372,172 +2309,235 @@ func TestValidatePostInput_TaskTitlePrefix(t *testing.T) {
 	}
 }
 
-func TestValidatePostInputSchema_HTMLCommentCheck(t *testing.T) {
+// TestValidatePostInput_HTMLCommentSequences はHTMLコメントシーケンス検証をテストします
+func TestValidatePostInput_HTMLCommentSequences(t *testing.T) {
 	tests := []struct {
 		name    string
-		input   *PostInput
+		input   PostInput
 		wantErr bool
 	}{
 		{
-			name: "name contains <!--",
-			input: &PostInput{
+			name: "正常: HTMLコメントシーケンスなし",
+			input: PostInput{
 				CreateNew: true,
-				Name:      "Test <!--comment",
-				Category:  "LLM/Test/2026/01/31",
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
 				Body: Body{
-					Background: "test",
+					Background: "Content",
 					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "name contains -->",
-			input: &PostInput{
-				CreateNew: true,
-				Name:      "Test -->comment",
-				Category:  "LLM/Test/2026/01/31",
-				Body: Body{
-					Background: "test",
-					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "background contains <!--",
-			input: &PostInput{
-				CreateNew: true,
-				Name:      "Test",
-				Category:  "LLM/Test/2026/01/31",
-				Body: Body{
-					Background: "test <!--comment",
-					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "task description contains -->",
-			input: &PostInput{
-				CreateNew: true,
-				Name:      "Test",
-				Category:  "LLM/Test/2026/01/31",
-				Body: Body{
-					Background: "test",
-					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test -->comment"},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "related_links contains <!--",
-			input: &PostInput{
-				CreateNew: true,
-				Name:      "Test",
-				Category:  "LLM/Test/2026/01/31",
-				Body: Body{
-					Background:   "test",
-					RelatedLinks: []string{"https://example.com/<!--comment"},
-					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "github_urls contains -->",
-			input: &PostInput{
-				CreateNew: true,
-				Name:      "Test",
-				Category:  "LLM/Test/2026/01/31",
-				Body: Body{
-					Background: "test",
-					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test", GitHubURLs: []string{"https://github.com/owner/repo/pull/123-->"}},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "depends_on contains <!--",
-			input: &PostInput{
-				CreateNew: true,
-				Name:      "Test",
-				Category:  "LLM/Test/2026/01/31",
-				Body: Body{
-					Background: "test",
-					Tasks: []Task{
-						{ID: "task-0", Title: "Task 0: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
-						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test", DependsOn: []string{"task-0<!--"}},
-					},
-				},
-			},
-			wantErr: true,
-		},
-		{
-			name: "no HTML comments",
-			input: &PostInput{
-				CreateNew: true,
-				Name:      "Test",
-				Category:  "LLM/Test/2026/01/31",
-				Body: Body{
-					Background: "test",
-					Tasks: []Task{
-						{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
 					},
 				},
 			},
 			wantErr: false,
 		},
+		{
+			name: "エラー: nameに<!--",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test <!-- comment Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: nameに-->",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test --> Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: categoryに<!--",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks<!--/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: backgroundに<!--",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content <!-- comment",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: backgroundに-->",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content --> end",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: related_linksに<!--",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background:   "Content",
+					RelatedLinks: []string{"https://example.com<!--"},
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: instructionsに-->",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background:   "Content",
+					Instructions: []string{"指示 --> 終了"},
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: task.idに<!--",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1<!--", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: task.titleに-->",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク-->", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: task.descriptionに<!--",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc<!--content"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: task.summaryに-->",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusNotStarted, Summary: []string{"要約-->終了"}, Description: "Desc"},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: task.github_urlsに<!--",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク", Status: TaskStatusInProgress, Summary: []string{"要約"}, Description: "Desc", GitHubURLs: []string{"https://github.com/owner/repo/pull/123<!--"}},
+					},
+				},
+			},
+			wantErr: true,
+		},
+		{
+			name: "エラー: task.depends_onに-->",
+			input: PostInput{
+				CreateNew: true,
+				Name:      "Test Post",
+				Category:  "LLM/Tasks/2024/01/01",
+				Body: Body{
+					Background: "Content",
+					Tasks: []Task{
+						{ID: "task-1", Title: "Task 1: タスク1", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc"},
+						{ID: "task-2", Title: "Task 2: タスク2", Status: TaskStatusNotStarted, Summary: []string{"要約"}, Description: "Desc", DependsOn: []string{"task-1-->"}},
+					},
+				},
+			},
+			wantErr: true,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := ValidatePostInputSchema(tt.input)
+			TrimPostInput(&tt.input)
+			err := ValidatePostInput(&tt.input)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("ValidatePostInputSchema() error = %v, wantErr %v", err, tt.wantErr)
-			}
-			if tt.wantErr && err != nil {
-				if !strings.Contains(err.Error(), "<!--") && !strings.Contains(err.Error(), "-->") {
-					t.Errorf("Expected error message to mention HTML comments, got: %v", err)
-				}
+				t.Errorf("ValidatePostInput() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
-	}
-}
-
-func TestValidatePostInputSchema_JSONSize(t *testing.T) {
-	// Create a large task description to exceed 2MB when marshaled
-	largeString := strings.Repeat("a", MaxJSONSize+1000)
-
-	input := &PostInput{
-		CreateNew: true,
-		Name:      "Test",
-		Category:  "LLM/Test/2026/01/31",
-		Body: Body{
-			Background: largeString,
-			Tasks: []Task{
-				{ID: "task-1", Title: "Task 1: Test", Status: TaskStatusNotStarted, Summary: []string{"test"}, Description: "test"},
-			},
-		},
-	}
-
-	err := ValidatePostInputSchema(input)
-	if err == nil {
-		t.Fatal("Expected error for JSON size exceeding 2MB, got nil")
-	}
-	if !strings.Contains(err.Error(), "JSON size exceeds") {
-		t.Errorf("Expected error message about JSON size, got: %v", err)
 	}
 }

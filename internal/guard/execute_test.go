@@ -41,31 +41,27 @@ func (m *mockEsaClientForExecute) GetPost(number int) (*esa.Post, error) {
 	}, nil
 }
 
-// TestExecutePost_CreateNewUpdatesJSON tests that JSON file is automatically updated after successful post with create_new
-func TestExecutePost_CreateNewUpdatesJSON(t *testing.T) {
+// TestExecutePost_CreateNewUpdatesYAML tests that YAML file is automatically updated after successful post with create_new
+func TestExecutePost_CreateNewUpdatesYAML(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.json")
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
-	// 新規作成用のJSONファイルを作成（create_new: true）
-	inputJSON := `{
-		"create_new": true,
-		"name": "Test Post",
-		"category": "Claude Code/開発日誌/2026/01/28",
-		"body": {
-			"background": "Test background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test task",
-					"status": "not_started",
-					"summary": ["Task summary"],
-					"description": "Task description"
-				}
-			]
-		}
-	}`
+	// 新規作成用のYAMLファイルを作成（create_new: true）
+	inputYAML := `create_new: true
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
 
-	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -78,16 +74,16 @@ func TestExecutePost_CreateNewUpdatesJSON(t *testing.T) {
 
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
-	// ExecutePost実行（内部でJSON更新が行われるはず）
+	// ExecutePost実行（内部でYAML更新が行われるはず）
 	err := executePostWithClient(tmpFile, allowedCategories, mockClient)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	// JSONファイルが自動更新されているか確認
+	// YAMLファイルが自動更新されているか確認
 	updatedInput, err := ReadPostInputFromFile(tmpFile)
 	if err != nil {
-		t.Fatalf("failed to read updated JSON: %v", err)
+		t.Fatalf("failed to read updated YAML: %v", err)
 	}
 
 	// create_newがfalseになっている
@@ -103,31 +99,27 @@ func TestExecutePost_CreateNewUpdatesJSON(t *testing.T) {
 	}
 }
 
-// TestExecutePost_UpdateDoesNotChangeJSON tests that JSON file is not modified when updating existing post
-func TestExecutePost_UpdateDoesNotChangeJSON(t *testing.T) {
+// TestExecutePost_UpdateDoesNotChangeYAML tests that YAML file is not modified when updating existing post
+func TestExecutePost_UpdateDoesNotChangeYAML(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.json")
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
-	// 更新用のJSONファイルを作成（post_number: 123）
-	inputJSON := `{
-		"post_number": 123,
-		"name": "Test Post",
-		"category": "Claude Code/開発日誌/2026/01/28",
-		"body": {
-			"background": "Test background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test task",
-					"status": "not_started",
-					"summary": ["Task summary"],
-					"description": "Task description"
-				}
-			]
-		}
-	}`
+	// 更新用のYAMLファイルを作成（post_number: 123）
+	inputYAML := `post_number: 123
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
 
-	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -147,16 +139,16 @@ func TestExecutePost_UpdateDoesNotChangeJSON(t *testing.T) {
 
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
-	// ExecutePost実行（更新なのでJSONは変更されないはず）
+	// ExecutePost実行（更新なのでYAMLは変更されないはず）
 	err := executePostWithClient(tmpFile, allowedCategories, mockClient)
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	// JSONファイルが変更されていないことを確認
+	// YAMLファイルが変更されていないことを確認
 	updatedInput, err := ReadPostInputFromFile(tmpFile)
 	if err != nil {
-		t.Fatalf("failed to read JSON: %v", err)
+		t.Fatalf("failed to read YAML: %v", err)
 	}
 
 	// create_newはfalseのまま
@@ -172,31 +164,27 @@ func TestExecutePost_UpdateDoesNotChangeJSON(t *testing.T) {
 	}
 }
 
-// TestExecutePost_CreateFailureDoesNotChangeJSON tests that JSON file is not modified when post creation fails
-func TestExecutePost_CreateFailureDoesNotChangeJSON(t *testing.T) {
+// TestExecutePost_CreateFailureDoesNotChangeYAML tests that YAML file is not modified when post creation fails
+func TestExecutePost_CreateFailureDoesNotChangeYAML(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.json")
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
-	// 新規作成用のJSONファイルを作成（create_new: true）
-	inputJSON := `{
-		"create_new": true,
-		"name": "Test Post",
-		"category": "Claude Code/開発日誌/2026/01/28",
-		"body": {
-			"background": "Test background",
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test task",
-					"status": "not_started",
-					"summary": ["Task summary"],
-					"description": "Task description"
-				}
-			]
-		}
-	}`
+	// 新規作成用のYAMLファイルを作成（create_new: true）
+	inputYAML := `create_new: true
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
 
-	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -209,16 +197,16 @@ func TestExecutePost_CreateFailureDoesNotChangeJSON(t *testing.T) {
 
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
-	// ExecutePost実行（失敗するのでJSONは変更されないはず）
+	// ExecutePost実行（失敗するのでYAMLは変更されないはず）
 	err := executePostWithClient(tmpFile, allowedCategories, mockClient)
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
 
-	// JSONファイルが変更されていないことを確認
+	// YAMLファイルが変更されていないことを確認
 	updatedInput, err := ReadPostInputFromFile(tmpFile)
 	if err != nil {
-		t.Fatalf("failed to read JSON: %v", err)
+		t.Fatalf("failed to read YAML: %v", err)
 	}
 
 	// create_newはtrueのまま
@@ -232,34 +220,32 @@ func TestExecutePost_CreateFailureDoesNotChangeJSON(t *testing.T) {
 	}
 }
 
-// TestExecutePost_EmbeddsJSONInMarkdown tests that GenerateMarkdownWithJSON correctly embeds JSON
-func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
+// TestExecutePost_EmbeddsYAMLInMarkdown tests that GenerateMarkdownWithYAML correctly embeds YAML
+func TestExecutePost_EmbeddsYAMLInMarkdown(t *testing.T) {
 	tmpDir := t.TempDir()
-	tmpFile := filepath.Join(tmpDir, "test.json")
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
 
 	postNumber := 123
-	// 更新用のJSONファイルを作成（post_number: 123）
-	inputJSON := `{
-		"post_number": 123,
-		"name": "Test Post",
-		"category": "Claude Code/開発日誌/2026/01/28",
-		"body": {
-			"background": "Test background",
-			"related_links": ["https://example.com"],
-			"instructions": ["Instruction 1"],
-			"tasks": [
-				{
-					"id": "task-1",
-					"title": "Task 1: Test task",
-					"status": "not_started",
-					"summary": ["Task summary"],
-					"description": "Task description"
-				}
-			]
-		}
-	}`
+	// 更新用のYAMLファイルを作成（post_number: 123）
+	inputYAML := `post_number: 123
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  related_links:
+    - https://example.com
+  instructions:
+    - Instruction 1
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
 
-	if err := os.WriteFile(tmpFile, []byte(inputJSON), 0644); err != nil {
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -293,7 +279,7 @@ func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
 		t.Fatal("body_md was not captured")
 	}
 
-	// 1. 先頭が<!-- esa-guard-jsonで始まっていること
+	// 1. 先頭が<!-- esa-guard-yamlで始まっていること
 	if len(capturedBodyMD) < len(Sentinel) {
 		t.Fatalf("body_md too short: %d bytes", len(capturedBodyMD))
 	}
@@ -301,13 +287,13 @@ func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
 		t.Errorf("body_md does not start with sentinel, got: %s", capturedBodyMD[:50])
 	}
 
-	// 2. 埋め込まれたJSONを抽出してパース可能なこと
-	extracted, err := ExtractEmbeddedJSON(capturedBodyMD)
+	// 2. 埋め込まれたYAMLを抽出してパース可能なこと
+	extracted, err := ExtractEmbeddedYAML(capturedBodyMD)
 	if err != nil {
-		t.Fatalf("failed to extract embedded JSON: %v", err)
+		t.Fatalf("failed to extract embedded YAML: %v", err)
 	}
 
-	// 3. 抽出したJSONが元のPostInputと一致すること
+	// 3. 抽出したYAMLが元のPostInputと一致すること
 	if extracted.PostNumber == nil || *extracted.PostNumber != postNumber {
 		t.Errorf("expected post_number %d, got %v", postNumber, extracted.PostNumber)
 	}
@@ -328,9 +314,67 @@ func TestExecutePost_EmbeddsJSONInMarkdown(t *testing.T) {
 	}
 
 	// 4. Markdownセクションが含まれていること
-	// ExtractEmbeddedJSONが成功している時点でフォーマットは正しいので、
+	// ExtractEmbeddedYAMLが成功している時点でフォーマットは正しいので、
 	// 十分な長さがあることだけ確認
 	if len(capturedBodyMD) < 100 {
 		t.Errorf("body_md seems too short, expected markdown sections")
+	}
+}
+
+// TestUpdateYAMLAfterCreate_Roundtrip tests that yaml.Marshal output can be re-parsed
+func TestUpdateYAMLAfterCreate_Roundtrip(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
+
+	// Create initial YAML with create_new: true
+	initialYAML := `create_new: true
+name: Initial Post
+category: LLM/Tasks/2026/01/30
+body:
+  background: Initial background
+  tasks:
+    - id: task-1
+      title: "Task 1: Initial task"
+      status: not_started
+      summary:
+        - Initial summary
+      description: Initial description
+`
+
+	if err := os.WriteFile(tmpFile, []byte(initialYAML), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Simulate post creation by updating the YAML file
+	postNumber := 789
+	err := updateYAMLAfterCreate(tmpFile, postNumber)
+	if err != nil {
+		t.Fatalf("updateYAMLAfterCreate() error = %v", err)
+	}
+
+	// Re-read the updated YAML file
+	updated, err := ReadPostInputFromFile(tmpFile)
+	if err != nil {
+		t.Fatalf("Failed to re-read updated YAML: %v", err)
+	}
+
+	// Verify the updates were applied
+	if updated.CreateNew {
+		t.Error("Expected create_new to be false after update")
+	}
+	if updated.PostNumber == nil || *updated.PostNumber != postNumber {
+		t.Errorf("Expected post_number %d, got: %v", postNumber, updated.PostNumber)
+	}
+	if updated.Name != "Initial Post" {
+		t.Errorf("Expected name preserved, got: %s", updated.Name)
+	}
+	if updated.Category != "LLM/Tasks/2026/01/30" {
+		t.Errorf("Expected category preserved, got: %s", updated.Category)
+	}
+	if updated.Body.Background != "Initial background" {
+		t.Errorf("Expected background preserved, got: %s", updated.Body.Background)
+	}
+	if len(updated.Body.Tasks) != 1 {
+		t.Errorf("Expected 1 task preserved, got: %d", len(updated.Body.Tasks))
 	}
 }

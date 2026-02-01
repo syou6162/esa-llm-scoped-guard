@@ -1,7 +1,6 @@
 package guard
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -9,31 +8,27 @@ import (
 	"strings"
 
 	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
+	"gopkg.in/yaml.v3"
 )
 
 // ExecutePost はesa.io記事の作成/更新を実行します
-func ExecutePost(jsonPath string, teamName string, allowedCategories []string, accessToken string) error {
+func ExecutePost(yamlPath string, teamName string, allowedCategories []string, accessToken string) error {
 	client := esa.NewEsaClient(teamName, accessToken)
-	return executePostWithClient(jsonPath, allowedCategories, client)
+	return executePostWithClient(yamlPath, allowedCategories, client)
 }
 
 // executePostWithClient はesa.io記事の作成/更新を実行します（テスト可能なバージョン）
-func executePostWithClient(jsonPath string, allowedCategories []string, client esa.EsaClientInterface) error {
-	// 1. JSONファイルの読み込みとバリデーション
-	input, err := ReadPostInputFromFile(jsonPath)
+func executePostWithClient(yamlPath string, allowedCategories []string, client esa.EsaClientInterface) error {
+	// 1. YAMLファイルの読み込みとバリデーション
+	input, err := ReadPostInputFromFile(yamlPath)
 	if err != nil {
-		return fmt.Errorf("failed to read JSON file: %w", err)
+		return fmt.Errorf("failed to read YAML file: %w", err)
 	}
 
-	// フィールドのトリミング（スキーマバリデーション前）
+	// フィールドのトリミング
 	TrimPostInput(input)
 
-	// JSONスキーマバリデーション
-	if err := ValidatePostInputSchema(input); err != nil {
-		return fmt.Errorf("schema validation failed: %w", err)
-	}
-
-	// 詳細なバリデーション実行
+	// バリデーション実行
 	if err := ValidatePostInput(input); err != nil {
 		return fmt.Errorf("validation failed: %w", err)
 	}
@@ -61,13 +56,13 @@ func executePostWithClient(jsonPath string, allowedCategories []string, client e
 			return err
 		}
 
-		// 新規作成成功時にJSONファイルを自動更新
-		if err := updateJSONAfterCreate(jsonPath, postNumber); err != nil {
+		// 新規作成成功時にYAMLファイルを自動更新
+		if err := updateYAMLAfterCreate(yamlPath, postNumber); err != nil {
 			// 警告を出すが、投稿自体は成功しているのでエラーにしない
-			fmt.Fprintf(os.Stderr, "Warning: failed to update JSON file: %v\n", err)
-			fmt.Fprintf(os.Stderr, "You may need to manually update the JSON file to use diff/update commands.\n")
+			fmt.Fprintf(os.Stderr, "Warning: failed to update YAML file: %v\n", err)
+			fmt.Fprintf(os.Stderr, "You may need to manually update the YAML file to use diff/update commands.\n")
 		} else {
-			fmt.Printf("JSON file updated: create_new removed, post_number set to %d\n", postNumber)
+			fmt.Printf("YAML file updated: create_new removed, post_number set to %d\n", postNumber)
 		}
 	} else {
 		err = updatePost(client, input, allowedCategories, repoName)
@@ -91,10 +86,10 @@ func updatePost(client esa.EsaClientInterface, input *PostInput, allowedCategori
 	// 既存のタグを保持し、現在のリポジトリ名がなければ追加
 	tags := MergeTags(existingPost.Tags, repoName)
 
-	// BodyからマークダウンGenerate（JSON埋め込み）
-	bodyMD, err := GenerateMarkdownWithJSON(input)
+	// BodyからマークダウンGenerate（YAML埋め込み）
+	bodyMD, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
-		return fmt.Errorf("failed to generate markdown with JSON: %w", err)
+		return fmt.Errorf("failed to generate markdown with YAML: %w", err)
 	}
 
 	esaInput := &esa.PostInput{
@@ -121,10 +116,11 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 		tags = []string{repoName}
 	}
 
-	// BodyからマークダウンGenerate（JSON埋め込み）
-	bodyMD, err := GenerateMarkdownWithJSON(input)
+	// BodyからマークダウンGenerate（YAML埋め込み）
+	// 注: この時点ではpost_numberは未設定
+	bodyMD, err := GenerateMarkdownWithYAML(input)
 	if err != nil {
-		return 0, fmt.Errorf("failed to generate markdown with JSON: %w", err)
+		return 0, fmt.Errorf("failed to generate markdown with YAML: %w", err)
 	}
 
 	esaInput := &esa.PostInput{
@@ -140,19 +136,60 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 		return 0, fmt.Errorf("failed to create post: %w", err)
 	}
 	fmt.Printf("Created post: %s (Number: %d)\n", post.URL, post.Number)
+
+	// 新規作成後、post_numberを含むYAMLを埋め込むために記事を自動更新
+	// これによりfetchコマンドが即座に使用可能になる
+	input.PostNumber = &post.Number
+	input.CreateNew = false
+
+	bodyMDWithPostNumber, err := GenerateMarkdownWithYAML(input)
+	if err != nil {
+		// Fail-closed: post_number埋め込み失敗はエラーとして扱う
+		return 0, fmt.Errorf("post created at %s (Number: %d) but failed to embed post_number: %w", post.URL, post.Number, err)
+	}
+
+	updateInput := &esa.PostInput{
+		Name:     input.Name,
+		Category: input.Category,
+		Tags:     tags,
+		BodyMD:   bodyMDWithPostNumber,
+		WIP:      false,
+	}
+
+	_, err = client.UpdatePost(post.Number, updateInput)
+	if err != nil {
+		// Fail-closed: post_number埋め込み失敗はエラーとして扱う
+		return 0, fmt.Errorf("post created at %s (Number: %d) but failed to update with post_number: %w", post.URL, post.Number, err)
+	}
+
 	return post.Number, nil
 }
 
-// updateJSONAfterCreate は新規作成成功後にJSONファイルを更新します
-func updateJSONAfterCreate(jsonPath string, postNumber int) error {
-	// 元のファイルのパーミッションを取得
-	fileInfo, err := os.Stat(jsonPath)
+// updateYAMLAfterCreate は新規作成成功後にYAMLファイルを更新します
+func updateYAMLAfterCreate(yamlPath string, postNumber int) error {
+	// シンボリックリンクを解決（ReadPostInputFromFileと同じ処理）
+	absPath, err := filepath.Abs(yamlPath)
 	if err != nil {
-		return fmt.Errorf("failed to stat JSON file: %w", err)
+		return fmt.Errorf("failed to resolve path: %w", err)
+	}
+	realPath, err := filepath.EvalSymlinks(absPath)
+	if err != nil {
+		return fmt.Errorf("failed to resolve symlink: %w", err)
 	}
 
-	// JSONファイルを読み込み
-	input, err := ReadPostInputFromFile(jsonPath)
+	// 元のファイルのパーミッションとタイプを取得
+	fileInfo, err := os.Stat(realPath)
+	if err != nil {
+		return fmt.Errorf("failed to stat YAML file: %w", err)
+	}
+
+	// レギュラーファイルかどうかを確認（セキュリティ強化）
+	if !fileInfo.Mode().IsRegular() {
+		return fmt.Errorf("YAML file is not a regular file: %s", realPath)
+	}
+
+	// YAMLファイルを読み込み
+	input, err := ReadPostInputFromFile(yamlPath)
 	if err != nil {
 		return err
 	}
@@ -161,15 +198,20 @@ func updateJSONAfterCreate(jsonPath string, postNumber int) error {
 	input.CreateNew = false
 	input.PostNumber = &postNumber
 
-	// JSONに変換
-	data, err := json.MarshalIndent(input, "", "  ")
+	// YAMLに変換
+	data, err := yaml.Marshal(input)
 	if err != nil {
-		return fmt.Errorf("failed to marshal JSON: %w", err)
+		return fmt.Errorf("failed to marshal YAML: %w", err)
+	}
+
+	// サイズチェック（10MB上限）
+	if len(data) > MaxInputSize {
+		return fmt.Errorf("updated YAML size exceeds %d bytes (got %d bytes)", MaxInputSize, len(data))
 	}
 
 	// 一時ファイルに書き込み（原子的更新のため）
-	// 同一ディレクトリにユニークな一時ファイルを作成
-	dir := filepath.Dir(jsonPath)
+	// 実体パスと同一ディレクトリにユニークな一時ファイルを作成
+	dir := filepath.Dir(realPath)
 	tmpFile, err := os.CreateTemp(dir, ".esa-guard-*.tmp")
 	if err != nil {
 		return fmt.Errorf("failed to create temp file: %w", err)
@@ -197,8 +239,8 @@ func updateJSONAfterCreate(jsonPath string, postNumber int) error {
 		return fmt.Errorf("failed to close temp file: %w", err)
 	}
 
-	// 原子的にリネーム
-	if err := os.Rename(tmpPath, jsonPath); err != nil {
+	// 原子的にリネーム（実体パスに書き込む）
+	if err := os.Rename(tmpPath, realPath); err != nil {
 		return fmt.Errorf("failed to rename temp file: %w", err)
 	}
 

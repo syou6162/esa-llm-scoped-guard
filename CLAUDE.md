@@ -91,14 +91,14 @@ if len(data) > 10*1024*1024 {
 
 esa.ioへ投稿する前に、以下のワークフローを推奨します：
 
-1. **validate**: JSONの妥当性を検証
+1. **validate**: YAMLの妥当性を検証
    ```bash
-   esa-llm-scoped-guard validate -json ./tasks/123.json
+   esa-llm-scoped-guard validate -yaml ./tasks/123.yaml
    ```
 
 2. **preview**: 生成されるMarkdownを確認
    ```bash
-   esa-llm-scoped-guard preview -json ./tasks/123.json
+   esa-llm-scoped-guard preview -yaml ./tasks/123.yaml
    ```
    - 意図しないHTMLタグ（`<details>`や`<summary>`など）が含まれていないか確認
    - Markdown構造が正しいか確認
@@ -106,10 +106,10 @@ esa.ioへ投稿する前に、以下のワークフローを推奨します：
 3. **diff**: 新規作成前や既存記事の更新時は差分を確認
    ```bash
    # 新規作成前に全体を確認（全行が + で表示される）
-   esa-llm-scoped-guard diff -json ./tasks/new-task.json
+   esa-llm-scoped-guard diff -yaml ./tasks/new-task.yaml
 
    # 既存記事との差分を確認
-   esa-llm-scoped-guard diff -json ./tasks/update-task.json
+   esa-llm-scoped-guard diff -yaml ./tasks/update-task.yaml
    ```
    - 意図した変更になっているか検証
    - 不要な変更が含まれていないか確認
@@ -117,8 +117,45 @@ esa.ioへ投稿する前に、以下のワークフローを推奨します：
 
 4. **post**: 最終確認後に投稿
    ```bash
-   esa-llm-scoped-guard post -json ./tasks/123.json
+   esa-llm-scoped-guard post -yaml ./tasks/123.yaml
    ```
+
+### YAML入力形式の注意事項
+
+**フォーマット制限**:
+- YAMLブロックスタイルのみ使用可能
+- `{key: value}` や `[item1, item2]` のようなフロースタイルは使用不可
+- 例外: 空のコレクション（`[]`, `{}`）のみフロースタイルを許可
+
+**YAML入力例**（複数行文字列を含む）:
+```yaml
+create_new: true
+name: "タスク: データ分析の実装"
+category: LLM/Tasks/2026/01/28
+body:
+  background: |
+    このタスクではデータ分析機能を実装します。
+    複数行の背景説明を記述できます。
+  related_links:
+    - https://github.com/owner/repo/issues/123
+  instructions:
+    - t_wada式のTDDを実践する
+    - 小まめにコミットする
+  tasks:
+    - id: task-1
+      title: "Task 1: 設計書作成"
+      status: not_started
+      summary:
+        - 設計書のドラフトを作成
+        - レビューを依頼
+      description: |
+        設計書を作成する。
+        以下の項目を含める:
+        - 概要
+        - アーキテクチャ
+        - API仕様
+      depends_on: []
+```
 
 ## トラブルシューティング
 
@@ -144,5 +181,5 @@ Codex MCPに相談して、セキュリティ専門家の視点でレビュー�
 - `.claude_work/plans/*.md`: 実装計画書
 - `internal/guard/guard.go`: カテゴリ権限チェックのコアロジック
 - `internal/guard/validator.go`: 入力バリデーション
-- `internal/guard/input.go`: JSON読み込みロジック
+- `internal/guard/input.go`: YAML読み込みロジック
 - `config.go`: 設定ファイル読み込み
