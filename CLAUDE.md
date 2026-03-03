@@ -117,7 +117,7 @@ esa.ioへ投稿する前に、以下のワークフローを推奨します：
 
 4. **post**: 最終確認後に投稿
    ```bash
-   esa-llm-scoped-guard post -yaml ./tasks/123.yaml -message "変更の意図を説明するメッセージ"
+   esa-llm-scoped-guard post -yaml ./tasks/123.yaml -message "タスク１の状態をcompletedに更新する"
    ```
    - `-message`は必須（最低20文字以上）。Webhookで差分が通知される際に変更の意図がわかるようにする
 

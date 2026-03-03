@@ -127,7 +127,7 @@ Examples:
   esa-llm-scoped-guard preview -yaml ./tasks/123.yaml                           # Preview markdown
   esa-llm-scoped-guard diff -yaml ./tasks/123.yaml                              # Show diff with existing
   esa-llm-scoped-guard fetch -post 3221                                         # Fetch embedded YAML from post
-  esa-llm-scoped-guard post -yaml ./tasks/123.yaml -message "タスク状態を更新"  # Post to esa.io
+  esa-llm-scoped-guard post -yaml ./tasks/123.yaml -message "タスク１の状態をcompletedに更新する"  # Post to esa.io
 `
 
 func main() {
