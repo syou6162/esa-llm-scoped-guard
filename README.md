@@ -251,7 +251,7 @@ esa-llm-scoped-guard diff -yaml ./tasks/update-task.yaml
 
 #### post: esa.ioへ投稿
 
-`-message`フラグは必須です。変更の意図を表すメッセージを指定してください。このメッセージはWebhook通知に含まれます。
+`-message`フラグは必須です。変更の意図を表すメッセージを指定してください。このメッセージはWebhook通知に含まれます。**最低20文字以上**が必要です。
 
 ```bash
 # 新規作成

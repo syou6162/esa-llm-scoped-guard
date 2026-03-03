@@ -26,7 +26,7 @@ Options:
   -yaml string
         Path to YAML file containing post data
   -message string
-        Commit message describing the change (required for post command)
+        Commit message describing the change (required for post command, min 20 characters)
   -help
         Show help message for the command
 
