@@ -251,12 +251,14 @@ esa-llm-scoped-guard diff -yaml ./tasks/update-task.yaml
 
 #### post: esa.ioへ投稿
 
+`-message`フラグは必須です。変更の意図を表すメッセージを指定してください。このメッセージはWebhook通知に含まれます。**最低20文字以上**が必要です。
+
 ```bash
 # 新規作成
-esa-llm-scoped-guard post -yaml ./tasks/new-task.yaml
+esa-llm-scoped-guard post -yaml ./tasks/new-task.yaml -message "開発日誌を新規作成しました（データ分析タスク）"
 
 # 更新（post_numberを指定）
-esa-llm-scoped-guard post -yaml ./tasks/update-task.yaml
+esa-llm-scoped-guard post -yaml ./tasks/update-task.yaml -message "タスク１の状態をcompletedに更新する"
 ```
 
 #### fetch: 記事の取得

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/syou6162/esa-llm-scoped-guard/internal/guard"
 )
@@ -24,6 +25,8 @@ Commands:
 Options:
   -yaml string
         Path to YAML file containing post data
+  -message string
+        Commit message describing the change (required for post command, min 20 characters)
   -help
         Show help message for the command
 
@@ -120,11 +123,11 @@ Configuration:
   ~/.config/esa-llm-scoped-guard/config.yaml
 
 Examples:
-  esa-llm-scoped-guard validate -yaml ./tasks/123.yaml # Validate YAML
-  esa-llm-scoped-guard preview -yaml ./tasks/123.yaml  # Preview markdown
-  esa-llm-scoped-guard diff -yaml ./tasks/123.yaml     # Show diff with existing
-  esa-llm-scoped-guard fetch -post 3221                # Fetch embedded YAML from post
-  esa-llm-scoped-guard post -yaml ./tasks/123.yaml     # Post to esa.io
+  esa-llm-scoped-guard validate -yaml ./tasks/123.yaml                          # Validate YAML
+  esa-llm-scoped-guard preview -yaml ./tasks/123.yaml                           # Preview markdown
+  esa-llm-scoped-guard diff -yaml ./tasks/123.yaml                              # Show diff with existing
+  esa-llm-scoped-guard fetch -post 3221                                         # Fetch embedded YAML from post
+  esa-llm-scoped-guard post -yaml ./tasks/123.yaml -message "タスク１の状態をcompletedに更新する"  # Post to esa.io
 `
 
 func main() {
@@ -158,8 +161,10 @@ func runPost(args []string) {
 	fs := flag.NewFlagSet("post", flag.ExitOnError)
 	fs.Usage = func() { fmt.Fprint(os.Stderr, usage) }
 	var yamlPath string
+	var message string
 	var showHelp bool
 	fs.StringVar(&yamlPath, "yaml", "", "Path to YAML file containing post data")
+	fs.StringVar(&message, "message", "", "Commit message describing the change (required)")
 	fs.BoolVar(&showHelp, "help", false, "Show help message")
 	fs.Parse(args)
 
@@ -173,7 +178,13 @@ func runPost(args []string) {
 		os.Exit(1)
 	}
 
-	if err := execPost(yamlPath); err != nil {
+	if strings.TrimSpace(message) == "" {
+		fmt.Fprintf(os.Stderr, "Error: -message is required\n")
+		fmt.Fprint(os.Stderr, usage)
+		os.Exit(1)
+	}
+
+	if err := execPost(yamlPath, message); err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		os.Exit(1)
 	}
@@ -315,7 +326,7 @@ func runFetch(args []string) {
 	}
 }
 
-func execPost(yamlPath string) error {
+func execPost(yamlPath string, message string) error {
 	// 1. 設定ファイルの読み込み
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -333,5 +344,5 @@ func execPost(yamlPath string) error {
 		return fmt.Errorf("ESA_ACCESS_TOKEN environment variable is not set")
 	}
 
-	return guard.ExecutePost(yamlPath, config.Esa.TeamName, config.AllowedCategories, accessToken)
+	return guard.ExecutePost(yamlPath, config.Esa.TeamName, config.AllowedCategories, accessToken, message)
 }

@@ -12,6 +12,12 @@ const (
 	// while maintaining DoS protection.
 	MaxYAMLSize = 10 * 1024 * 1024
 
+	// MinMessageLength is the minimum character count (rune) for post message
+	MinMessageLength = 20
+
+	// MaxMessageSize is the maximum size for post message (10KB)
+	MaxMessageSize = 10 * 1024
+
 	// Sentinel is the opening tag for embedded YAML in Markdown
 	Sentinel = "<!-- esa-guard-yaml\n"
 
