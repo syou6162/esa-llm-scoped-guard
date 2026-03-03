@@ -12,13 +12,21 @@ import (
 )
 
 // ExecutePost はesa.io記事の作成/更新を実行します
-func ExecutePost(yamlPath string, teamName string, allowedCategories []string, accessToken string) error {
+func ExecutePost(yamlPath string, teamName string, allowedCategories []string, accessToken string, message string) error {
 	client := esa.NewEsaClient(teamName, accessToken)
-	return executePostWithClient(yamlPath, allowedCategories, client)
+	return executePostWithClient(yamlPath, allowedCategories, client, message)
 }
 
 // executePostWithClient はesa.io記事の作成/更新を実行します（テスト可能なバージョン）
-func executePostWithClient(yamlPath string, allowedCategories []string, client esa.EsaClientInterface) error {
+func executePostWithClient(yamlPath string, allowedCategories []string, client esa.EsaClientInterface, message string) error {
+	// 0. messageのバリデーション
+	if strings.TrimSpace(message) == "" {
+		return fmt.Errorf("message is required and must not be empty or whitespace-only")
+	}
+	if len(message) > MaxMessageSize {
+		return fmt.Errorf("message size exceeds %d bytes (got %d bytes)", MaxMessageSize, len(message))
+	}
+
 	// 1. YAMLファイルの読み込みとバリデーション
 	input, err := ReadPostInputFromFile(yamlPath)
 	if err != nil {
@@ -51,7 +59,7 @@ func executePostWithClient(yamlPath string, allowedCategories []string, client e
 	// 4. esa.io APIクライアントで投稿
 	var postNumber int
 	if input.CreateNew {
-		postNumber, err = createPost(client, input, repoName)
+		postNumber, err = createPost(client, input, repoName, message)
 		if err != nil {
 			return err
 		}
@@ -65,13 +73,13 @@ func executePostWithClient(yamlPath string, allowedCategories []string, client e
 			fmt.Printf("YAML file updated: create_new removed, post_number set to %d\n", postNumber)
 		}
 	} else {
-		err = updatePost(client, input, allowedCategories, repoName)
+		err = updatePost(client, input, allowedCategories, repoName, message)
 	}
 	return err
 }
 
 // updatePost は既存記事を更新します
-func updatePost(client esa.EsaClientInterface, input *PostInput, allowedCategories []string, repoName string) error {
+func updatePost(client esa.EsaClientInterface, input *PostInput, allowedCategories []string, repoName string, message string) error {
 	// 既存記事のカテゴリを検証
 	existingPost, err := client.GetPost(*input.PostNumber)
 	if err != nil {
@@ -98,6 +106,7 @@ func updatePost(client esa.EsaClientInterface, input *PostInput, allowedCategori
 		Tags:     tags,
 		BodyMD:   bodyMD,
 		WIP:      false, // 常にShip It!
+		Message:  message,
 	}
 
 	post, err := client.UpdatePost(*input.PostNumber, esaInput)
@@ -109,7 +118,7 @@ func updatePost(client esa.EsaClientInterface, input *PostInput, allowedCategori
 }
 
 // createPost は新規記事を作成します
-func createPost(client esa.EsaClientInterface, input *PostInput, repoName string) (int, error) {
+func createPost(client esa.EsaClientInterface, input *PostInput, repoName string, message string) (int, error) {
 	// 現在のリポジトリ名のみをタグに設定
 	var tags []string
 	if repoName != "" {
@@ -129,6 +138,7 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 		Tags:     tags,
 		BodyMD:   bodyMD,
 		WIP:      false, // 常にShip It!
+		Message:  message,
 	}
 
 	post, err := client.CreatePost(esaInput)
@@ -154,6 +164,7 @@ func createPost(client esa.EsaClientInterface, input *PostInput, repoName string
 		Tags:     tags,
 		BodyMD:   bodyMDWithPostNumber,
 		WIP:      false,
+		Message:  message,
 	}
 
 	_, err = client.UpdatePost(post.Number, updateInput)

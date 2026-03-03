@@ -75,7 +75,7 @@ body:
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
 	// ExecutePost実行（内部でYAML更新が行われるはず）
-	err := executePostWithClient(tmpFile, allowedCategories, mockClient)
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用メッセージ")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -140,7 +140,7 @@ body:
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
 	// ExecutePost実行（更新なのでYAMLは変更されないはず）
-	err := executePostWithClient(tmpFile, allowedCategories, mockClient)
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用メッセージ")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -198,7 +198,7 @@ body:
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
 	// ExecutePost実行（失敗するのでYAMLは変更されないはず）
-	err := executePostWithClient(tmpFile, allowedCategories, mockClient)
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用メッセージ")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -269,7 +269,7 @@ body:
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
 	// ExecutePost実行
-	err := executePostWithClient(tmpFile, allowedCategories, mockClient)
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用メッセージ")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -318,6 +318,218 @@ body:
 	// 十分な長さがあることだけ確認
 	if len(capturedBodyMD) < 100 {
 		t.Errorf("body_md seems too short, expected markdown sections")
+	}
+}
+
+// TestExecutePost_EmptyMessageReturnsError tests that empty message returns an error
+func TestExecutePost_EmptyMessageReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
+
+	inputYAML := `post_number: 123
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
+
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	mockClient := &mockEsaClientForExecute{}
+	allowedCategories := []string{"Claude Code/開発日誌"}
+
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "")
+	if err == nil {
+		t.Fatal("expected error for empty message, got nil")
+	}
+}
+
+// TestExecutePost_WhitespaceOnlyMessageReturnsError tests that whitespace-only message returns an error
+func TestExecutePost_WhitespaceOnlyMessageReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
+
+	inputYAML := `post_number: 123
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
+
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	mockClient := &mockEsaClientForExecute{}
+	allowedCategories := []string{"Claude Code/開発日誌"}
+
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "   ")
+	if err == nil {
+		t.Fatal("expected error for whitespace-only message, got nil")
+	}
+}
+
+// TestExecutePost_MessageTooLongReturnsError tests that a message exceeding 10KB returns an error
+func TestExecutePost_MessageTooLongReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
+
+	inputYAML := `post_number: 123
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
+
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	mockClient := &mockEsaClientForExecute{}
+	allowedCategories := []string{"Claude Code/開発日誌"}
+
+	// 10KBを超えるメッセージ（10,241バイト）
+	longMessage := string(make([]byte, MaxMessageSize+1))
+
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, longMessage)
+	if err == nil {
+		t.Fatal("expected error for too-long message, got nil")
+	}
+}
+
+// TestExecutePost_CreateWithMessage tests that message is set on both CreatePost and UpdatePost during creation
+func TestExecutePost_CreateWithMessage(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
+
+	inputYAML := `create_new: true
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
+
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	var capturedCreateMessage string
+	var capturedUpdateMessages []string
+
+	mockClient := &mockEsaClientForExecute{
+		createPostFunc: func(input *esa.PostInput) (*esa.Post, error) {
+			capturedCreateMessage = input.Message
+			return &esa.Post{Number: 999, URL: "https://example.esa.io/posts/999"}, nil
+		},
+		updatePostFunc: func(number int, input *esa.PostInput) (*esa.Post, error) {
+			capturedUpdateMessages = append(capturedUpdateMessages, input.Message)
+			return &esa.Post{Number: number, URL: "https://example.esa.io/posts/999"}, nil
+		},
+	}
+
+	allowedCategories := []string{"Claude Code/開発日誌"}
+	testMessage := "タスク状態を更新"
+
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, testMessage)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	// CreatePostにmessageが設定されていること
+	if capturedCreateMessage != testMessage {
+		t.Errorf("expected CreatePost message %q, got %q", testMessage, capturedCreateMessage)
+	}
+
+	// UpdatePost（post_number埋め込み用）にもmessageが設定されていること
+	if len(capturedUpdateMessages) == 0 {
+		t.Fatal("expected UpdatePost to be called at least once")
+	}
+	for i, msg := range capturedUpdateMessages {
+		if msg != testMessage {
+			t.Errorf("expected UpdatePost[%d] message %q, got %q", i, testMessage, msg)
+		}
+	}
+}
+
+// TestExecutePost_UpdateWithMessage tests that message is set on UpdatePost during update
+func TestExecutePost_UpdateWithMessage(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
+
+	inputYAML := `post_number: 123
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
+
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	var capturedMessage string
+
+	mockClient := &mockEsaClientForExecute{
+		getPostFunc: func(number int) (*esa.Post, error) {
+			return &esa.Post{
+				Number:   123,
+				Category: "Claude Code/開発日誌/2026/01/28",
+				Tags:     []string{},
+			}, nil
+		},
+		updatePostFunc: func(number int, input *esa.PostInput) (*esa.Post, error) {
+			capturedMessage = input.Message
+			return &esa.Post{Number: 123, URL: "https://example.esa.io/posts/123"}, nil
+		},
+	}
+
+	allowedCategories := []string{"Claude Code/開発日誌"}
+	testMessage := "開発日誌を更新"
+
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, testMessage)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if capturedMessage != testMessage {
+		t.Errorf("expected UpdatePost message %q, got %q", testMessage, capturedMessage)
 	}
 }
 
