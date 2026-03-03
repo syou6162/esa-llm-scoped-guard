@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
 	"gopkg.in/yaml.v3"
@@ -22,6 +23,9 @@ func executePostWithClient(yamlPath string, allowedCategories []string, client e
 	// 0. messageのバリデーション
 	if strings.TrimSpace(message) == "" {
 		return fmt.Errorf("message is required and must not be empty or whitespace-only")
+	}
+	if utf8.RuneCountInString(message) < MinMessageLength {
+		return fmt.Errorf("message is too short: must be at least %d characters (got %d)", MinMessageLength, utf8.RuneCountInString(message))
 	}
 	if len(message) > MaxMessageSize {
 		return fmt.Errorf("message size exceeds %d bytes (got %d bytes)", MaxMessageSize, len(message))
