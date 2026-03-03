@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/syou6162/esa-llm-scoped-guard/internal/esa"
@@ -75,7 +76,7 @@ body:
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
 	// ExecutePost実行（内部でYAML更新が行われるはず）
-	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用メッセージ")
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用の変更メッセージ（二十文字以上）")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -140,7 +141,7 @@ body:
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
 	// ExecutePost実行（更新なのでYAMLは変更されないはず）
-	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用メッセージ")
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用の変更メッセージ（二十文字以上）")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -198,7 +199,7 @@ body:
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
 	// ExecutePost実行（失敗するのでYAMLは変更されないはず）
-	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用メッセージ")
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用の変更メッセージ（二十文字以上）")
 	if err == nil {
 		t.Fatal("expected error, got nil")
 	}
@@ -269,7 +270,7 @@ body:
 	allowedCategories := []string{"Claude Code/開発日誌"}
 
 	// ExecutePost実行
-	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用メッセージ")
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, "テスト用の変更メッセージ（二十文字以上）")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -420,6 +421,87 @@ body:
 	}
 }
 
+// TestExecutePost_MessageTooShortReturnsError tests that a message shorter than MinMessageLength returns an error
+func TestExecutePost_MessageTooShortReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
+
+	inputYAML := `post_number: 123
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
+
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	mockClient := &mockEsaClientForExecute{}
+	allowedCategories := []string{"Claude Code/開発日誌"}
+
+	// MinMessageLength - 1 = 19文字のメッセージ
+	shortMessage := strings.Repeat("あ", MinMessageLength-1)
+
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, shortMessage)
+	if err == nil {
+		t.Fatal("expected error for too-short message, got nil")
+	}
+}
+
+// TestExecutePost_MessageExactMinLengthSucceeds tests that a message with exactly MinMessageLength characters succeeds
+func TestExecutePost_MessageExactMinLengthSucceeds(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
+
+	inputYAML := `post_number: 123
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
+
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	mockClient := &mockEsaClientForExecute{
+		getPostFunc: func(number int) (*esa.Post, error) {
+			return &esa.Post{
+				Number:   123,
+				Category: "Claude Code/開発日誌/2026/01/28",
+				Tags:     []string{},
+			}, nil
+		},
+		updatePostFunc: func(number int, input *esa.PostInput) (*esa.Post, error) {
+			return &esa.Post{Number: number, URL: "https://example.esa.io/posts/123"}, nil
+		},
+	}
+	allowedCategories := []string{"Claude Code/開発日誌"}
+
+	// ちょうど MinMessageLength 文字のメッセージ
+	exactMessage := strings.Repeat("あ", MinMessageLength)
+
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, exactMessage)
+	if err != nil {
+		t.Fatalf("expected no error for message with exactly %d characters, got %v", MinMessageLength, err)
+	}
+}
+
 // TestExecutePost_CreateWithMessage tests that message is set on both CreatePost and UpdatePost during creation
 func TestExecutePost_CreateWithMessage(t *testing.T) {
 	tmpDir := t.TempDir()
@@ -458,7 +540,7 @@ body:
 	}
 
 	allowedCategories := []string{"Claude Code/開発日誌"}
-	testMessage := "タスク状態を更新"
+	testMessage := "タスク１の状態をcompletedに更新する"
 
 	err := executePostWithClient(tmpFile, allowedCategories, mockClient, testMessage)
 	if err != nil {
@@ -521,7 +603,7 @@ body:
 	}
 
 	allowedCategories := []string{"Claude Code/開発日誌"}
-	testMessage := "開発日誌を更新"
+	testMessage := "開発日誌のタスク状態を完了に更新しました"
 
 	err := executePostWithClient(tmpFile, allowedCategories, mockClient, testMessage)
 	if err != nil {
