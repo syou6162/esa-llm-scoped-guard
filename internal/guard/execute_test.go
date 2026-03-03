@@ -456,6 +456,41 @@ body:
 	}
 }
 
+// TestExecutePost_MessagePaddedWithSpacesReturnsError tests that padding with spaces cannot bypass the minimum length check
+func TestExecutePost_MessagePaddedWithSpacesReturnsError(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "test.yaml")
+
+	inputYAML := `post_number: 123
+name: Test Post
+category: Claude Code/開発日誌/2026/01/28
+body:
+  background: Test background
+  tasks:
+    - id: task-1
+      title: "Task 1: Test task"
+      status: not_started
+      summary:
+        - Task summary
+      description: Task description
+`
+
+	if err := os.WriteFile(tmpFile, []byte(inputYAML), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	mockClient := &mockEsaClientForExecute{}
+	allowedCategories := []string{"Claude Code/開発日誌"}
+
+	// 実質2文字 + 18個の空白でMinMessageLength(20)文字を満たそうとするケース
+	paddedMessage := "ok" + strings.Repeat(" ", 18)
+
+	err := executePostWithClient(tmpFile, allowedCategories, mockClient, paddedMessage)
+	if err == nil {
+		t.Fatal("expected error for space-padded short message, got nil")
+	}
+}
+
 // TestExecutePost_MessageExactMinLengthSucceeds tests that a message with exactly MinMessageLength characters succeeds
 func TestExecutePost_MessageExactMinLengthSucceeds(t *testing.T) {
 	tmpDir := t.TempDir()
