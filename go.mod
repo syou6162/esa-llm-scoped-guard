@@ -4,4 +4,4 @@ go 1.23
 
 require gopkg.in/yaml.v3 v3.0.1
 
-require github.com/sergi/go-diff v1.4.0
+require github.com/sergi/go-diff v1.4.5
